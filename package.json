@@ -16,7 +16,7 @@
     "format": "prettier --ignore-unknown --write .",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "prepare": "husky",
+    "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky; fi",
     "gen-maps": "cd map-generator && go run . && npm run format"
   },
   "lint-staged": {
