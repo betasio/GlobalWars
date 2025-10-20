@@ -9,7 +9,7 @@
     "close": "Luk"
   },
   "main": {
-    "title": "OpenFront (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Deltag i vores Discord!",
     "login_discord": "Log ind med Discord",
     "checking_login": "Tjekker login...",
@@ -581,7 +581,7 @@
       "hand": "Hånd",
       "radiation": "Stråling",
       "openfront_qr": "OpenFront.io QR kode",
-      "openfront": "OpenFront",
+      "openfront": "GlobalWars",
       "t_rex": "T-Rex",
       "embelem": "Emblem",
       "contributor": "Bidragyder",

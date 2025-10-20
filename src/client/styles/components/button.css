@@ -1,44 +1,64 @@
 .c-button {
-  background: var(--primaryColor);
+  background: linear-gradient(145deg, var(--primary-color), #0056b3);
   color: #fff;
   cursor: pointer;
   outline: none;
   display: inline-block;
-  font-size: 16px;
-  border: 1px solid transparent;
+  font-size: 18px;
+  font-weight: 600;
+  border: none;
   text-align: center;
-  padding: 0.8rem 1rem;
-  border-radius: 8px;
-  transition: var(--transition);
-
-  @media (min-width: 1024px) {
-    font-size: 18px;
-  }
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .c-button:hover,
 .c-button:active,
 .c-button:focus {
-  background: var(--primaryColorHover);
-  transition: var(--transition);
+  background: linear-gradient(145deg, #0056b3, var(--primary-color));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+}
+
+.c-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
 }
 
 .c-button:disabled {
-  background: var(--primaryColorDisabled);
-  opacity: 0.7;
+  background: var(--dark-color);
+  opacity: 0.5;
   cursor: not-allowed;
-  transition: var(--transition);
+  transform: none;
+  box-shadow: none;
 }
 
 .c-button--secondary {
-  background: var(--secondaryColor);
-  color: var(--fontColor);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: none;
 }
 
 .c-button--secondary:hover,
 .c-button--secondary:active,
 .c-button--secondary:focus {
-  background: var(--secondaryColorHover);
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: none;
+}
+
+.c-button--secondary:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.3);
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .c-button--block {
@@ -54,31 +74,4 @@
     width: auto;
     margin: 0 auto;
   }
-}
-
-.dark .c-button {
-  background: var(--primaryColorDark);
-  color: var(--fontColorLight);
-}
-
-.dark .c-button:hover,
-.dark .c-button:active,
-.dark .c-button:focus {
-  background: var(--primaryColorHoverDark);
-}
-
-.dark .c-button:disabled {
-  background: var(--primaryColorDisabledDark);
-  opacity: 0.7;
-}
-
-.dark .c-button--secondary {
-  background: var(--secondaryColorDark);
-  color: var(--fontColorDark);
-}
-
-.dark .c-button--secondary:hover,
-.dark .c-button--secondary:active,
-.dark .c-button--secondary:focus {
-  background: var(--secondaryColorHoverDark);
 }

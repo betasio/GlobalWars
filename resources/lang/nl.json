@@ -9,7 +9,7 @@
     "close": "Sluiten"
   },
   "main": {
-    "title": "OpenFront (ALFA)",
+    "title": "GlobalWars",
     "join_discord": "Word lid van de Discord!",
     "login_discord": "Login met Discord",
     "checking_login": "Inlog controleren...",
@@ -570,7 +570,7 @@
       "hand": "Hand",
       "radiation": "Straling",
       "openfront_qr": "OpenFront.io QR-code",
-      "openfront": "OpenFront",
+      "openfront": "GlobalWars",
       "t_rex": "T-Rex",
       "embelem": "Embleem",
       "grogu_head": "Grogu-hoofd",

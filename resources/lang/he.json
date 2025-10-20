@@ -9,7 +9,7 @@
     "close": "סגור"
   },
   "main": {
-    "title": "OpenFront (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "הצטרף לשרת הדיסקורד!",
     "login_discord": "התחבר עם דיסקורד",
     "checking_login": "בודק התחברות...",
@@ -532,7 +532,7 @@
       "hand": "יד",
       "radiation": "קרינה",
       "openfront_qr": "קוד QR של OpenFront.io",
-      "openfront": "OpenFront",
+      "openfront": "GlobalWars",
       "t_rex": "טי-רקס",
       "embelem": "סמל",
       "grogu_head": "ראש גרוגו",

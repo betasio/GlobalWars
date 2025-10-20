@@ -20,7 +20,7 @@
     "none": "None"
   },
   "main": {
-    "title": "OpenFront (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Join the Discord!",
     "login_discord": "Login with Discord",
     "checking_login": "Checking login...",
@@ -499,7 +499,7 @@
     "not_enough_money": "Not enough money"
   },
   "win_modal": {
-    "support_openfront": "Support OpenFront!",
+    "support_openfront": "Support GlobalWars!",
     "territory_pattern": "Purchase a territory skin to go ad-free!",
     "died": "You died",
     "your_team": "Your team won!",
@@ -691,7 +691,7 @@
       "hand": "Hand",
       "radiation": "Radiation",
       "openfront_qr": "OpenFront.io QR code",
-      "openfront": "OpenFront",
+      "openfront": "GlobalWars",
       "t_rex": "T-Rex",
       "embelem": "Emblem",
       "contributor": "Contributor",

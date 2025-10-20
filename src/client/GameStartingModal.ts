@@ -95,7 +95,7 @@ export class GameStartingModal extends LitElement {
   render() {
     return html`
       <div class="modal ${this.isVisible ? "visible" : ""}">
-        <div class="copyright">© OpenFront</div>
+        <div class="copyright">© GlobalWars</div>
         <h5>${translateText("game_starting_modal.code_license")}</h5>
         <p>${translateText("game_starting_modal.title")}</p>
       </div>

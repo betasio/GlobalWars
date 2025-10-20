@@ -9,7 +9,7 @@
     "close": "Затвори"
   },
   "main": {
-    "title": "OpenFront (АЛФА)",
+    "title": "GlobalWars",
     "join_discord": "Влез в Discord!",
     "login_discord": "Влез с Discord",
     "checking_login": "Проверяване на входа...",
@@ -461,8 +461,8 @@
     "not_enough_money": "Няма достатъчно пари"
   },
   "win_modal": {
-    "support_openfront": "Подкрепи OpenFront!",
-    "territory_pattern": "Купи териториален шаблон, за да подкрепиш OpenFront!",
+    "support_openfront": "Подкрепи GlobalWars!",
+    "territory_pattern": "Купи териториален шаблон, за да подкрепиш GlobalWars!",
     "died": "Ти умря",
     "your_team": "Твоят отбор спечели!",
     "other_team": "{team} отбор спечели!",

@@ -18,7 +18,9 @@ export class OModal extends LitElement {
       bottom: 0;
       right: 0;
       top: 0;
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
       overflow-y: auto;
       display: flex;
       align-items: center;
@@ -26,9 +28,14 @@ export class OModal extends LitElement {
     }
 
     .c-modal__wrapper {
-      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       min-width: 340px;
       max-width: 860px;
+      color: #fff;
+      overflow: hidden;
     }
 
     .c-modal__wrapper.always-maximized {
@@ -44,30 +51,55 @@ export class OModal extends LitElement {
 
     .c-modal__header {
       position: relative;
-      border-top-left-radius: 4px;
-      border-top-right-radius: 4px;
-      font-size: 18px;
-      background: #000000a1;
+      font-size: 24px;
+      font-weight: 600;
+      background: rgba(0, 0, 0, 0.2);
       text-align: center;
-      color: #fff;
-      padding: 1rem 2.4rem 1rem 1.4rem;
+      padding: 1.5rem;
     }
 
     .c-modal__close {
       cursor: pointer;
       position: absolute;
-      right: 1rem;
-      top: 1rem;
+      right: 1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s ease;
+    }
+
+    .c-modal__close:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .c-modal__close::before,
+    .c-modal__close::after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 2px;
+      background-color: #fff;
+    }
+
+    .c-modal__close::before {
+      transform: rotate(45deg);
+    }
+
+    .c-modal__close::after {
+      transform: rotate(-45deg);
     }
 
     .c-modal__content {
-      background: #23232382;
       position: relative;
-      color: #fff;
-      padding: 1.4rem;
-      max-height: 60dvh;
+      padding: 2rem;
+      max-height: 70vh;
       overflow-y: auto;
-      backdrop-filter: blur(8px);
     }
   `;
   public open() {
@@ -88,15 +120,17 @@ export class OModal extends LitElement {
             <aside class="c-modal" @click=${this.close}>
               <div
                 @click=${(e: Event) => e.stopPropagation()}
-                class="c-modal__wrapper ${this.alwaysMaximized
-                  ? "always-maximized"
-                  : ""}"
+                class="c-modal__wrapper ${
+                  this.alwaysMaximized ? "always-maximized" : ""
+                }"
               >
                 <header class="c-modal__header">
-                  ${`${this.translationKey}` === ""
-                    ? `${this.title}`
-                    : `${translateText(this.translationKey)}`}
-                  <div class="c-modal__close" @click=${this.close}>✕</div>
+                  ${
+                    `${this.translationKey}` === ""
+                      ? `${this.title}`
+                      : `${translateText(this.translationKey)}`
+                  }
+                  <div class.c-modal__close" @click=${this.close}></div>
                 </header>
                 <section class="c-modal__content">
                   <slot></slot>
