@@ -135,9 +135,9 @@ export async function startMaster() {
     );
   });
 
-  const PORT = 3000;
-  server.listen(PORT, () => {
-    log.info(`Master HTTP server listening on port ${PORT}`);
+  const PORT = Number(process.env.PORT ?? 3000);
+  server.listen(PORT, "0.0.0.0", () => {
+    log.info(`✅ Master HTTP server listening on port ${PORT}`);
   });
 }
 
