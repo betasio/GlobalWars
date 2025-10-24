@@ -114,6 +114,26 @@ describe("GameServer ranked mode", () => {
     expect(server.gameConfig.gameMode).toBe(GameMode.FFA);
   });
 
+  it("reports the ranked queue deadline as msUntilStart", () => {
+    jest.useFakeTimers();
+    const startTime = new Date("2025-01-01T00:00:00Z");
+    jest.setSystemTime(startTime);
+
+    const server = createRankedServer();
+
+    const info = server.gameInfo();
+    expect(info.msUntilStart).toBe(
+      startTime.getTime() + RANKED_TURN_TIMERS.queueSeconds * 1000,
+    );
+
+    const advanceMs = 15_000;
+    jest.setSystemTime(startTime.getTime() + advanceMs);
+    const updated = server.gameInfo();
+    expect(updated.msUntilStart).toBe(
+      startTime.getTime() + RANKED_TURN_TIMERS.queueSeconds * 1000,
+    );
+  });
+
   it("restricts configuration updates to the ranked preset", () => {
     const server = createRankedServer({ gameMap: GameMapType.World });
 
