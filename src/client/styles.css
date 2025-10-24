@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@500&display=swap");
 @import url("./styles/core/flag-animation.css");
 @import url("./styles/core/variables.css");
 @import url("./styles/core/typography.css");
@@ -14,33 +15,169 @@
 @import url("./styles/components/controls.css");
 
 :root {
-  --primary-color: #007bff;
-  --secondary-color: #6c757d;
-  --success-color: #28a745;
-  --danger-color: #dc3545;
-  --warning-color: #ffc107;
-  --info-color: #17a2b8;
-  --light-color: #f8f9fa;
-  --dark-color: #343a40;
+  --primary-color: #2ab6ff;
+  --primary-color-dark: #0b213f;
+  --secondary-color: #112236;
+  --accent-color: #ff6b91;
+  --success-color: #53d58d;
+  --danger-color: #ff5b6e;
+  --warning-color: #f0b545;
+  --info-color: #5cc9ff;
+  --light-color: #f4f8ff;
+  --dark-color: #050c18;
+  --glass-border: rgba(118, 198, 255, 0.35);
+  --glass-highlight: rgba(42, 182, 255, 0.18);
 }
 
 body {
-  background: linear-gradient(to right, #000428, #004e92);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #030b18 0%, #051c35 48%, #0b335c 100%);
+  font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--light-color);
 }
 
 .l-header {
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(
+    120deg,
+    rgba(5, 12, 26, 0.92),
+    rgba(7, 37, 67, 0.78)
+  );
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(118, 198, 255, 0.25);
+}
+
+.hero {
+  display: grid;
+  gap: 2.5rem;
+  padding: 2.5rem 5vw 2rem;
+  align-items: center;
+  justify-content: space-between;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.hero__branding {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 560px;
+}
+
+.hero__logo {
+  display: block;
+  max-width: 100%;
+}
+
+.hero__tagline {
+  font-size: clamp(1.125rem, 1.6vw, 1.5rem);
+  color: rgba(226, 241, 255, 0.92);
+  line-height: 1.6;
+  text-shadow: 0 8px 30px rgba(8, 24, 45, 0.7);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.hero__attribution {
+  font-size: 0.85rem;
+  color: rgba(170, 216, 255, 0.75);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.75rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.hero__action--primary {
+  background: linear-gradient(135deg, #2ab6ff, #61e6ff);
+  color: #041124;
+  box-shadow: 0 18px 45px rgba(42, 182, 255, 0.35);
+}
+
+.hero__action--secondary {
+  background: rgba(4, 20, 36, 0.7);
+  color: var(--light-color);
+  border-color: rgba(118, 198, 255, 0.4);
+}
+
+.hero__action:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 22px 40px rgba(42, 182, 255, 0.32);
+}
+
+.hero__visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero__visual::before {
+  content: "";
+  position: absolute;
+  inset: 10% 18%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(97, 230, 255, 0.35),
+    transparent 70%
+  );
+  filter: blur(20px);
+  z-index: 0;
+}
+
+.hero__visualImage {
+  position: relative;
+  z-index: 1;
+  border-radius: 24px;
+  width: min(100%, 520px);
+  box-shadow: 0 40px 80px rgba(5, 10, 24, 0.55);
+  border: 1px solid rgba(118, 198, 255, 0.22);
+}
+
+.hero__version {
+  font-family: "Roboto Mono", monospace;
+  color: rgba(161, 213, 255, 0.9);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 2rem 1.5rem 1.25rem;
+  }
+
+  .hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero__visual::before {
+    inset: 12% 16%;
+  }
 }
 
 .container {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(8, 30, 55, 0.56);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(3, 11, 24, 0.35);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-border);
 }
 
 * {
@@ -82,17 +219,20 @@ body {
   padding: 15px 20px;
   font-size: 16px;
   cursor: pointer;
-  background-color: var(--primary-color);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color), #61e6ff);
+  color: #041124;
   border: none;
-  border-radius: 8px;
-  transition: background-color 0.3s;
+  border-radius: 9999px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   display: inline-block;
   margin: 0 0 20px 0;
 }
 
 .start-game-button:not(:disabled):hover {
-  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 18px 35px rgba(42, 182, 255, 0.35);
 }
 
 .start-game-button:disabled {
@@ -125,8 +265,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  background: rgba(30, 30, 30, 0.95);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 26, 48, 0.85);
+  border: 1px solid rgba(118, 198, 255, 0.18);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
@@ -134,18 +274,18 @@ body {
 
 .option-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(40, 40, 40, 0.95);
+  border-color: rgba(118, 198, 255, 0.35);
+  background: rgba(12, 34, 62, 0.9);
 }
 
 .option-card.selected {
-  border-color: #4a9eff;
-  background: rgba(74, 158, 255, 0.1);
+  border-color: var(--primary-color);
+  background: rgba(42, 182, 255, 0.22);
 }
 
 .option-card-title {
   font-size: 14px;
-  color: #aaa;
+  color: rgba(211, 233, 255, 0.75);
   text-align: center;
   margin: 0 0 4px 0;
 }
@@ -153,10 +293,10 @@ body {
 .option-image {
   width: 100%;
   aspect-ratio: 4/2;
-  color: #aaa;
+  color: rgba(211, 233, 255, 0.6);
   transition: transform 0.2s ease-in-out;
   border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(118, 198, 255, 0.12);
   font-size: 14px;
   display: flex;
   align-items: center;
@@ -174,7 +314,7 @@ label.option-card:hover {
 .checkbox-icon {
   width: 16px;
   height: 16px;
-  border: 2px solid #aaa;
+  border: 2px solid rgba(211, 233, 255, 0.5);
   border-radius: 6px;
   margin: 4px;
   display: flex;
@@ -184,8 +324,8 @@ label.option-card:hover {
 }
 
 .option-card.selected .checkbox-icon {
-  border-color: #4a9eff;
-  background: #4a9eff;
+  border-color: var(--primary-color);
+  background: var(--primary-color);
 }
 
 .option-card.selected .checkbox-icon::after {

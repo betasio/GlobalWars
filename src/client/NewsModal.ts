@@ -48,21 +48,28 @@ export class NewsModal extends LitElement {
     }
 
     .news-content {
-      color: #ddd;
-      line-height: 1.5;
-      background: rgba(0, 0, 0, 0.6);
-      border-radius: 8px;
-      padding: 1rem;
+      color: rgba(221, 237, 255, 0.92);
+      line-height: 1.6;
+      background: rgba(7, 29, 54, 0.8);
+      border-radius: 12px;
+      border: 1px solid rgba(118, 198, 255, 0.24);
+      padding: 1.25rem;
+      box-shadow: 0 24px 45px rgba(3, 12, 25, 0.45);
     }
 
     .news-content a {
-      color: #4a9eff !important;
+      color: #61e6ff !important;
       text-decoration: underline !important;
-      transition: color 0.2s ease;
+      text-decoration-thickness: 2px !important;
+      text-underline-offset: 6px !important;
+      transition:
+        color 0.2s ease,
+        text-decoration-color 0.2s ease;
     }
 
     .news-content a:hover {
-      color: #6fb3ff !important;
+      color: #ff6b91 !important;
+      text-decoration-color: rgba(255, 107, 145, 0.8) !important;
     }
   `;
 
@@ -85,8 +92,9 @@ export class NewsModal extends LitElement {
         <div>
           ${translateText("news.see_all_releases")}
           <a
-            href="https://github.com/openfrontio/OpenFrontIO/releases"
+            href="https://github.com/globalwars-game/GlobalWars/releases"
             target="_blank"
+            rel="noreferrer"
             >${translateText("news.github_link")}</a
           >.
         </div>
@@ -110,12 +118,12 @@ export class NewsModal extends LitElement {
             .replace(
               /(?<!\()\bhttps:\/\/github\.com\/openfrontio\/OpenFrontIO\/pull\/(\d+)\b/g,
               (_match, prNumber) =>
-                `[#${prNumber}](https://github.com/openfrontio/OpenFrontIO/pull/${prNumber})`,
+                `[#${prNumber}](https://github.com/globalwars-game/GlobalWars/pull/${prNumber})`,
             )
             .replace(
               /(?<!\()\bhttps:\/\/github\.com\/openfrontio\/OpenFrontIO\/compare\/([\w.-]+)\b/g,
               (_match, comparison) =>
-                `[${comparison}](https://github.com/openfrontio/OpenFrontIO/compare/${comparison})`,
+                `[${comparison}](https://github.com/globalwars-game/GlobalWars/compare/${comparison})`,
             ),
         )
         .then((markdown) => (this.markdown = markdown));

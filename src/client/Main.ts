@@ -116,13 +116,13 @@ class Client {
 
     const newsModal = document.querySelector("news-modal") as NewsModal;
     if (!newsModal || !(newsModal instanceof NewsModal)) {
-      console.warn("News modal element not found");
+      console.warn("[GlobalWars] News modal element not found");
     }
     const newsButton = document.querySelector("news-button") as NewsButton;
     if (!newsButton) {
-      console.warn("News button element not found");
+      console.warn("[GlobalWars] News button element not found");
     } else {
-      console.log("News button element found");
+      console.log("GlobalWars intel terminal ready");
     }
 
     // Comment out to show news button.
@@ -135,29 +135,29 @@ class Client {
       "language-modal",
     ) as LanguageModal;
     if (!langSelector) {
-      console.warn("Lang selector element not found");
+      console.warn("[GlobalWars] Language selector element not found");
     }
     if (!languageModal) {
-      console.warn("Language modal element not found");
+      console.warn("[GlobalWars] Language modal element not found");
     }
 
     this.flagInput = document.querySelector("flag-input") as FlagInput;
     if (!this.flagInput) {
-      console.warn("Flag input element not found");
+      console.warn("[GlobalWars] Flag input element not found");
     }
 
     this.darkModeButton = document.querySelector(
       "dark-mode-button",
     ) as DarkModeButton;
     if (!this.darkModeButton) {
-      console.warn("Dark mode button element not found");
+      console.warn("[GlobalWars] Dark mode button element not found");
     }
 
     this.usernameInput = document.querySelector(
       "username-input",
     ) as UsernameInput;
     if (!this.usernameInput) {
-      console.warn("Username input element not found");
+      console.warn("[GlobalWars] Username input element not found");
     }
 
     this.publicLobby = document.querySelector("public-lobby") as PublicLobby;
@@ -182,7 +182,7 @@ class Client {
       "single-player-modal",
     ) as SinglePlayerModal;
     if (!spModal || !(spModal instanceof SinglePlayerModal)) {
-      console.warn("Singleplayer modal element not found");
+      console.warn("[GlobalWars] Singleplayer modal element not found");
     }
 
     const singlePlayer = document.getElementById("single-player");
@@ -195,7 +195,7 @@ class Client {
 
     const hlpModal = document.querySelector("help-modal") as HelpModal;
     if (!hlpModal || !(hlpModal instanceof HelpModal)) {
-      console.warn("Help modal element not found");
+      console.warn("[GlobalWars] Help modal element not found");
     }
     const helpButton = document.getElementById("help-button");
     if (helpButton === null) throw new Error("Missing help-button");
@@ -207,7 +207,7 @@ class Client {
       "flag-input-modal",
     ) as FlagInputModal;
     if (!flagInputModal || !(flagInputModal instanceof FlagInputModal)) {
-      console.warn("Flag input modal element not found");
+      console.warn("[GlobalWars] Flag input modal element not found");
     }
 
     const flgInput = document.getElementById("flag-input_");
@@ -223,7 +223,7 @@ class Client {
       !this.patternsModal ||
       !(this.patternsModal instanceof TerritoryPatternsModal)
     ) {
-      console.warn("Territory patterns modal element not found");
+      console.warn("[GlobalWars] Territory patterns modal element not found");
     }
     const patternButton = document.getElementById(
       "territory-patterns-input-preview-button",
@@ -236,7 +236,7 @@ class Client {
       !this.patternsModal ||
       !(this.patternsModal instanceof TerritoryPatternsModal)
     ) {
-      console.warn("Territory patterns modal element not found");
+      console.warn("[GlobalWars] Territory patterns modal element not found");
     }
     if (patternButton === null)
       throw new Error("territory-patterns-input-preview-button");
@@ -253,7 +253,7 @@ class Client {
       !this.tokenLoginModal ||
       !(this.tokenLoginModal instanceof TokenLoginModal)
     ) {
-      console.warn("Token login modal element not found");
+      console.warn("[GlobalWars] Token login modal element not found");
     }
 
     const onUserMe = async (userMeResponse: UserMeResponse | false) => {
@@ -289,15 +289,22 @@ class Client {
                 text-align: center;
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
               ">
-                <p style="margin-bottom: 1em;">${translateText("auth.login_required")}</p>
-                <p style="margin-bottom: 1.5em;">${translateText("auth.redirecting")}</p>
+                <p style="margin-bottom: 1em; text-transform: uppercase; letter-spacing: 0.08em;">
+                  GlobalWars Command Access Required
+                </p>
+                <p style="margin-bottom: 1.5em; color: rgba(170, 216, 255, 0.9);">
+                  ${translateText("auth.login_required")}
+                </p>
+                <p style="margin-bottom: 1.5em; color: rgba(170, 216, 255, 0.9);">
+                  ${translateText("auth.redirecting")}
+                </p>
                 <div style="width: 100%; height: 8px; background-color: #444; border-radius: 4px; overflow: hidden;">
                   <div style="
                     height: 100%;
                     width: 0%;
-                    background-color: #4caf50;
-                    animation: fillBar 5s linear forwards;
-                  "></div>
+                    background: linear-gradient(135deg, #2ab6ff, #61e6ff);
+                  animation: fillBar 5s linear forwards;
+                "></div>
                 </div>
               </div>
             </div>
@@ -332,8 +339,15 @@ class Client {
                 text-align: center;
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
               ">
-                <p style="margin-bottom: 1em;">${translateText("auth.not_authorized")}</p>
-                <p>${translateText("auth.contact_admin")}</p>
+                <p style="margin-bottom: 1em; text-transform: uppercase; letter-spacing: 0.08em;">
+                  GlobalWars High Command
+                </p>
+                <p style="margin-bottom: 1em; color: rgba(170, 216, 255, 0.9);">
+                  ${translateText("auth.not_authorized")}
+                </p>
+                <p style="color: rgba(170, 216, 255, 0.9);">
+                  ${translateText("auth.contact_admin")}
+                </p>
               </div>
             </div>
             <div class="bg-image"></div>
@@ -346,8 +360,8 @@ class Client {
       } else {
         // Authorized
         console.log(
-          `Your player ID is ${userMeResponse.player.publicId}\n` +
-            "Sharing this ID will allow others to view your game history and stats.",
+          `GlobalWars roster ID: ${userMeResponse.player.publicId}\n` +
+            "Share only with commanders you trust—this link grants access to your battle record.",
         );
         this.patternsModal.onUserMe(userMeResponse);
         const flares = (userMeResponse.player.flares ?? []).filter((flare) =>
