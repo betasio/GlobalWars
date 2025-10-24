@@ -14,6 +14,12 @@ import {
   UnitType,
   mapCategories,
 } from "../core/game/Game";
+import {
+  RANKED_FOG_RULE,
+  RANKED_MAP_POOL,
+  RANKED_TURN_TIMERS,
+  pickRankedMap,
+} from "../core/game/GamePresets";
 import { UserSettings } from "../core/game/UserSettings";
 import { TeamCountConfig } from "../core/Schemas";
 import { generateID } from "../core/Util";
@@ -45,6 +51,7 @@ export class SinglePlayerModal extends LitElement {
   @state() private gameMode: GameMode = GameMode.FFA;
   @state() private teamCount: TeamCountConfig = 2;
 
+  @state() private useRankedPreset: boolean = false;
   @state() private disabledUnits: UnitType[] = [];
 
   private userSettings: UserSettings = new UserSettings();
@@ -184,6 +191,36 @@ export class SinglePlayerModal extends LitElement {
             </div>
           </div>
 
+          <div class="options-section">
+            <div class="option-title">Ranked Preset</div>
+            <div class="option-cards">
+              <div
+                class="option-card ${this.useRankedPreset ? "selected" : ""}"
+                @click=${this.handleRankedPresetToggle}
+              >
+                <div class="option-card-title">Competitive Rules</div>
+                <p class="text-xs text-gray-300 text-center">
+                  Queue ${RANKED_TURN_TIMERS.queueSeconds}s · Turn
+                  ${RANKED_TURN_TIMERS.turnSeconds}s · Fog ${RANKED_FOG_RULE}
+                </p>
+              </div>
+            </div>
+            ${this.useRankedPreset
+              ? html`<div
+                  class="mt-2 text-xs text-gray-300 text-center flex flex-wrap justify-center gap-2"
+                >
+                  ${RANKED_MAP_POOL.map(
+                    (map) =>
+                      html`<span class="bg-white/10 px-2 py-[2px] rounded">
+                        ${translateText(
+                          `map.${map.toLowerCase().replace(/\s+/g, "")}`,
+                        )}
+                      </span>`,
+                  )}
+                </div>`
+              : null}
+          </div>
+
           ${this.gameMode === GameMode.FFA
             ? ""
             : html`
@@ -229,6 +266,7 @@ export class SinglePlayerModal extends LitElement {
                   @input=${this.handleBotsChange}
                   @change=${this.handleBotsChange}
                   .value="${String(this.bots)}"
+                  ?disabled=${this.useRankedPreset}
                 />
                 <div class="option-card-title">
                   <span>${translateText("single_modal.bots")}</span>${this
@@ -248,6 +286,7 @@ export class SinglePlayerModal extends LitElement {
                   id="singleplayer-modal-disable-npcs"
                   @change=${this.handleDisableNPCsChange}
                   .checked=${this.disableNPCs}
+                  ?disabled=${this.useRankedPreset}
                 />
                 <div class="option-card-title">
                   ${translateText("single_modal.disable_nations")}
@@ -263,6 +302,7 @@ export class SinglePlayerModal extends LitElement {
                   id="singleplayer-modal-instant-build"
                   @change=${this.handleInstantBuildChange}
                   .checked=${this.instantBuild}
+                  ?disabled=${this.useRankedPreset}
                 />
                 <div class="option-card-title">
                   ${translateText("single_modal.instant_build")}
@@ -279,6 +319,7 @@ export class SinglePlayerModal extends LitElement {
                   id="singleplayer-modal-infinite-gold"
                   @change=${this.handleInfiniteGoldChange}
                   .checked=${this.infiniteGold}
+                  ?disabled=${this.useRankedPreset}
                 />
                 <div class="option-card-title">
                   ${translateText("single_modal.infinite_gold")}
@@ -295,6 +336,7 @@ export class SinglePlayerModal extends LitElement {
                   id="singleplayer-modal-infinite-troops"
                   @change=${this.handleInfiniteTroopsChange}
                   .checked=${this.infiniteTroops}
+                  ?disabled=${this.useRankedPreset}
                 />
                 <div class="option-card-title">
                   ${translateText("single_modal.infinite_troops")}
@@ -310,6 +352,7 @@ export class SinglePlayerModal extends LitElement {
                   id="singleplayer-modal-compact-map"
                   @change=${this.handleCompactMapChange}
                   .checked=${this.compactMap}
+                  ?disabled=${this.useRankedPreset}
                 />
                 <div class="option-card-title">
                   ${translateText("single_modal.compact_map")}
@@ -359,10 +402,18 @@ export class SinglePlayerModal extends LitElement {
   }
 
   private handleRandomMapToggle() {
+    if (this.useRankedPreset) {
+      this.selectedMap = pickRankedMap(RANKED_MAP_POOL);
+      this.useRandomMap = false;
+      return;
+    }
     this.useRandomMap = true;
   }
 
   private handleMapSelection(value: GameMapType) {
+    if (this.useRankedPreset && !RANKED_MAP_POOL.includes(value)) {
+      return;
+    }
     this.selectedMap = value;
     this.useRandomMap = false;
   }
@@ -372,6 +423,9 @@ export class SinglePlayerModal extends LitElement {
   }
 
   private handleBotsChange(e: Event) {
+    if (this.useRankedPreset) {
+      return;
+    }
     const value = parseInt((e.target as HTMLInputElement).value);
     if (isNaN(value) || value < 0 || value > 400) {
       return;
@@ -380,31 +434,69 @@ export class SinglePlayerModal extends LitElement {
   }
 
   private handleInstantBuildChange(e: Event) {
+    if (this.useRankedPreset) {
+      return;
+    }
     this.instantBuild = Boolean((e.target as HTMLInputElement).checked);
   }
 
   private handleInfiniteGoldChange(e: Event) {
+    if (this.useRankedPreset) {
+      return;
+    }
     this.infiniteGold = Boolean((e.target as HTMLInputElement).checked);
   }
 
   private handleInfiniteTroopsChange(e: Event) {
+    if (this.useRankedPreset) {
+      return;
+    }
     this.infiniteTroops = Boolean((e.target as HTMLInputElement).checked);
   }
 
   private handleCompactMapChange(e: Event) {
+    if (this.useRankedPreset) {
+      return;
+    }
     this.compactMap = Boolean((e.target as HTMLInputElement).checked);
   }
 
   private handleDisableNPCsChange(e: Event) {
+    if (this.useRankedPreset) {
+      return;
+    }
     this.disableNPCs = Boolean((e.target as HTMLInputElement).checked);
   }
 
   private handleGameModeSelection(value: GameMode) {
+    if (this.useRankedPreset) {
+      return;
+    }
     this.gameMode = value;
   }
 
   private handleTeamCountSelection(value: TeamCountConfig) {
     this.teamCount = value;
+  }
+
+  private handleRankedPresetToggle = () => {
+    this.useRankedPreset = !this.useRankedPreset;
+    if (this.useRankedPreset) {
+      this.applyRankedPresetDefaults();
+    }
+  };
+
+  private applyRankedPresetDefaults() {
+    this.selectedMap = pickRankedMap(RANKED_MAP_POOL);
+    this.useRandomMap = false;
+    this.disableNPCs = true;
+    this.bots = 0;
+    this.infiniteGold = false;
+    this.infiniteTroops = false;
+    this.instantBuild = false;
+    this.compactMap = false;
+    this.gameMode = GameMode.FFA;
+    this.teamCount = 2;
   }
 
   private getRandomMap(): GameMapType {
@@ -451,6 +543,17 @@ export class SinglePlayerModal extends LitElement {
 
     const selectedColor = this.userSettings.getSelectedColor();
 
+    const disableNPCs = this.useRankedPreset ? true : this.disableNPCs;
+    const bots = this.useRankedPreset ? 0 : this.bots;
+    const infiniteGold = this.useRankedPreset ? false : this.infiniteGold;
+    const infiniteTroops = this.useRankedPreset ? false : this.infiniteTroops;
+    const instantBuild = this.useRankedPreset ? false : this.instantBuild;
+    const donateGold = this.useRankedPreset ? false : true;
+    const donateTroops = this.useRankedPreset ? false : true;
+    const gameMode = this.useRankedPreset ? GameMode.FFA : this.gameMode;
+    const teamCount = this.useRankedPreset ? 2 : this.teamCount;
+    const compactMap = this.useRankedPreset ? false : this.compactMap;
+
     this.dispatchEvent(
       new CustomEvent("join-lobby", {
         detail: {
@@ -474,23 +577,30 @@ export class SinglePlayerModal extends LitElement {
             ],
             config: {
               gameMap: this.selectedMap,
-              gameMapSize: this.compactMap
+              gameMapSize: compactMap
                 ? GameMapSize.Compact
                 : GameMapSize.Normal,
               gameType: GameType.Singleplayer,
-              gameMode: this.gameMode,
-              playerTeams: this.teamCount,
+              gameMode,
+              playerTeams: teamCount,
               difficulty: this.selectedDifficulty,
-              disableNPCs: this.disableNPCs,
-              bots: this.bots,
-              infiniteGold: this.infiniteGold,
-              donateGold: true,
-              donateTroops: true,
-              infiniteTroops: this.infiniteTroops,
-              instantBuild: this.instantBuild,
+              disableNPCs,
+              bots,
+              infiniteGold,
+              donateGold,
+              donateTroops,
+              infiniteTroops,
+              instantBuild,
               disabledUnits: this.disabledUnits
                 .map((u) => Object.values(UnitType).find((ut) => ut === u))
                 .filter((ut): ut is UnitType => ut !== undefined),
+              ...(this.useRankedPreset
+                ? {
+                    mapPool: [...RANKED_MAP_POOL],
+                    turnTimers: { ...RANKED_TURN_TIMERS },
+                    fogRule: RANKED_FOG_RULE,
+                  }
+                : {}),
             },
           },
         } satisfies JoinLobbyEvent,
