@@ -103,6 +103,8 @@ class Client {
   private gutterAds: GutterAds | null = null;
   private gutterAdsLoader: Promise<GutterAds> | null = null;
 
+  private pendingJoin: { cancelled: boolean } | null = null;
+
   constructor() {}
 
   async initialize(): Promise<void> {
@@ -564,6 +566,8 @@ class Client {
 
   private async handleJoinLobby(event: CustomEvent<JoinLobbyEvent>) {
     const lobby = event.detail;
+    const pendingJoinToken = { cancelled: false };
+    this.pendingJoin = pendingJoinToken;
     console.log(`joining lobby ${lobby.gameID}`);
     if (this.gameStop !== null) {
       console.log("joining lobby, stopping existing game");
@@ -571,9 +575,21 @@ class Client {
     }
     const config = await getServerConfigFromClient();
 
+    if (pendingJoinToken.cancelled) {
+      console.log("join request cancelled before configuration resolved");
+      this.pendingJoin = null;
+      return;
+    }
+
     const pattern = this.userSettings.getSelectedPatternName(
       await fetchCosmetics(),
     );
+
+    if (pendingJoinToken.cancelled) {
+      console.log("join request cancelled before cosmetics resolved");
+      this.pendingJoin = null;
+      return;
+    }
 
     this.gameStop = joinLobby(
       this.eventBus,
@@ -662,17 +678,34 @@ class Client {
         history.pushState(null, "", `#join=${lobby.gameID}`);
       },
     );
+
+    this.pendingJoin = null;
   }
 
   private async handleLeaveLobby(/* event: CustomEvent */) {
-    if (this.gameStop === null) {
-      return;
+    if (this.pendingJoin) {
+      this.pendingJoin.cancelled = true;
+      this.pendingJoin = null;
     }
-    console.log("leaving lobby, cancelling game");
-    this.gameStop();
-    this.gameStop = null;
+
+    if (this.gameStop !== null) {
+      console.log("leaving lobby, cancelling game");
+      this.gameStop();
+      this.gameStop = null;
+    } else {
+      console.log("leaving lobby before connection completed");
+    }
+
     void this.hideGutterAds();
     this.publicLobby.leaveLobby();
+
+    if (window.location.hash.startsWith("#join=")) {
+      history.replaceState(
+        null,
+        "",
+        window.location.pathname + window.location.search,
+      );
+    }
   }
 
   private handleKickPlayer(event: CustomEvent) {
