@@ -132,62 +132,43 @@
     class="h-full select-none font-sans min-h-screen bg-opacity-0 bg-cover bg-center bg-fixed transition-opacity duration-300 ease-in-out flex flex-col"
   >
     <header class="l-header">
-      <div class="l-header__content">
-        <h1>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="1200"
-            height="100"
-            viewBox="0 0 1200 300"
-          >
-            <defs>
-              <style>
-                @import url("https://fonts.googleapis.com/css2?family=Audiowide&display=swap");
-                .logo {
-                  font-family: "Audiowide", sans-serif;
-                  font-size: 200px;
-                  fill: url(#metallic);
-                  stroke: #0b0f18;
-                  stroke-width: 5px;
-                  paint-order: stroke fill;
-                  letter-spacing: 4px;
-                }
-              </style>
-              <linearGradient id="metallic" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#eaf6ff" />
-                <stop offset="40%" stop-color="#b6c9e0" />
-                <stop offset="100%" stop-color="#ffffff" />
-              </linearGradient>
-              <filter
-                id="softGlow"
-                x="-50%"
-                y="-50%"
-                width="200%"
-                height="200%"
-              >
-                <feDropShadow
-                  dx="0"
-                  dy="0"
-                  stdDeviation="14"
-                  flood-color="#5ad0ff"
-                  flood-opacity="0.7"
-                />
-              </filter>
-            </defs>
-
-            <text
-              x="50%"
-              y="65%"
-              text-anchor="middle"
-              class="logo"
-              filter="url(#softGlow)"
+      <div class="hero">
+        <div class="hero__branding">
+          <picture class="hero__logo">
+            <source
+              srcset="../../resources/images/GlobalWarsLogoDark.svg"
+              media="(prefers-color-scheme: dark)"
+            />
+            <img
+              src="../../resources/images/GlobalWarsLogo.svg"
+              alt="GlobalWars Command Crest"
+              width="320"
+              height="110"
+              loading="eager"
+            />
+          </picture>
+          <p class="hero__tagline">
+            Lead planet-spanning campaigns, forge alliances, and deploy
+            super-weapons in the definitive GlobalWars arena.
+          </p>
+          <p class="hero__attribution">
+            Based on the OpenFront open-source project. Attribution retained
+            under AGPL requirements.
+          </p>
+          <div class="hero__actions">
+            <a class="hero__action hero__action--primary" href="#join">
+              Enter the War Room
+            </a>
+            <a
+              class="hero__action hero__action--secondary"
+              href="https://discord.gg/jRpxXvG42t"
+              target="_blank"
+              rel="noreferrer"
             >
-              GlobalWars
-            </text>
-          </svg>
-        </h1>
-        <div id="game-version" class="l-header__highlightText text-center">
-          Loading version...
+              Join Global Command
+            </a>
+          </div>
+          <div id="game-version" class="hero__version">Loading version...</div>
         </div>
       </div>
     </header>
