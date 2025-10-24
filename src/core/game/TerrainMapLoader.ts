@@ -78,42 +78,52 @@ export async function genTerrainFromBin(
 ): Promise<GameMap> {
   const expectedLength = mapData.width * mapData.height;
 
-  if (data.length === expectedLength + 12) {
-    const headerView = new DataView(
-      data.buffer,
-      data.byteOffset,
-      data.byteLength,
+  if (data.length < expectedLength) {
+    throw new Error(
+      `Invalid data: buffer size ${data.length} is too small for ${mapData.width}x${mapData.height} terrain.`,
     );
-    const headerWidth = headerView.getUint32(0, true);
-    const headerHeight = headerView.getUint32(4, true);
-    const headerLandTiles = headerView.getUint32(8, true);
+  }
 
-    if (headerWidth !== mapData.width || headerHeight !== mapData.height) {
-      throw new Error(
-        `Invalid data: embedded dimensions ${headerWidth}x${headerHeight} do not match manifest ${mapData.width}x${mapData.height}.`,
-      );
+  const extraBytes = data.length - expectedLength;
+  let headerView: DataView | null = null;
+  let offset = 0;
+  let numLandTiles = mapData.num_land_tiles;
+
+  if (extraBytes === 12 || extraBytes === 8 || extraBytes === 4) {
+    headerView = new DataView(data.buffer, data.byteOffset, extraBytes);
+
+    if (extraBytes >= 8) {
+      const headerWidth = headerView.getUint32(0, true);
+      const headerHeight = headerView.getUint32(4, true);
+
+      if (headerWidth !== mapData.width || headerHeight !== mapData.height) {
+        throw new Error(
+          `Invalid data: embedded dimensions ${headerWidth}x${headerHeight} do not match manifest ${mapData.width}x${mapData.height}.`,
+        );
+      }
     }
 
-    const terrainData = data.subarray(12);
-
-    return new GameMapImpl(
-      mapData.width,
-      mapData.height,
-      terrainData,
-      headerLandTiles,
-    );
-  }
-
-  if (data.length !== expectedLength) {
+    if (extraBytes === 12) {
+      numLandTiles = headerView.getUint32(8, true);
+      offset = 12;
+    } else if (extraBytes === 8) {
+      offset = 8;
+    } else {
+      numLandTiles = headerView.getUint32(0, true);
+      offset = 4;
+    }
+  } else if (extraBytes !== 0) {
     throw new Error(
-      `Invalid data: buffer size ${data.length} incorrect for ${mapData.width}x${mapData.height} terrain.`,
+      `Invalid data: buffer size ${data.length} incorrect for ${mapData.width}x${mapData.height} terrain with ${extraBytes} unexpected header bytes.`,
     );
   }
+
+  const terrainData = data.subarray(offset, offset + expectedLength);
 
   return new GameMapImpl(
     mapData.width,
     mapData.height,
-    data,
-    mapData.num_land_tiles,
+    terrainData,
+    numLandTiles,
   );
 }
