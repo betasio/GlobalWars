@@ -8,6 +8,10 @@
 
 [OpenFront.io](https://openfront.io/) is an online real-time strategy game focused on territorial control and alliance building. Players compete to expand their territory, build structures, and form strategic alliances in various maps based on real-world geography.
 
+> **GlobalWars Edition**
+>
+> This repository powers the **GlobalWars** themed experience of OpenFront. Gameplay code remains compatible with upstream, while the client assets, palette, and onboarding copy are customized to present GlobalWars branding and attribution. Review the [GlobalWars design notes](docs/globalwars.md) for asset credits and implementation details.
+
 This is a fork/rewrite of WarFront.io. Credit to https://github.com/WarFrontIO.
 
 ![CI](https://github.com/openfrontio/OpenFrontIO/actions/workflows/ci.yml/badge.svg)
