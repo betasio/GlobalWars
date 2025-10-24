@@ -76,9 +76,37 @@ export async function genTerrainFromBin(
   mapData: MapMetadata,
   data: Uint8Array,
 ): Promise<GameMap> {
-  if (data.length !== mapData.width * mapData.height) {
+  const expectedLength = mapData.width * mapData.height;
+
+  if (data.length === expectedLength + 12) {
+    const headerView = new DataView(
+      data.buffer,
+      data.byteOffset,
+      data.byteLength,
+    );
+    const headerWidth = headerView.getUint32(0, true);
+    const headerHeight = headerView.getUint32(4, true);
+    const headerLandTiles = headerView.getUint32(8, true);
+
+    if (headerWidth !== mapData.width || headerHeight !== mapData.height) {
+      throw new Error(
+        `Invalid data: embedded dimensions ${headerWidth}x${headerHeight} do not match manifest ${mapData.width}x${mapData.height}.`,
+      );
+    }
+
+    const terrainData = data.subarray(12);
+
+    return new GameMapImpl(
+      mapData.width,
+      mapData.height,
+      terrainData,
+      headerLandTiles,
+    );
+  }
+
+  if (data.length !== expectedLength) {
     throw new Error(
-      `Invalid data: buffer size ${data.length} incorrect for ${mapData.width}x${mapData.height} terrain plus 4 bytes for dimensions.`,
+      `Invalid data: buffer size ${data.length} incorrect for ${mapData.width}x${mapData.height} terrain.`,
     );
   }
 
