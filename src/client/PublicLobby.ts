@@ -261,6 +261,18 @@ export class PublicLobby extends LitElement {
   }
 
   private lobbyClicked(lobby: GameInfo) {
+    if (this.currLobby?.gameID === lobby.gameID) {
+      this.dispatchEvent(
+        new CustomEvent("leave-lobby", {
+          detail: { lobby: this.currLobby },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+      this.leaveLobby();
+      return;
+    }
+
     if (this.isButtonDebounced) {
       return;
     }
@@ -275,18 +287,6 @@ export class PublicLobby extends LitElement {
 
     if (this.currLobby === null) {
       this.joinLobbyInternal(lobby);
-      return;
-    }
-
-    if (this.currLobby.gameID === lobby.gameID) {
-      this.dispatchEvent(
-        new CustomEvent("leave-lobby", {
-          detail: { lobby: this.currLobby },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-      this.leaveLobby();
       return;
     }
 
