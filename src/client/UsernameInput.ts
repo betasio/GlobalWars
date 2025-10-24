@@ -43,7 +43,7 @@ export class UsernameInput extends LitElement {
         @change=${this.handleChange}
         placeholder="${translateText("username.enter_username")}"
         maxlength="${MAX_USERNAME_LENGTH}"
-        class="w-full px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-2xl text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:border-gray-300/60 dark:bg-gray-700 dark:text-white"
+        class="w-full px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-2xl text-center text-gray-900 bg-white/95 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:border-gray-300/60 dark:bg-gray-700 dark:text-white"
       />
       ${this.validationError
         ? html`<div
