@@ -87,6 +87,18 @@ To run just the client with hot reloading:
 npm run start:client
 ```
 
+### 🪟 Windows & Ubuntu workflows
+
+The project now ships platform-aware build and tunnel scripts so you can match your local environment:
+
+| Task                              | Windows                  | Ubuntu/WSL             | Notes                                                                   |
+| --------------------------------- | ------------------------ | ---------------------- | ----------------------------------------------------------------------- |
+| Production build                  | `npm run build:windows`  | `npm run build:linux`  | Sets a `PLATFORM` hint consumed by the server and webpack optimizations |
+| Launch Cloudflare tunnel + server | `npm run tunnel:windows` | `npm run tunnel:linux` | Runs a production build and starts the server with OS-specific defaults |
+
+> [!TIP]
+> When using WSL, run the Linux variants from the Linux shell. Native Windows terminals (PowerShell/CMD) should use the Windows commands to ensure the correct binary paths and environment hints are applied.
+
 ### Server Only
 
 To run just the server with development settings:
@@ -110,6 +122,38 @@ To connect to production api servers:
 ```bash
 npm run dev:prod
 ```
+
+## ☁️ Cloudflare tunnel configuration
+
+The server can provision and launch Cloudflare tunnels automatically. The behaviour is controlled via environment variables so the same code path works across Windows and Ubuntu deployments.
+
+| Variable                                    | Description                                                                                                                  |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `CF_TUNNEL_ENABLED` / `CF_TUNNEL_DISABLED`  | Explicitly enable or disable tunnel startup (`true/false`, `yes/no`, `1/0`).                                                 |
+| `CF_TUNNEL_PLATFORM`                        | Override the platform auto-detection (`win32`, `linux`, etc.). Defaults to `process.platform` or the `PLATFORM` script hint. |
+| `CF_TUNNEL_ROOT_PORT`                       | Local port exposed for the primary domain (default `80`).                                                                    |
+| `CF_TUNNEL_WORKER_PORT_BASE`                | Starting port for worker processes (default `3001`).                                                                         |
+| `CF_TUNNEL_SETUP_RETRIES`                   | Number of provisioning retries before failing (default `3`).                                                                 |
+| `CF_TUNNEL_SETUP_DELAY_MS`                  | Delay between provisioning retries in milliseconds (default `5000`).                                                         |
+| `CF_TUNNEL_RUNTIME_RETRIES`                 | Overrides the `cloudflared` runtime retry count (default `15`).                                                              |
+| `CF_TUNNEL_SKIP_PROVISION`                  | Skip API provisioning and reuse an existing local config (`true/false`).                                                     |
+| `CF_TUNNEL_BIN`                             | Path to a custom `cloudflared` binary (useful on Windows).                                                                   |
+| `CF_TUNNEL_LOGLEVEL` / `CF_TUNNEL_PROTOCOL` | Pass-through options for the spawned `cloudflared` process.                                                                  |
+| `CF_TUNNEL_EXTRA_ARGS`                      | Comma or space separated list of additional CLI arguments appended after `cloudflared tunnel run`.                           |
+
+To provision and launch a tunnel end-to-end on Windows:
+
+```powershell
+npm run tunnel:windows
+```
+
+On Ubuntu or WSL:
+
+```bash
+npm run tunnel:linux
+```
+
+Both commands perform a production build before starting the server so the tunnel points at the optimized client bundle.
 
 ## 🛠️ Development Tools
 
