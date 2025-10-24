@@ -57,10 +57,44 @@ export class WorkerClient {
   initialize(): Promise<void> {
     return new Promise((resolve, reject) => {
       const messageId = generateID();
+      let settled = false;
+
+      const fail = (error: unknown) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        this.messageHandlers.delete(messageId);
+        this.worker.removeEventListener("error", onWorkerError);
+        this.worker.removeEventListener("messageerror", onMessageError);
+        reject(
+          error instanceof Error
+            ? error
+            : new Error(String(error ?? "Worker initialization failed")),
+        );
+      };
+
+      const onWorkerError = (event: ErrorEvent) => {
+        fail(event.error ?? new Error(event.message));
+      };
+
+      const onMessageError = () => {
+        fail(new Error("Worker received an unserializable message"));
+      };
+
+      this.worker.addEventListener("error", onWorkerError);
+      this.worker.addEventListener("messageerror", onMessageError);
 
       this.messageHandlers.set(messageId, (message) => {
         if (message.type === "initialized") {
+          if (settled) {
+            return;
+          }
+          settled = true;
           this.isInitialized = true;
+          this.messageHandlers.delete(messageId);
+          this.worker.removeEventListener("error", onWorkerError);
+          this.worker.removeEventListener("messageerror", onMessageError);
           resolve();
         }
       });
@@ -75,8 +109,7 @@ export class WorkerClient {
       // Add timeout for initialization
       setTimeout(() => {
         if (!this.isInitialized) {
-          this.messageHandlers.delete(messageId);
-          reject(new Error("Worker initialization timeout"));
+          fail(new Error("Worker initialization timeout"));
         }
       }, 5000); // 5 second timeout
     });
