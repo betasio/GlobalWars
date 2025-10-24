@@ -20,6 +20,7 @@ export default async (env, argv) => {
     output: {
       publicPath: "/",
       filename: "js/[name].[contenthash].js", // Added content hash
+      chunkFilename: "js/[name].[contenthash].js",
       path: path.resolve(__dirname, "static"),
       clean: isProduction,
     },
@@ -160,7 +161,10 @@ export default async (env, argv) => {
     optimization: {
       // Add optimization configuration for better caching
       runtimeChunk: "single",
+      moduleIds: "deterministic",
+      chunkIds: "deterministic",
       splitChunks: {
+        chunks: "all",
         cacheGroups: {
           vendor: {
             test: /[\\/]node_modules[\\/]/,

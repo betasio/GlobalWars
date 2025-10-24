@@ -14,14 +14,13 @@ import "./FlagInput";
 import { FlagInput } from "./FlagInput";
 import { FlagInputModal } from "./FlagInputModal";
 import { GameStartingModal } from "./GameStartingModal";
-import "./GoogleAdElement";
-import { GutterAds } from "./GutterAds";
+import type { GutterAds } from "./GutterAds";
 import { HelpModal } from "./HelpModal";
 import { HostLobbyModal as HostPrivateLobbyModal } from "./HostLobbyModal";
 import { JoinPrivateLobbyModal } from "./JoinPrivateLobbyModal";
 import "./LangSelector";
 import { LangSelector } from "./LangSelector";
-import { LanguageModal } from "./LanguageModal";
+import type { LanguageModal } from "./LanguageModal";
 import { NewsModal } from "./NewsModal";
 import "./PublicLobby";
 import { PublicLobby } from "./PublicLobby";
@@ -101,11 +100,12 @@ class Client {
   private patternsModal: TerritoryPatternsModal;
   private tokenLoginModal: TokenLoginModal;
 
-  private gutterAds: GutterAds;
+  private gutterAds: GutterAds | null = null;
+  private gutterAdsLoader: Promise<GutterAds> | null = null;
 
   constructor() {}
 
-  initialize(): void {
+  async initialize(): Promise<void> {
     const gameVersion = document.getElementById(
       "game-version",
     ) as HTMLDivElement;
@@ -131,15 +131,19 @@ class Client {
     const langSelector = document.querySelector(
       "lang-selector",
     ) as LangSelector;
-    const languageModal = document.querySelector(
-      "language-modal",
-    ) as LanguageModal;
     if (!langSelector) {
       console.warn("[GlobalWars] Language selector element not found");
     }
-    if (!languageModal) {
-      console.warn("[GlobalWars] Language modal element not found");
-    }
+    void import(
+      /* webpackChunkName: "language-modal" */ "./LanguageModal"
+    ).then(({ LanguageModal }) => {
+      const languageModal = document.querySelector(
+        "language-modal",
+      ) as LanguageModal | null;
+      if (!languageModal || !(languageModal instanceof LanguageModal)) {
+        console.warn("[GlobalWars] Language modal element not found");
+      }
+    });
 
     this.flagInput = document.querySelector("flag-input") as FlagInput;
     if (!this.flagInput) {
@@ -168,11 +172,6 @@ class Client {
         this.gameStop();
       }
     });
-
-    const gutterAds = document.querySelector("gutter-ads");
-    if (!(gutterAds instanceof GutterAds))
-      throw new Error("Missing gutter-ads");
-    this.gutterAds = gutterAds;
 
     document.addEventListener("join-lobby", this.handleJoinLobby.bind(this));
     document.addEventListener("leave-lobby", this.handleLeaveLobby.bind(this));
@@ -369,7 +368,7 @@ class Client {
         );
         if (flares.length > 0) {
           console.log("Hiding gutter ads because you have patterns");
-          this.gutterAds.hide();
+          void this.hideGutterAds();
         }
       }
     };
@@ -635,7 +634,7 @@ class Client {
         if (startingModal && startingModal instanceof GameStartingModal) {
           startingModal.show();
         }
-        this.gutterAds.hide();
+        void this.hideGutterAds();
       },
       () => {
         this.joinModal.close();
@@ -668,7 +667,7 @@ class Client {
     console.log("leaving lobby, cancelling game");
     this.gameStop();
     this.gameStop = null;
-    this.gutterAds.hide();
+    void this.hideGutterAds();
     this.publicLobby.leaveLobby();
   }
 
@@ -689,7 +688,7 @@ class Client {
           window.fusetag.pageInit({
             blockingFuseIds: ["lhs_sticky_vrec", "rhs_sticky_vrec"],
           });
-          this.gutterAds.show();
+          void this.showGutterAds();
         });
         return true;
       } else {
@@ -703,11 +702,62 @@ class Client {
       }
     }, 100);
   }
+
+  private async ensureGutterAds(): Promise<GutterAds> {
+    if (this.gutterAds) {
+      return this.gutterAds;
+    }
+
+    this.gutterAdsLoader ??= Promise.all([
+      import(/* webpackChunkName: "gutter-ads" */ "./GutterAds"),
+      import(
+        /* webpackChunkName: "google-ad-element" */ "./GoogleAdElement"
+      ).then(() => undefined),
+    ])
+      .then(async ([adsModule]) => {
+        await customElements.whenDefined("gutter-ads");
+        const element = document.querySelector("gutter-ads");
+        if (!element || !(element instanceof adsModule.GutterAds)) {
+          throw new Error("Missing gutter-ads");
+        }
+        this.gutterAds = element;
+        return element;
+      })
+      .catch((error) => {
+        console.error("Failed to initialize gutter ads", error);
+        this.gutterAdsLoader = null;
+        throw error;
+      });
+
+    return this.gutterAdsLoader;
+  }
+
+  private async showGutterAds(): Promise<void> {
+    try {
+      const ads = await this.ensureGutterAds();
+      ads.show();
+    } catch (error) {
+      console.error("Unable to show gutter ads", error);
+    }
+  }
+
+  private async hideGutterAds(): Promise<void> {
+    if (!this.gutterAds && !this.gutterAdsLoader) {
+      return;
+    }
+
+    try {
+      const ads = await this.ensureGutterAds();
+      ads.hide();
+    } catch (error) {
+      console.error("Unable to hide gutter ads", error);
+    }
+  }
 }
 
 // Initialize the client when the DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  new Client().initialize();
+  void new Client().initialize();
 });
 
 // WARNING: DO NOT EXPOSE THIS ID

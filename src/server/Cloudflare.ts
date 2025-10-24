@@ -41,6 +41,17 @@ interface CloudflaredConfig {
   }>;
 }
 
+export interface StartTunnelOptions {
+  binary?: string;
+  logLevel?: string;
+  protocol?: string;
+  retries?: number;
+  extraArgs?: string[];
+  originCertPath?: string;
+  environment?: NodeJS.ProcessEnv;
+  platform?: string;
+}
+
 export class Cloudflare {
   private baseUrl = "https://api.cloudflare.com/client/v4";
 
@@ -234,56 +245,98 @@ export class Cloudflare {
     }
   }
 
-  public async startCloudflared() {
-    const cloudflared = spawn(
-      "cloudflared",
-      [
-        "tunnel",
-        "--config",
-        this.configPath,
-        "--loglevel",
-        "error",
-        "--protocol",
-        "http2",
-        "--retries",
-        "15",
-        "--no-autoupdate",
-        "run",
-      ],
+  public async startCloudflared(
+    options: StartTunnelOptions = {},
+  ): Promise<void> {
+    const platformHint = options.platform ?? process.platform;
+    const binary =
+      options.binary ??
+      process.env.CF_TUNNEL_BIN ??
+      (platformHint.startsWith("win") ? "cloudflared.exe" : "cloudflared");
+    const logLevel =
+      options.logLevel ?? process.env.CF_TUNNEL_LOGLEVEL ?? "error";
+    const protocol =
+      options.protocol ?? process.env.CF_TUNNEL_PROTOCOL ?? "http2";
+    const retries = Number.isFinite(options.retries)
+      ? Number(options.retries)
+      : Number.parseInt(process.env.CF_TUNNEL_RUNTIME_RETRIES ?? "15", 10);
+    const extraArgs = options.extraArgs ?? [];
+    const originCertPath =
+      options.originCertPath ??
+      process.env.CF_TUNNEL_ORIGIN_CERT ??
+      (platformHint.startsWith("win") ? "NUL" : "/dev/null");
 
-      {
+    const args = [
+      "tunnel",
+      "--config",
+      this.configPath,
+      "--loglevel",
+      logLevel,
+      "--protocol",
+      protocol,
+      "--retries",
+      String(Number.isFinite(retries) ? retries : 15),
+      "--no-autoupdate",
+      "run",
+      ...extraArgs,
+    ];
+
+    log.info(`Starting cloudflared using ${binary}`, { args });
+
+    return new Promise((resolve, reject) => {
+      const cloudflared = spawn(binary, args, {
         detached: true,
         stdio: ["ignore", "pipe", "pipe"],
         env: {
           ...process.env,
+          ...options.environment,
           // Set this to bypass origin cert requirement for named tunnels
-          TUNNEL_ORIGIN_CERT: "/dev/null",
+          TUNNEL_ORIGIN_CERT: originCertPath,
         },
-      },
-    );
-
-    cloudflared.stdout?.on("data", (data) => {
-      log.info(data.toString().trim());
-    });
-    cloudflared.stderr?.on("data", (data) => {
-      log.error(data.toString().trim());
-    });
-
-    cloudflared.on("error", (error) => {
-      log.error("Failed to start cloudflared", {
-        error: error.message,
       });
-    });
 
-    cloudflared.on("exit", (code, signal) => {
-      if (code !== null) {
-        log.error(`Cloudflared exited with code ${code}`, {
-          exitCode: code,
-          signal,
+      let resolved = false;
+
+      cloudflared.stdout?.on("data", (data) => {
+        log.info(data.toString().trim());
+      });
+      cloudflared.stderr?.on("data", (data) => {
+        log.error(data.toString().trim());
+      });
+
+      cloudflared.once("spawn", () => {
+        resolved = true;
+        log.info("cloudflared spawn event received", { pid: cloudflared.pid });
+        resolve();
+      });
+
+      cloudflared.on("error", (error) => {
+        log.error("Failed to start cloudflared", {
+          error: error.message,
         });
-      }
-    });
+        if (!resolved) {
+          reject(error);
+        }
+      });
 
-    cloudflared.unref();
+      cloudflared.on("exit", (code, signal) => {
+        if (code !== null) {
+          log.error(`Cloudflared exited with code ${code}`, {
+            exitCode: code,
+            signal,
+          });
+        }
+
+        if (!resolved) {
+          reject(
+            new Error(
+              `cloudflared exited before spawn event. code=${code}, signal=${signal}`,
+            ),
+          );
+        }
+      });
+
+      cloudflared.unref();
+    });
   }
 }
