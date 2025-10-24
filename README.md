@@ -8,7 +8,11 @@
 
 **GlobalWars** is an online real-time strategy game focused on territorial control and alliance building. Players command nations, form coalitions, and unleash experimental weaponry across battlefields inspired by real-world geography.
 
-This playable build is forged from the open-source foundations of OpenFront.io and the earlier WarFront.io project. Immense credit to https://github.com/WarFrontIO and the OpenFront contributors whose systems power this experience.
+> **GlobalWars Edition**
+>
+> This repository powers the **GlobalWars** themed experience of OpenFront. Gameplay code remains compatible with upstream, while the client assets, palette, and onboarding copy are customized to present GlobalWars branding and attribution. Review the [GlobalWars design notes](docs/globalwars.md) for asset credits and implementation details.
+
+This is a fork/rewrite of WarFront.io. Credit to https://github.com/WarFrontIO.
 
 [![CI](https://github.com/globalwars-game/GlobalWars/actions/workflows/ci.yml/badge.svg)](https://github.com/globalwars-game/GlobalWars/actions/workflows/ci.yml)
 [![Crowdin](https://badges.crowdin.net/openfront-mls/localized.svg)](https://crowdin.com/project/openfront-mls)
