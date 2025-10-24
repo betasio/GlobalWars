@@ -593,6 +593,21 @@ export class GameServer {
     return this.LobbyCreatorID === clientID;
   }
 
+  private getRankedQueueDeadline(): number | undefined {
+    if (this.gameConfig.gameType !== GameType.Ranked) {
+      return undefined;
+    }
+
+    if (this.rankedQueueDeadline === null) {
+      const queueSeconds =
+        this.gameConfig.turnTimers?.queueSeconds ??
+        RANKED_TURN_TIMERS.queueSeconds;
+      this.rankedQueueDeadline = this.createdAt + queueSeconds * 1000;
+    }
+
+    return this.rankedQueueDeadline ?? undefined;
+  }
+
   phase(): GamePhase {
     const now = Date.now();
     const alive: Client[] = [];
@@ -621,13 +636,7 @@ export class GameServer {
     const noActive = this.activeClients.length === 0;
 
     if (this.gameConfig.gameType === GameType.Ranked) {
-      if (this.rankedQueueDeadline === null) {
-        const queueSeconds =
-          this.gameConfig.turnTimers?.queueSeconds ??
-          RANKED_TURN_TIMERS.queueSeconds;
-        this.rankedQueueDeadline = this.createdAt + queueSeconds * 1000;
-      }
-      const queueDeadline = this.rankedQueueDeadline ?? now;
+      const queueDeadline = this.getRankedQueueDeadline() ?? now;
       const queueFilled =
         (this.gameConfig.maxPlayers ?? RANKED_MAX_PLAYERS) <=
         this.activeClients.length;
@@ -684,6 +693,18 @@ export class GameServer {
   }
 
   public gameInfo(): GameInfo {
+    const msUntilStart = (() => {
+      if (this.gameConfig.gameType === GameType.Public) {
+        return this.createdAt + this.config.gameCreationRate();
+      }
+
+      if (this.gameConfig.gameType === GameType.Ranked) {
+        return this.getRankedQueueDeadline();
+      }
+
+      return undefined;
+    })();
+
     return {
       gameID: this.id,
       clients: this.activeClients.map((c) => ({
@@ -691,9 +712,7 @@ export class GameServer {
         clientID: c.clientID,
       })),
       gameConfig: this.gameConfig,
-      msUntilStart: this.isPublic()
-        ? this.createdAt + this.config.gameCreationRate()
-        : undefined,
+      msUntilStart,
     };
   }
 
