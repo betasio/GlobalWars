@@ -3,7 +3,14 @@ import { Logger } from "winston";
 import WebSocket from "ws";
 import { z } from "zod";
 import { GameEnv, ServerConfig } from "../core/configuration/Config";
-import { GameType } from "../core/game/Game";
+import { GameMapSize, GameMode, GameType } from "../core/game/Game";
+import {
+  RANKED_FOG_RULE,
+  RANKED_MAP_POOL,
+  RANKED_MAX_PLAYERS,
+  RANKED_TURN_TIMERS,
+  pickRankedMap,
+} from "../core/game/GamePresets";
 import {
   ClientID,
   ClientMessageSchema,
@@ -25,6 +32,7 @@ import { createPartialGameRecord } from "../core/Util";
 import { archive, finalizeGameRecord } from "./Archive";
 import { Client } from "./Client";
 export enum GamePhase {
+  RankedQueue = "RANKED_QUEUE",
   Lobby = "LOBBY",
   Active = "ACTIVE",
   Finished = "FINISHED",
@@ -69,6 +77,8 @@ export class GameServer {
     { winner: ClientSendWinnerMessage; ips: Set<string> }
   > = new Map();
 
+  private rankedQueueDeadline: number | null = null;
+
   constructor(
     public readonly id: string,
     readonly log_: Logger,
@@ -79,9 +89,22 @@ export class GameServer {
   ) {
     this.log = log_.child({ gameID: id });
     this.LobbyCreatorID = lobbyCreatorID ?? undefined;
+
+    if (this.gameConfig.gameType === GameType.Ranked) {
+      this.applyRankedPreset(this.gameConfig);
+    }
   }
 
   public updateGameConfig(gameConfig: Partial<GameConfig>): void {
+    if (gameConfig.gameType !== undefined) {
+      this.gameConfig.gameType = gameConfig.gameType;
+    }
+
+    if (this.gameConfig.gameType === GameType.Ranked) {
+      this.applyRankedPreset(gameConfig);
+      return;
+    }
+
     if (gameConfig.gameMap !== undefined) {
       this.gameConfig.gameMap = gameConfig.gameMap;
     }
@@ -115,14 +138,63 @@ export class GameServer {
     if (gameConfig.gameMode !== undefined) {
       this.gameConfig.gameMode = gameConfig.gameMode;
     }
-
     if (gameConfig.disabledUnits !== undefined) {
       this.gameConfig.disabledUnits = gameConfig.disabledUnits;
     }
-
     if (gameConfig.playerTeams !== undefined) {
       this.gameConfig.playerTeams = gameConfig.playerTeams;
     }
+    if (gameConfig.mapPool !== undefined) {
+      this.gameConfig.mapPool = gameConfig.mapPool;
+    }
+    if (gameConfig.turnTimers !== undefined) {
+      this.gameConfig.turnTimers = gameConfig.turnTimers;
+    }
+    if (gameConfig.fogRule !== undefined) {
+      this.gameConfig.fogRule = gameConfig.fogRule;
+    }
+  }
+
+  private applyRankedPreset(partial: Partial<GameConfig> = {}): void {
+    const candidatePool =
+      partial.mapPool && partial.mapPool.length > 0
+        ? partial.mapPool
+        : this.gameConfig.mapPool && this.gameConfig.mapPool.length > 0
+          ? this.gameConfig.mapPool
+          : undefined;
+
+    const sanitizedPool =
+      candidatePool?.filter((map) => RANKED_MAP_POOL.includes(map)) ?? [];
+
+    this.gameConfig.mapPool =
+      sanitizedPool.length > 0 ? [...sanitizedPool] : [...RANKED_MAP_POOL];
+
+    const preferredMap = partial.gameMap ?? this.gameConfig.gameMap;
+    if (
+      preferredMap !== undefined &&
+      this.gameConfig.mapPool.includes(preferredMap)
+    ) {
+      this.gameConfig.gameMap = preferredMap;
+    } else {
+      this.gameConfig.gameMap = pickRankedMap(this.gameConfig.mapPool);
+    }
+
+    this.gameConfig.turnTimers = { ...RANKED_TURN_TIMERS };
+    this.gameConfig.fogRule = RANKED_FOG_RULE;
+    this.gameConfig.disableNPCs = true;
+    this.gameConfig.donateGold = false;
+    this.gameConfig.donateTroops = false;
+    this.gameConfig.instantBuild = false;
+    this.gameConfig.infiniteGold = false;
+    this.gameConfig.infiniteTroops = false;
+    this.gameConfig.bots = 0;
+    this.gameConfig.gameMode = GameMode.FFA;
+    this.gameConfig.playerTeams = undefined;
+    this.gameConfig.gameMapSize = GameMapSize.Normal;
+    this.gameConfig.maxPlayers = RANKED_MAX_PLAYERS;
+
+    const queueSeconds = this.gameConfig.turnTimers.queueSeconds;
+    this.rankedQueueDeadline = Date.now() + queueSeconds * 1000;
   }
 
   public addClient(client: Client, lastTurn: number) {
@@ -547,6 +619,32 @@ export class GameServer {
 
     const noRecentPings = now > this.lastPingUpdate + 20 * 1000;
     const noActive = this.activeClients.length === 0;
+
+    if (this.gameConfig.gameType === GameType.Ranked) {
+      if (this.rankedQueueDeadline === null) {
+        const queueSeconds =
+          this.gameConfig.turnTimers?.queueSeconds ??
+          RANKED_TURN_TIMERS.queueSeconds;
+        this.rankedQueueDeadline = this.createdAt + queueSeconds * 1000;
+      }
+      const queueDeadline = this.rankedQueueDeadline ?? now;
+      const queueFilled =
+        (this.gameConfig.maxPlayers ?? RANKED_MAX_PLAYERS) <=
+        this.activeClients.length;
+
+      if (!this._hasStarted) {
+        if (!this._hasPrestarted && !queueFilled && now < queueDeadline) {
+          return GamePhase.RankedQueue;
+        }
+        return GamePhase.Lobby;
+      }
+
+      const warmupOver = now > queueDeadline + 30 * 1000;
+      if (noActive && warmupOver && noRecentPings) {
+        return GamePhase.Finished;
+      }
+      return GamePhase.Active;
+    }
 
     if (this.gameConfig.gameType !== GameType.Public) {
       if (this._hasStarted) {
