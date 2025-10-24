@@ -134,16 +134,17 @@ class Client {
     if (!langSelector) {
       console.warn("[GlobalWars] Language selector element not found");
     }
-    if (!languageModal) {
-      console.warn("[GlobalWars] Language modal element not found");
-    }
     void import(
       /* webpackChunkName: "language-modal" */ "./LanguageModal"
     ).then(({ LanguageModal }) => {
       const languageModal = document.querySelector(
         "language-modal",
       ) as LanguageModal | null;
-      if (!languageModal || !(languageModal instanceof LanguageModal)) {
+      if (!languageModal) {
+        console.warn("[GlobalWars] Language modal element not found");
+        return;
+      }
+      if (!(languageModal instanceof LanguageModal)) {
         console.warn("[GlobalWars] Language modal element not found");
       }
     });
