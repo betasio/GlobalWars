@@ -1,12 +1,12 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="resources/images/OpenFrontLogoDark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="resources/images/OpenFrontLogo.svg">
-    <img src="resources/images/OpenFrontLogo.svg" alt="OpenFrontIO Logo" width="300">
+    <source media="(prefers-color-scheme: dark)" srcset="resources/images/GlobalWarsLogoDark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="resources/images/GlobalWarsLogo.svg">
+    <img src="resources/images/GlobalWarsLogo.svg" alt="GlobalWars Logo" width="320">
   </picture>
 </p>
 
-[OpenFront.io](https://openfront.io/) is an online real-time strategy game focused on territorial control and alliance building. Players compete to expand their territory, build structures, and form strategic alliances in various maps based on real-world geography.
+**GlobalWars** is an online real-time strategy game focused on territorial control and alliance building. Players command nations, form coalitions, and unleash experimental weaponry across battlefields inspired by real-world geography.
 
 > **GlobalWars Edition**
 >
@@ -14,21 +14,29 @@
 
 This is a fork/rewrite of WarFront.io. Credit to https://github.com/WarFrontIO.
 
-![CI](https://github.com/openfrontio/OpenFrontIO/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/globalwars-game/GlobalWars/actions/workflows/ci.yml/badge.svg)](https://github.com/globalwars-game/GlobalWars/actions/workflows/ci.yml)
 [![Crowdin](https://badges.crowdin.net/openfront-mls/localized.svg)](https://crowdin.com/project/openfront-mls)
-[![CLA assistant](https://cla-assistant.io/readme/badge/openfrontio/OpenFrontIO)](https://cla-assistant.io/openfrontio/OpenFrontIO)
+[![CLA assistant](https://cla-assistant.io/readme/badge/globalwars-game/GlobalWars)](https://cla-assistant.io/globalwars-game/GlobalWars)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Assets: CC BY-SA 4.0](https://img.shields.io/badge/Assets-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ## License
 
-OpenFront source code is licensed under the **GNU Affero General Public License v3.0** with additional attribution requirements:
+GlobalWars source code is licensed under the **GNU Affero General Public License v3.0** with additional attribution requirements inherited from OpenFront:
 
 - Any forks or derivative works must display attribution (e.g., "Based on OpenFront", "Derived from OpenFront", "Powered by OpenFront", or "Fork of OpenFront") prominently on the main menu and/or initial title screen.
 
 See the `ADDITIONAL TERMS` section in [LICENSE](LICENSE) for complete requirements.
 
-For asset licensing, see [LICENSE-ASSETS](LICENSE-ASSETS).  
+### Attribution Compliance
+
+GlobalWars continues to meet the OpenFront license obligations by:
+
+- Displaying GlobalWars branding alongside an inline acknowledgement of OpenFront within the hero layout and help/news experiences.
+- Retaining the OpenFront-derived changelog and translation pipelines referenced throughout the client.
+- Preserving upstream copyright statements across [LICENSE](LICENSE), [LICENSE-ASSETS](LICENSE-ASSETS), and supporting legal documents.
+
+For asset licensing, see [LICENSE-ASSETS](LICENSE-ASSETS).
 For license history, see [LICENSING.md](LICENSING.md).
 
 ## 🌟 Features
@@ -49,8 +57,8 @@ For license history, see [LICENSING.md](LICENSING.md).
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/openfrontio/OpenFrontIO.git
-   cd OpenFrontIO
+   git clone https://github.com/globalwars-game/GlobalWars.git
+   cd GlobalWars
    ```
 
 2. **Install dependencies**
@@ -83,6 +91,18 @@ To run just the client with hot reloading:
 npm run start:client
 ```
 
+### 🪟 Windows & Ubuntu workflows
+
+The project now ships platform-aware build and tunnel scripts so you can match your local environment:
+
+| Task                              | Windows                  | Ubuntu/WSL             | Notes                                                                   |
+| --------------------------------- | ------------------------ | ---------------------- | ----------------------------------------------------------------------- |
+| Production build                  | `npm run build:windows`  | `npm run build:linux`  | Sets a `PLATFORM` hint consumed by the server and webpack optimizations |
+| Launch Cloudflare tunnel + server | `npm run tunnel:windows` | `npm run tunnel:linux` | Runs a production build and starts the server with OS-specific defaults |
+
+> [!TIP]
+> When using WSL, run the Linux variants from the Linux shell. Native Windows terminals (PowerShell/CMD) should use the Windows commands to ensure the correct binary paths and environment hints are applied.
+
 ### Server Only
 
 To run just the server with development settings:
@@ -106,6 +126,38 @@ To connect to production api servers:
 ```bash
 npm run dev:prod
 ```
+
+## ☁️ Cloudflare tunnel configuration
+
+The server can provision and launch Cloudflare tunnels automatically. The behaviour is controlled via environment variables so the same code path works across Windows and Ubuntu deployments.
+
+| Variable                                    | Description                                                                                                                  |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `CF_TUNNEL_ENABLED` / `CF_TUNNEL_DISABLED`  | Explicitly enable or disable tunnel startup (`true/false`, `yes/no`, `1/0`).                                                 |
+| `CF_TUNNEL_PLATFORM`                        | Override the platform auto-detection (`win32`, `linux`, etc.). Defaults to `process.platform` or the `PLATFORM` script hint. |
+| `CF_TUNNEL_ROOT_PORT`                       | Local port exposed for the primary domain (default `80`).                                                                    |
+| `CF_TUNNEL_WORKER_PORT_BASE`                | Starting port for worker processes (default `3001`).                                                                         |
+| `CF_TUNNEL_SETUP_RETRIES`                   | Number of provisioning retries before failing (default `3`).                                                                 |
+| `CF_TUNNEL_SETUP_DELAY_MS`                  | Delay between provisioning retries in milliseconds (default `5000`).                                                         |
+| `CF_TUNNEL_RUNTIME_RETRIES`                 | Overrides the `cloudflared` runtime retry count (default `15`).                                                              |
+| `CF_TUNNEL_SKIP_PROVISION`                  | Skip API provisioning and reuse an existing local config (`true/false`).                                                     |
+| `CF_TUNNEL_BIN`                             | Path to a custom `cloudflared` binary (useful on Windows).                                                                   |
+| `CF_TUNNEL_LOGLEVEL` / `CF_TUNNEL_PROTOCOL` | Pass-through options for the spawned `cloudflared` process.                                                                  |
+| `CF_TUNNEL_EXTRA_ARGS`                      | Comma or space separated list of additional CLI arguments appended after `cloudflared tunnel run`.                           |
+
+To provision and launch a tunnel end-to-end on Windows:
+
+```powershell
+npm run tunnel:windows
+```
+
+On Ubuntu or WSL:
+
+```bash
+npm run tunnel:linux
+```
+
+Both commands perform a production build before starting the server so the tunnel points at the optimized client bundle.
 
 ## 🛠️ Development Tools
 
@@ -218,4 +270,4 @@ To ensure code quality and project stability, we use a progressive contribution 
 
 Remember that maintaining this project requires significant effort. The maintainer appreciates your contributions but must prioritize long-term project health and stability. Not all contributions will be accepted, and that's okay.
 
-Thank you for helping make OpenFront better!
+Thank you for helping make GlobalWars better!

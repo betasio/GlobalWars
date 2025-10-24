@@ -10,6 +10,7 @@ import {
   AllPlayers,
   Difficulty,
   Duos,
+  FogRule,
   GameMapSize,
   GameMapType,
   GameMode,
@@ -150,6 +151,13 @@ const TeamCountConfigSchema = z.union([
 ]);
 export type TeamCountConfig = z.infer<typeof TeamCountConfigSchema>;
 
+const TurnTimerConfigSchema = z.object({
+  queueSeconds: z.number().int().positive(),
+  lobbySeconds: z.number().int().positive(),
+  turnSeconds: z.number().int().positive(),
+});
+export type TurnTimerConfig = z.infer<typeof TurnTimerConfigSchema>;
+
 export const GameConfigSchema = z.object({
   gameMap: z.enum(GameMapType),
   difficulty: z.enum(Difficulty),
@@ -166,6 +174,9 @@ export const GameConfigSchema = z.object({
   maxPlayers: z.number().optional(),
   disabledUnits: z.enum(UnitType).array().optional(),
   playerTeams: TeamCountConfigSchema.optional(),
+  mapPool: z.enum(GameMapType).array().min(1).optional(),
+  turnTimers: TurnTimerConfigSchema.optional(),
+  fogRule: z.enum(FogRule).optional(),
 });
 
 export const TeamSchema = z.string();

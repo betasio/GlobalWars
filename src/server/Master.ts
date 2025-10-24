@@ -263,31 +263,41 @@ async function fetchLobbies(): Promise<number> {
 
 // Function to schedule a new public game
 async function schedulePublicGame(playlist: MapPlaylist) {
-  const gameID = generateID();
-  publicLobbyIDs.add(gameID);
+  const configs = [playlist.gameConfig(), playlist.rankedGameConfig()];
 
-  const workerPath = config.workerPath(gameID);
+  for (const gameConfig of configs) {
+    const gameID = generateID();
+    publicLobbyIDs.add(gameID);
 
-  // Send request to the worker to start the game
-  try {
-    const response = await fetch(
-      `http://localhost:${config.workerPort(gameID)}/api/create_game/${gameID}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          [config.adminHeader()]: config.adminToken(),
+    const workerPort = config.workerPort(gameID);
+    const workerPath = config.workerPath(gameID);
+
+    try {
+      const response = await fetch(
+        `http://localhost:${workerPort}/api/create_game/${gameID}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            [config.adminHeader()]: config.adminToken(),
+          },
+          body: JSON.stringify(gameConfig),
         },
-        body: JSON.stringify(playlist.gameConfig()),
-      },
-    );
+      );
 
-    if (!response.ok) {
-      throw new Error(`Failed to schedule public game: ${response.statusText}`);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to schedule public game: ${response.statusText}`,
+        );
+      }
+    } catch (error) {
+      log.error(
+        `Failed to schedule public game on worker ${workerPath}:`,
+        error,
+      );
+      publicLobbyIDs.delete(gameID);
+      throw error;
     }
-  } catch (error) {
-    log.error(`Failed to schedule public game on worker ${workerPath}:`, error);
-    throw error;
   }
 }
 
