@@ -18,7 +18,7 @@ export const RANKED_MAP_POOL: readonly GameMapType[] = [
 ];
 
 export const RANKED_TURN_TIMERS: TurnTimerConfig = {
-  queueSeconds: 90,
+  queueSeconds: 60,
   lobbySeconds: 30,
   turnSeconds: 45,
 };

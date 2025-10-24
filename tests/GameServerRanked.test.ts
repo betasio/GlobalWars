@@ -168,16 +168,24 @@ describe("GameServer ranked mode", () => {
       { length: maxPlayers },
       () => placeholderClient,
     );
-    expect(server.phase()).toBe(GamePhase.Lobby);
+    expect(server.phase()).toBe(GamePhase.Active);
 
-    server.activeClients = [];
-    jest.setSystemTime(
-      startTime.getTime() + RANKED_TURN_TIMERS.queueSeconds * 1000 + 1_000,
-    );
+    (server as unknown as { _hasPrestarted: boolean })._hasPrestarted = true;
     expect(server.phase()).toBe(GamePhase.Lobby);
 
     (server as unknown as { _hasStarted: boolean })._hasStarted = true;
     expect(server.phase()).toBe(GamePhase.Active);
+
+    (server as unknown as { _hasStarted: boolean })._hasStarted = false;
+    (server as unknown as { _hasPrestarted: boolean })._hasPrestarted = false;
+    server.activeClients = [];
+    jest.setSystemTime(
+      startTime.getTime() + RANKED_TURN_TIMERS.queueSeconds * 1000 + 1_000,
+    );
+    expect(server.phase()).toBe(GamePhase.Active);
+
+    (server as unknown as { _hasPrestarted: boolean })._hasPrestarted = true;
+    (server as unknown as { _hasStarted: boolean })._hasStarted = true;
 
     (server as unknown as { lastPingUpdate: number }).lastPingUpdate =
       Date.now() - 25_000;

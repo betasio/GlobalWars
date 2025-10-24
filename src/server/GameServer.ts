@@ -645,6 +645,11 @@ export class GameServer {
         if (!this._hasPrestarted && !queueFilled && now < queueDeadline) {
           return GamePhase.RankedQueue;
         }
+
+        if (!this._hasPrestarted) {
+          return GamePhase.Active;
+        }
+
         return GamePhase.Lobby;
       }
 

@@ -15,6 +15,9 @@ const config = getServerConfigFromServer();
 const playlist = new MapPlaylist();
 const readyWorkers = new Set<number>();
 
+const RANKED_QUEUE_COOLDOWN_MS = 3 * 60_000;
+let lastRankedScheduledAt = 0;
+
 const app = express();
 const server = http.createServer(app);
 
@@ -104,9 +107,14 @@ export async function startMaster() {
               }
 
               if (counts[GameType.Ranked] === 0) {
-                scheduleLobby(playlist.rankedGameConfig()).catch((error) => {
-                  log.error("Error scheduling ranked lobby:", error);
-                });
+                const now = Date.now();
+                if (now - lastRankedScheduledAt >= RANKED_QUEUE_COOLDOWN_MS) {
+                  lastRankedScheduledAt = now;
+                  scheduleLobby(playlist.rankedGameConfig()).catch((error) => {
+                    lastRankedScheduledAt = 0;
+                    log.error("Error scheduling ranked lobby:", error);
+                  });
+                }
               }
             })
             .catch((error) => {
