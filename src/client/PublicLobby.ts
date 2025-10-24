@@ -10,14 +10,22 @@ import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 
 @customElement("public-lobby")
 export class PublicLobby extends LitElement {
+  private static readonly RANKED_FIRST_DELAY_MS = 45_000;
+  private static readonly RANKED_ROTATION_INTERVAL_MS = 150_000;
+  private static readonly RANKED_DISPLAY_DURATION_MS = 60_000;
+
   @state() private lobbies: GameInfo[] = [];
   @state() public isLobbyHighlighted: boolean = false;
   @state() private isButtonDebounced: boolean = false;
   @state() private mapImages: Map<GameID, string> = new Map();
+  @state() private showRankedRotation: boolean = false;
   private lobbiesInterval: number | null = null;
   private currLobby: GameInfo | null = null;
   private debounceDelay: number = 750;
   private lobbyIDToStart = new Map<GameID, number>();
+  private hasRankedLobby = false;
+  private rankedRotationTimer: number | null = null;
+  private rankedHideTimer: number | null = null;
 
   createRenderRoot() {
     return this;
@@ -38,12 +46,47 @@ export class PublicLobby extends LitElement {
       clearInterval(this.lobbiesInterval);
       this.lobbiesInterval = null;
     }
+    this.clearRankedRotationTimers();
   }
 
   private async fetchAndUpdateLobbies(): Promise<void> {
     try {
-      this.lobbies = await this.fetchLobbies();
-      this.lobbies.forEach((l) => {
+      const lobbies = await this.fetchLobbies();
+      this.lobbies = lobbies;
+
+      const seenLobbyIDs = new Set(lobbies.map((l) => l.gameID));
+      Array.from(this.lobbyIDToStart.keys()).forEach((id) => {
+        if (!seenLobbyIDs.has(id)) {
+          this.lobbyIDToStart.delete(id);
+          this.mapImages.delete(id);
+        }
+      });
+
+      if (this.currLobby) {
+        const updatedLobby = lobbies.find(
+          (l) => l.gameID === this.currLobby?.gameID,
+        );
+
+        if (updatedLobby) {
+          this.currLobby = updatedLobby;
+        } else {
+          this.leaveLobby();
+        }
+      }
+
+      const hadRanked = this.hasRankedLobby;
+      this.hasRankedLobby = lobbies.some(
+        (l) => l.gameConfig?.gameType === GameType.Ranked,
+      );
+
+      if (!this.hasRankedLobby) {
+        this.showRankedRotation = false;
+        this.clearRankedRotationTimers();
+      } else if (!hadRanked) {
+        this.startRankedRotationCycle(this.currLobby === null);
+      }
+
+      lobbies.forEach((l) => {
         // Store the start time on first fetch because endpoint is cached, causing
         // the time to appear irregular.
         if (!this.lobbyIDToStart.has(l.gameID)) {
@@ -92,28 +135,62 @@ export class PublicLobby extends LitElement {
       clearInterval(this.lobbiesInterval);
       this.lobbiesInterval = null;
     }
+    this.showRankedRotation = false;
+    this.clearRankedRotationTimers();
   }
 
   render() {
-    if (this.lobbies.length === 0) return html``;
+    const selectedLobby =
+      this.currLobby && this.currLobby.gameConfig ? this.currLobby : null;
 
-    const standardLobby = this.lobbies.find(
-      (l) => l.gameConfig && l.gameConfig.gameType !== GameType.Ranked,
-    );
-    const rankedLobby = this.lobbies.find(
-      (l) => l.gameConfig && l.gameConfig.gameType === GameType.Ranked,
-    );
+    if (selectedLobby) {
+      const variant =
+        selectedLobby.gameConfig!.gameType === GameType.Ranked
+          ? "ranked"
+          : "public";
+
+      return html`
+        <div class="flex flex-col gap-4">
+          ${this.renderLobbyButton(selectedLobby, variant)}
+        </div>
+      `;
+    }
+
+    if (this.lobbies.length === 0) {
+      return html``;
+    }
+
+    const standardLobby =
+      this.lobbies.find(
+        (l) => l.gameConfig && l.gameConfig.gameType !== GameType.Ranked,
+      ) ?? null;
+    const rankedLobby =
+      this.lobbies.find(
+        (l) => l.gameConfig && l.gameConfig.gameType === GameType.Ranked,
+      ) ?? null;
 
     if (!standardLobby && !rankedLobby) {
       return html``;
     }
 
+    const shouldShowRanked = this.showRankedRotation && rankedLobby !== null;
+    const lobbyToRender =
+      (shouldShowRanked ? rankedLobby : standardLobby) ??
+      rankedLobby ??
+      standardLobby;
+
+    if (!lobbyToRender) {
+      return html``;
+    }
+
+    const variant =
+      lobbyToRender.gameConfig?.gameType === GameType.Ranked
+        ? "ranked"
+        : "public";
+
     return html`
       <div class="flex flex-col gap-4">
-        ${standardLobby
-          ? this.renderLobbyButton(standardLobby, "public")
-          : null}
-        ${rankedLobby ? this.renderLobbyButton(rankedLobby, "ranked") : null}
+        ${this.renderLobbyButton(lobbyToRender, variant)}
       </div>
     `;
   }
@@ -258,9 +335,24 @@ export class PublicLobby extends LitElement {
   leaveLobby() {
     this.isLobbyHighlighted = false;
     this.currLobby = null;
+    if (this.hasRankedLobby) {
+      this.startRankedRotationCycle(false);
+    }
   }
 
   private lobbyClicked(lobby: GameInfo) {
+    if (this.currLobby?.gameID === lobby.gameID) {
+      this.dispatchEvent(
+        new CustomEvent("leave-lobby", {
+          detail: { lobby: this.currLobby },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+      this.leaveLobby();
+      return;
+    }
+
     if (this.isButtonDebounced) {
       return;
     }
@@ -275,18 +367,6 @@ export class PublicLobby extends LitElement {
 
     if (this.currLobby === null) {
       this.joinLobbyInternal(lobby);
-      return;
-    }
-
-    if (this.currLobby.gameID === lobby.gameID) {
-      this.dispatchEvent(
-        new CustomEvent("leave-lobby", {
-          detail: { lobby: this.currLobby },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-      this.leaveLobby();
       return;
     }
 
@@ -312,6 +392,76 @@ export class PublicLobby extends LitElement {
         bubbles: true,
         composed: true,
       }),
+    );
+  }
+
+  private clearRankedRotationTimers() {
+    if (this.rankedRotationTimer !== null) {
+      clearTimeout(this.rankedRotationTimer);
+      this.rankedRotationTimer = null;
+    }
+
+    if (this.rankedHideTimer !== null) {
+      clearTimeout(this.rankedHideTimer);
+      this.rankedHideTimer = null;
+    }
+  }
+
+  private startRankedRotationCycle(showImmediately: boolean) {
+    this.clearRankedRotationTimers();
+
+    if (!this.hasRankedLobby) {
+      this.showRankedRotation = false;
+      return;
+    }
+
+    const scheduleNextDisplay = (delay: number) => {
+      this.rankedRotationTimer = window.setTimeout(() => {
+        if (!this.hasRankedLobby) {
+          this.showRankedRotation = false;
+          return;
+        }
+
+        const selectedType = this.currLobby?.gameConfig?.gameType;
+
+        if (selectedType && selectedType !== GameType.Ranked) {
+          this.showRankedRotation = false;
+          scheduleNextDisplay(PublicLobby.RANKED_ROTATION_INTERVAL_MS);
+          return;
+        }
+
+        if (!this.currLobby) {
+          this.showRankedRotation = true;
+        } else {
+          this.showRankedRotation =
+            this.currLobby.gameConfig?.gameType === GameType.Ranked;
+        }
+
+        if (!this.showRankedRotation) {
+          scheduleNextDisplay(PublicLobby.RANKED_ROTATION_INTERVAL_MS);
+          return;
+        }
+
+        this.rankedHideTimer = window.setTimeout(() => {
+          if (
+            this.currLobby &&
+            this.currLobby.gameConfig?.gameType === GameType.Ranked
+          ) {
+            scheduleNextDisplay(PublicLobby.RANKED_ROTATION_INTERVAL_MS);
+            return;
+          }
+
+          this.showRankedRotation = false;
+
+          if (this.hasRankedLobby) {
+            scheduleNextDisplay(PublicLobby.RANKED_ROTATION_INTERVAL_MS);
+          }
+        }, PublicLobby.RANKED_DISPLAY_DURATION_MS);
+      }, delay);
+    };
+
+    scheduleNextDisplay(
+      showImmediately ? 0 : PublicLobby.RANKED_FIRST_DELAY_MS,
     );
   }
 }
