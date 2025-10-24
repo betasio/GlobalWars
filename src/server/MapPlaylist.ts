@@ -10,6 +10,7 @@ import {
   Quads,
   Trios,
 } from "../core/game/Game";
+import { createRankedGameConfig } from "../core/game/GamePresets";
 import { PseudoRandom } from "../core/PseudoRandom";
 import { GameConfig, TeamCountConfig } from "../core/Schemas";
 import { logger } from "./Logger";
@@ -95,6 +96,10 @@ export class MapPlaylist {
       bots: 400,
       disabledUnits: [],
     } satisfies GameConfig;
+  }
+
+  public rankedGameConfig(): GameConfig {
+    return createRankedGameConfig();
   }
 
   private getTeamCount(): TeamCountConfig {

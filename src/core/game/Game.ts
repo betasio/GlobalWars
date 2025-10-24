@@ -142,6 +142,7 @@ export enum GameType {
   Singleplayer = "Singleplayer",
   Public = "Public",
   Private = "Private",
+  Ranked = "Ranked",
 }
 export const isGameType = (value: unknown): value is GameType =>
   isEnumValue(GameType, value);
@@ -152,6 +153,14 @@ export enum GameMode {
 }
 export const isGameMode = (value: unknown): value is GameMode =>
   isEnumValue(GameMode, value);
+
+export enum FogRule {
+  Disabled = "Disabled",
+  Classic = "Classic",
+  Persistent = "Persistent",
+}
+export const isFogRule = (value: unknown): value is FogRule =>
+  isEnumValue(FogRule, value);
 
 export enum GameMapSize {
   Compact = "Compact",

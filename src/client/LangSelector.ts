@@ -1,6 +1,6 @@
 import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import "./LanguageModal";
+import type { LanguageModal } from "./LanguageModal";
 
 import ar from "../../resources/lang/ar.json";
 import bg from "../../resources/lang/bg.json";
@@ -87,6 +87,16 @@ export class LangSelector extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    void import(
+      /* webpackChunkName: "language-modal" */ "./LanguageModal"
+    ).then(({ LanguageModal }) => {
+      const modal = this.querySelector(
+        "language-modal",
+      ) as LanguageModal | null;
+      if (!modal || !(modal instanceof LanguageModal)) {
+        console.warn("[GlobalWars] Language modal element not initialized");
+      }
+    });
     this.setupDebugKey();
     this.initializeLanguage();
   }
