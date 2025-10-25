@@ -21,7 +21,7 @@
     "format": "prettier --ignore-unknown --write .",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky; fi",
+    "prepare": "node -e \"if (process.env.NODE_ENV !== 'production') { require('child_process').execSync('husky', { stdio: 'inherit', shell: true }); }\"",
     "gen-maps": "cd map-generator && go run . && npm run format"
   },
   "lint-staged": {

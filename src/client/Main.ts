@@ -103,6 +103,8 @@ class Client {
   private gutterAds: GutterAds | null = null;
   private gutterAdsLoader: Promise<GutterAds> | null = null;
 
+  private pendingJoin: { cancelled: boolean } | null = null;
+
   constructor() {}
 
   async initialize(): Promise<void> {
@@ -134,16 +136,17 @@ class Client {
     if (!langSelector) {
       console.warn("[GlobalWars] Language selector element not found");
     }
-    if (!languageModal) {
-      console.warn("[GlobalWars] Language modal element not found");
-    }
     void import(
       /* webpackChunkName: "language-modal" */ "./LanguageModal"
     ).then(({ LanguageModal }) => {
       const languageModal = document.querySelector(
         "language-modal",
       ) as LanguageModal | null;
-      if (!languageModal || !(languageModal instanceof LanguageModal)) {
+      if (!languageModal) {
+        console.warn("[GlobalWars] Language modal element not found");
+        return;
+      }
+      if (!(languageModal instanceof LanguageModal)) {
         console.warn("[GlobalWars] Language modal element not found");
       }
     });
@@ -168,6 +171,18 @@ class Client {
     }
 
     this.publicLobby = document.querySelector("public-lobby") as PublicLobby;
+
+    const lobbyPanel = document.getElementById("lobby-panel");
+    const playNowButton = document.getElementById("play-now");
+    if (playNowButton && lobbyPanel) {
+      playNowButton.addEventListener("click", () => {
+        lobbyPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        lobbyPanel.classList.add("lobby-panel--highlight");
+        window.setTimeout(() => {
+          lobbyPanel.classList.remove("lobby-panel--highlight");
+        }, 1100);
+      });
+    }
 
     window.addEventListener("beforeunload", () => {
       console.log("Browser is closing");
@@ -563,6 +578,8 @@ class Client {
 
   private async handleJoinLobby(event: CustomEvent<JoinLobbyEvent>) {
     const lobby = event.detail;
+    const pendingJoinToken = { cancelled: false };
+    this.pendingJoin = pendingJoinToken;
     console.log(`joining lobby ${lobby.gameID}`);
     if (this.gameStop !== null) {
       console.log("joining lobby, stopping existing game");
@@ -570,9 +587,21 @@ class Client {
     }
     const config = await getServerConfigFromClient();
 
+    if (pendingJoinToken.cancelled) {
+      console.log("join request cancelled before configuration resolved");
+      this.pendingJoin = null;
+      return;
+    }
+
     const pattern = this.userSettings.getSelectedPatternName(
       await fetchCosmetics(),
     );
+
+    if (pendingJoinToken.cancelled) {
+      console.log("join request cancelled before cosmetics resolved");
+      this.pendingJoin = null;
+      return;
+    }
 
     this.gameStop = joinLobby(
       this.eventBus,
@@ -661,17 +690,34 @@ class Client {
         history.pushState(null, "", `#join=${lobby.gameID}`);
       },
     );
+
+    this.pendingJoin = null;
   }
 
   private async handleLeaveLobby(/* event: CustomEvent */) {
-    if (this.gameStop === null) {
-      return;
+    if (this.pendingJoin) {
+      this.pendingJoin.cancelled = true;
+      this.pendingJoin = null;
     }
-    console.log("leaving lobby, cancelling game");
-    this.gameStop();
-    this.gameStop = null;
+
+    if (this.gameStop !== null) {
+      console.log("leaving lobby, cancelling game");
+      this.gameStop();
+      this.gameStop = null;
+    } else {
+      console.log("leaving lobby before connection completed");
+    }
+
     void this.hideGutterAds();
     this.publicLobby.leaveLobby();
+
+    if (window.location.hash.startsWith("#join=")) {
+      history.replaceState(
+        null,
+        "",
+        window.location.pathname + window.location.search,
+      );
+    }
   }
 
   private handleKickPlayer(event: CustomEvent) {
