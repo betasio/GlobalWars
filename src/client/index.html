@@ -133,48 +133,81 @@
   >
     <header class="l-header">
       <div class="hero">
-        <div class="hero__branding">
-          <picture class="hero__logo">
-            <source
-              srcset="../../resources/images/GlobalWarsLogoDark.svg"
-              media="(prefers-color-scheme: dark)"
-            />
-            <img
-              src="../../resources/images/GlobalWarsLogo.svg"
-              alt="GlobalWars Command Crest"
-              width="320"
-              height="110"
-              loading="eager"
-            />
-          </picture>
-          <p class="hero__tagline">
-            Lead planet-spanning campaigns, forge alliances, and deploy
-            super-weapons in the definitive GlobalWars arena.
-          </p>
-          <p class="hero__attribution">
-            Based on the OpenFront open-source project. Attribution retained
-            under AGPL requirements.
-          </p>
-          <div class="hero__actions">
-            <a class="hero__action hero__action--primary" href="#join">
-              Enter the War Room
-            </a>
-            <a
-              class="hero__action hero__action--secondary"
-              href="https://discord.gg/jRpxXvG42t"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Join Global Command
-            </a>
+        <div class="hero__layout">
+          <div class="hero__copy">
+            <picture class="hero__logo">
+              <source
+                srcset="../../resources/images/GlobalWarsLogoDark.svg"
+                media="(prefers-color-scheme: dark)"
+              />
+              <img
+                src="../../resources/images/GlobalWarsLogo.svg"
+                alt="GlobalWars Command Crest"
+                width="320"
+                height="110"
+                loading="eager"
+              />
+            </picture>
+            <h1 class="hero__headline">Command the Planet</h1>
+            <p class="hero__tagline">
+              Coordinate global campaigns, orchestrate daring invasions, and
+              outmaneuver rival commanders in the definitive GlobalWars arena.
+            </p>
+            <ul class="hero__features">
+              <li class="hero__feature">
+                Seasonal ranked warfare with unique modifiers
+              </li>
+              <li class="hero__feature">
+                One-click match entry for lightning-fast battles
+              </li>
+              <li class="hero__feature">
+                Private rooms and alliances for coordinated strikes
+              </li>
+            </ul>
+            <div class="hero__actions">
+              <button
+                class="hero__action hero__action--primary"
+                id="play-now"
+                type="button"
+              >
+                Play GlobalWars
+              </button>
+              <a
+                class="hero__action hero__action--secondary"
+                href="https://discord.gg/jRpxXvG42t"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Join Global Command
+              </a>
+            </div>
+            <p class="hero__attribution">
+              Built on the open-source OpenFront foundation and expanded for the
+              GlobalWars community.
+            </p>
+            <div id="game-version" class="hero__version">
+              Loading version...
+            </div>
           </div>
-          <div id="game-version" class="hero__version">Loading version...</div>
+          <aside class="hero__aside" aria-label="GlobalWars feature spotlight">
+            <div class="hero__card">
+              <h2 class="hero__card-title">Live Operations</h2>
+              <p class="hero__card-body">
+                Queue for massive continental conflicts, experiment with new
+                ranked modifiers, and rally your allies before the next war
+                ignites.
+              </p>
+              <div class="hero__card-meta">
+                <span>Dynamic world maps</span>
+                <span>Cross-platform play</span>
+                <span>Cloud-hosted replays</span>
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
     </header>
     <div class="bg-image"></div>
-    <br />
-    <br />
     <gutter-ads></gutter-ads>
 
     <!-- Main container with responsive padding -->
@@ -197,7 +230,7 @@
           ></news-button>
         </div>
         <div></div>
-        <div>
+        <div id="lobby-panel" class="lobby-panel">
           <public-lobby class="block"></public-lobby>
         </div>
         <div class="container__row container__row--equal">
