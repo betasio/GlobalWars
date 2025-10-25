@@ -48,11 +48,11 @@ body {
 .masthead {
   width: min(100%, 1100px);
   margin: 0 auto;
-  padding: clamp(0.85rem, 3vw, 1.5rem) clamp(1.25rem, 4vw, 3rem);
+  padding: clamp(0.65rem, 2.5vw, 1.2rem) clamp(1.1rem, 3vw, 2.4rem);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: clamp(0.5rem, 3vw, 1.75rem);
+  gap: clamp(0.45rem, 2vw, 1.25rem);
 }
 
 .masthead__controls,
@@ -76,7 +76,7 @@ body {
 }
 
 .masthead__logo img {
-  width: clamp(180px, 28vw, 280px);
+  width: clamp(160px, 24vw, 240px);
   height: auto;
 }
 
@@ -170,10 +170,6 @@ body {
   .masthead__actions {
     justify-content: center;
     flex-wrap: wrap;
-  }
-
-  .hero__card {
-    width: 100%;
   }
 }
 
