@@ -7,6 +7,10 @@ export class DarkModeButton extends LitElement {
   private userSettings: UserSettings = new UserSettings();
   @state() private darkMode: boolean = this.userSettings.darkMode();
 
+  private getVariant(): "inline" | "floating" {
+    return this.getAttribute("variant") === "inline" ? "inline" : "floating";
+  }
+
   createRenderRoot() {
     return this;
   }
@@ -32,10 +36,19 @@ export class DarkModeButton extends LitElement {
   }
 
   render() {
+    const variant = this.getVariant();
+    const className = [
+      "dark-mode-button",
+      variant === "inline"
+        ? "dark-mode-button--inline"
+        : "dark-mode-button--floating",
+    ].join(" ");
+
     return html`
       <button
+        type="button"
         title="Toggle Dark Mode"
-        class="absolute top-0 left-0 md:top-[10px] md:left-[10px] border-none bg-none cursor-pointer text-5xl"
+        class=${className}
         @click=${() => this.toggleDarkMode()}
       >
         ${this.darkMode ? "☀️" : "🌙"}
