@@ -171,6 +171,10 @@ body {
     justify-content: center;
     flex-wrap: wrap;
   }
+
+  .hero__card {
+    width: 100%;
+  }
 }
 
 .container {
