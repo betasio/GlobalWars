@@ -198,6 +198,18 @@ class Client {
       });
     }
 
+    const lobbyPanel = document.getElementById("lobby-panel");
+    const playNowButton = document.getElementById("play-now");
+    if (playNowButton && lobbyPanel) {
+      playNowButton.addEventListener("click", () => {
+        lobbyPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        lobbyPanel.classList.add("lobby-panel--highlight");
+        window.setTimeout(() => {
+          lobbyPanel.classList.remove("lobby-panel--highlight");
+        }, 1100);
+      });
+    }
+
     window.addEventListener("beforeunload", () => {
       console.log("Browser is closing");
       if (this.gameStop !== null) {
