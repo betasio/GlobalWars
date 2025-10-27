@@ -125,12 +125,6 @@ export abstract class DefaultServerConfig implements ServerConfig {
     this.publicKey = result.data.keys[0];
     return this.publicKey;
   }
-  authJwtSecret(): string {
-    return process.env.AUTH_JWT_SECRET ?? "dev-secret-change-me";
-  }
-  googleClientId(): string {
-    return process.env.GOOGLE_CLIENT_ID ?? "";
-  }
   otelEnabled(): boolean {
     return (
       this.env() !== GameEnv.Dev &&

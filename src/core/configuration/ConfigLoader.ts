@@ -41,13 +41,6 @@ export async function getServerConfigFromClient(): Promise<ServerConfig> {
   console.log("Server config loaded:", config);
 
   cachedSC = getServerConfig(config.game_env);
-  if (cachedSC && typeof cachedSC.googleClientId === "function") {
-    const googleClientId = config.google_client_id as string | undefined;
-    if (googleClientId) {
-      // @ts-expect-error - override runtime configuration
-      cachedSC.googleClientId = () => googleClientId;
-    }
-  }
   return cachedSC;
 }
 export function getServerConfigFromServer(): ServerConfig {
