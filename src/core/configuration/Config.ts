@@ -55,8 +55,6 @@ export interface ServerConfig {
   jwtAudience(): string;
   jwtIssuer(): string;
   jwkPublicKey(): Promise<JWK>;
-  authJwtSecret(): string;
-  googleClientId(): string;
   domain(): string;
   subdomain(): string;
   cloudflareAccountId(): string;

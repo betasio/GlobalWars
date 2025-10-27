@@ -1,45 +1,10 @@
 import { html, LitElement, TemplateResult } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 import { UserMeResponse } from "../core/ApiSchemas";
-import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import "./components/Difficulties";
 import "./components/PatternButton";
-import { getApiBase, getUserMe, loginWithGoogle, logOut } from "./jwt";
+import { discordLogin, getApiBase, getUserMe, logOut } from "./jwt";
 import { isInIframe, translateText } from "./Utils";
-
-declare global {
-  interface Window {
-    google?: {
-      accounts?: {
-        id: {
-          initialize: (options: Record<string, unknown>) => void;
-          prompt: (callback?: (notification: unknown) => void) => void;
-        };
-      };
-    };
-  }
-}
-
-let googleSdkPromise: Promise<void> | null = null;
-
-async function loadGoogleIdentitySdk(): Promise<void> {
-  if (window.google?.accounts?.id) {
-    return;
-  }
-  if (googleSdkPromise) {
-    return googleSdkPromise;
-  }
-  googleSdkPromise = new Promise<void>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = (err) => reject(err);
-    document.head.appendChild(script);
-  });
-  return googleSdkPromise;
-}
 
 @customElement("account-modal")
 export class AccountModal extends LitElement {
@@ -51,9 +16,7 @@ export class AccountModal extends LitElement {
   @state() private email: string = "";
 
   private loggedInEmail: string | null = null;
-  private loggedInUsername: string | null = null;
-  private googleClientId: string | null = null;
-  private googleInitialized = false;
+  private loggedInDiscord: string | null = null;
 
   constructor() {
     super();
@@ -75,28 +38,35 @@ export class AccountModal extends LitElement {
   }
 
   private renderInner() {
-    if (this.loggedInEmail || this.loggedInUsername) {
-      return this.renderLoggedInAccount();
+    if (this.loggedInDiscord) {
+      return this.renderLoggedInDiscord();
+    } else if (this.loggedInEmail) {
+      return this.renderLoggedInEmail();
+    } else {
+      return this.renderLoginOptions();
     }
-    return this.renderLoginOptions();
   }
 
-  private renderLoggedInAccount(): TemplateResult {
-    const displayName = this.loggedInUsername ?? this.loggedInEmail ?? "";
-    const subtitle = this.loggedInEmail
-      ? translateText("account_modal.logged_in_as", {
-          email: this.loggedInEmail,
-        })
-      : translateText("account_modal.logged_in");
+  private renderLoggedInDiscord() {
     return html`
       <div class="p-6">
         <div class="mb-4">
-          <p class="text-white text-center mb-2 font-semibold text-lg">
-            ${displayName}
+          <p class="text-white text-center mb-4">
+            Logged in with Discord as ${this.loggedInDiscord}
           </p>
-          ${subtitle
-            ? html`<p class="text-center text-sm text-gray-300">${subtitle}</p>`
-            : null}
+        </div>
+        ${this.logoutButton()}
+      </div>
+    `;
+  }
+
+  private renderLoggedInEmail(): TemplateResult {
+    return html`
+      <div class="p-6">
+        <div class="mb-4">
+          <p class="text-white text-center mb-4">
+            Logged in as ${this.loggedInEmail}
+          </p>
         </div>
         ${this.logoutButton()}
       </div>
@@ -122,18 +92,32 @@ export class AccountModal extends LitElement {
             Choose your login method
           </h3>
 
-          <!-- Google Login Button -->
+          <!-- Discord Login Button -->
           <div class="mb-6">
             <button
-              @click="${this.handleGoogleLogin}"
-              class="w-full px-6 py-3 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 flex items-center justify-center gap-2"
+              @click="${this.handleDiscordLogin}"
+              class="w-full px-6 py-3 text-sm font-medium text-white bg-[#5865F2] border border-transparent rounded-md hover:bg-[#4752C4] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5865F2] transition-colors duration-200 flex items-center justify-center space-x-2"
             >
-              <span class="text-lg">🔒</span>
+              <img
+                src="/images/DiscordLogo.svg"
+                alt="Discord"
+                class="w-5 h-5"
+              />
               <span
-                >${translateText("account_modal.login_google") ||
-                "Sign in with Google"}</span
+                >${translateText("main.login_discord") ||
+                "Login with Discord"}</span
               >
             </button>
+          </div>
+
+          <!-- Divider -->
+          <div class="relative mb-6">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-300"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-gray-800 text-gray-300">or</span>
+            </div>
           </div>
 
           <!-- Email Recovery -->
@@ -220,56 +204,15 @@ export class AccountModal extends LitElement {
     }
   }
 
-  private async handleGoogleLogin() {
-    try {
-      if (!this.googleClientId) {
-        const config = await getServerConfigFromClient();
-        this.googleClientId = config.googleClientId();
-      }
-      if (!this.googleClientId) {
-        alert("Google login is not configured yet. Please try again later.");
-        return;
-      }
-      await loadGoogleIdentitySdk();
-      const google = window.google;
-      if (!google?.accounts?.id) {
-        throw new Error("Google Identity Services not available");
-      }
-      if (!this.googleInitialized) {
-        google.accounts.id.initialize({
-          client_id: this.googleClientId,
-          ux_mode: "popup",
-          callback: async (response: { credential?: string }) => {
-            if (!response.credential) return;
-            const profile = await loginWithGoogle(response.credential);
-            if (profile) {
-              this.loggedInEmail = profile.user.email ?? null;
-              this.loggedInUsername = profile.player.username ?? null;
-              document.dispatchEvent(
-                new CustomEvent("userMeResponse", {
-                  detail: profile,
-                  bubbles: true,
-                  composed: true,
-                }),
-              );
-              this.requestUpdate();
-            }
-          },
-        });
-        this.googleInitialized = true;
-      }
-      google.accounts.id.prompt();
-    } catch (error) {
-      console.error("Unable to launch Google login", error);
-      alert("Unable to start Google login. Please try again later.");
-    }
+  private handleDiscordLogin() {
+    discordLogin();
   }
 
   public async open() {
     const userMe = await getUserMe();
     if (userMe) {
       this.loggedInEmail = userMe.user.email ?? null;
-      this.loggedInUsername = userMe.player.username ?? null;
+      this.loggedInDiscord = userMe.user.discord?.global_name ?? null;
     }
     this.modalEl?.open();
     this.requestUpdate();
@@ -290,7 +233,7 @@ export class AccountModal extends LitElement {
 @customElement("account-button")
 export class AccountButton extends LitElement {
   @state() private loggedInEmail: string | null = null;
-  @state() private loggedInUsername: string | null = null;
+  @state() private loggedInDiscord: string | null = null;
 
   private isVisible = true;
 
@@ -306,15 +249,15 @@ export class AccountButton extends LitElement {
         const userMeResponse = customEvent.detail as UserMeResponse;
         if (userMeResponse.user.email) {
           this.loggedInEmail = userMeResponse.user.email;
+          this.requestUpdate();
+        } else if (userMeResponse.user.discord) {
+          this.loggedInDiscord = userMeResponse.user.discord.id;
+          this.requestUpdate();
         }
-        if (userMeResponse.player.username) {
-          this.loggedInUsername = userMeResponse.player.username;
-        }
-        this.requestUpdate();
       } else {
         // Clear the logged in states when user logs out
         this.loggedInEmail = null;
-        this.loggedInUsername = null;
+        this.loggedInDiscord = null;
         this.requestUpdate();
       }
     });
@@ -338,11 +281,8 @@ export class AccountButton extends LitElement {
       buttonTitle = translateText("account_modal.logged_in_as", {
         email: this.loggedInEmail,
       });
-    } else if (this.loggedInUsername) {
-      buttonTitle =
-        translateText("account_modal.logged_in_username", {
-          username: this.loggedInUsername,
-        }) ?? `Logged in as ${this.loggedInUsername}`;
+    } else if (this.loggedInDiscord) {
+      buttonTitle = translateText("account_modal.logged_in_with_discord");
     }
 
     return html`
@@ -360,14 +300,18 @@ export class AccountButton extends LitElement {
   }
 
   private renderIcon() {
-    if (this.loggedInEmail) {
+    if (this.loggedInDiscord) {
+      return html`<img
+        src="/images/DiscordLogo.svg"
+        alt="Discord"
+        class="w-6 h-6"
+      />`;
+    } else if (this.loggedInEmail) {
       return html`<img
         src="/images/EmailIcon.svg"
         alt="Email"
         class="w-6 h-6"
       />`;
-    } else if (this.loggedInUsername) {
-      return html`<span class="text-lg">👤</span>`;
     }
     return html`<img
       src="/images/LoggedOutIcon.svg"

@@ -41,12 +41,7 @@ import "./components/NewsButton";
 import { NewsButton } from "./components/NewsButton";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
-import {
-  ensureGuestSession,
-  getUserMe,
-  isGuestSession,
-  isLoggedIn,
-} from "./jwt";
+import { discordLogin, getUserMe, isLoggedIn } from "./jwt";
 import "./styles.css";
 
 declare global {
@@ -121,12 +116,6 @@ class Client {
     }
     gameVersion.innerText = version;
 
-    try {
-      await ensureGuestSession();
-    } catch (error) {
-      console.error("Failed to establish guest session", error);
-    }
-
     const newsModal = document.querySelector("news-modal") as NewsModal;
     if (!newsModal || !(newsModal instanceof NewsModal)) {
       console.warn("[GlobalWars] News modal element not found");
@@ -182,21 +171,6 @@ class Client {
     }
 
     this.publicLobby = document.querySelector("public-lobby") as PublicLobby;
-    if (this.publicLobby) {
-      this.publicLobby.rankedRequiresAuth = isGuestSession();
-    }
-
-    const lobbyPanel = document.getElementById("lobby-panel");
-    const playNowButton = document.getElementById("play-now");
-    if (playNowButton && lobbyPanel) {
-      playNowButton.addEventListener("click", () => {
-        lobbyPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-        lobbyPanel.classList.add("lobby-panel--highlight");
-        window.setTimeout(() => {
-          lobbyPanel.classList.remove("lobby-panel--highlight");
-        }, 1100);
-      });
-    }
 
     const lobbyPanel = document.getElementById("lobby-panel");
     const playNowButton = document.getElementById("play-now");
@@ -308,22 +282,93 @@ class Client {
         }),
       );
 
-      if (this.publicLobby) {
-        this.publicLobby.rankedRequiresAuth = isGuestSession();
-      }
-
       const config = await getServerConfigFromClient();
       if (!hasAllowedFlare(userMeResponse, config)) {
         if (userMeResponse === false) {
-          alert(
-            translateText("auth.login_required") ??
-              "Sign in to access restricted queues.",
-          );
+          // Login is required
+          document.body.innerHTML = `
+            <div style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              margin: 0;
+              font-family: sans-serif;
+              background-size: cover;
+              background-position: center;
+            ">
+              <div style="
+                background-color: rgba(0, 0, 0, 0.7);
+                color: white;
+                padding: 2em;
+                margin: 5em;
+                border-radius: 12px;
+                text-align: center;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+              ">
+                <p style="margin-bottom: 1em; text-transform: uppercase; letter-spacing: 0.08em;">
+                  GlobalWars Command Access Required
+                </p>
+                <p style="margin-bottom: 1.5em; color: rgba(170, 216, 255, 0.9);">
+                  ${translateText("auth.login_required")}
+                </p>
+                <p style="margin-bottom: 1.5em; color: rgba(170, 216, 255, 0.9);">
+                  ${translateText("auth.redirecting")}
+                </p>
+                <div style="width: 100%; height: 8px; background-color: #444; border-radius: 4px; overflow: hidden;">
+                  <div style="
+                    height: 100%;
+                    width: 0%;
+                    background: linear-gradient(135deg, #2ab6ff, #61e6ff);
+                  animation: fillBar 5s linear forwards;
+                "></div>
+                </div>
+              </div>
+            </div>
+            <div class="bg-image"></div>
+            <style>
+              @keyframes fillBar {
+                from { width: 0%; }
+                to { width: 100%; }
+              }
+            </style>
+          `;
+          setTimeout(discordLogin, 5000);
         } else {
-          alert(
-            translateText("auth.not_authorized") ??
-              "You are not authorized to access this queue.",
-          );
+          // Unauthorized
+          document.body.innerHTML = `
+            <div style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              margin: 0;
+              font-family: sans-serif;
+              background-size: cover;
+              background-position: center;
+            ">
+              <div style="
+                background-color: rgba(0, 0, 0, 0.7);
+                color: white;
+                padding: 2em;
+                margin: 5em;
+                border-radius: 12px;
+                text-align: center;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+              ">
+                <p style="margin-bottom: 1em; text-transform: uppercase; letter-spacing: 0.08em;">
+                  GlobalWars High Command
+                </p>
+                <p style="margin-bottom: 1em; color: rgba(170, 216, 255, 0.9);">
+                  ${translateText("auth.not_authorized")}
+                </p>
+                <p style="color: rgba(170, 216, 255, 0.9);">
+                  ${translateText("auth.contact_admin")}
+                </p>
+              </div>
+            </div>
+            <div class="bg-image"></div>
+          `;
         }
         return;
       } else if (userMeResponse === false) {
@@ -346,13 +391,13 @@ class Client {
       }
     };
 
-    const loginState = isLoggedIn();
-    if (loginState === false) {
+    if (isLoggedIn() === false) {
+      // Not logged in
       onUserMe(false);
     } else {
-      getUserMe()
-        .then(onUserMe)
-        .catch(() => onUserMe(false));
+      // JWT appears to be valid
+      // TODO: Add caching
+      getUserMe().then(onUserMe);
     }
 
     const settingsModal = document.querySelector(
