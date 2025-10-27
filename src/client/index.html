@@ -132,54 +132,46 @@
     class="h-full select-none font-sans min-h-screen bg-opacity-0 bg-cover bg-center bg-fixed transition-opacity duration-300 ease-in-out flex flex-col"
   >
     <header class="l-header">
-      <div class="hero">
-        <div class="hero__branding">
-          <picture class="hero__logo">
-            <source
-              srcset="../../resources/images/GlobalWarsLogoDark.svg"
-              media="(prefers-color-scheme: dark)"
-            />
-            <img
-              src="../../resources/images/GlobalWarsLogo.svg"
-              alt="GlobalWars Command Crest"
-              width="320"
-              height="110"
-              loading="eager"
-            />
-          </picture>
-          <p class="hero__tagline">
-            Lead planet-spanning campaigns, forge alliances, and deploy
-            super-weapons in the definitive GlobalWars arena.
-          </p>
-          <p class="hero__attribution">
-            Based on the OpenFront open-source project. Attribution retained
-            under AGPL requirements.
-          </p>
-          <div class="hero__actions">
-            <a class="hero__action hero__action--primary" href="#join">
-              Enter the War Room
-            </a>
-            <a
-              class="hero__action hero__action--secondary"
-              href="https://discord.gg/jRpxXvG42t"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Join Global Command
-            </a>
-          </div>
-          <div id="game-version" class="hero__version">Loading version...</div>
+      <nav class="masthead" aria-label="GlobalWars primary navigation">
+        <div class="masthead__controls">
+          <button class="masthead__button" id="play-now" type="button">
+            Play Now
+          </button>
         </div>
-      </div>
+        <picture class="masthead__logo">
+          <source
+            srcset="../../resources/images/GlobalWarsLogoDark.svg"
+            media="(prefers-color-scheme: dark)"
+          />
+          <img
+            src="../../resources/images/GlobalWarsLogo.svg"
+            alt="GlobalWars Command Crest"
+            width="280"
+            height="96"
+            loading="eager"
+          />
+        </picture>
+        <div class="masthead__actions">
+          <a
+            class="masthead__button masthead__button--secondary"
+            href="https://discord.gg/jRpxXvG42t"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Join Discord
+          </a>
+          <dark-mode-button variant="inline"></dark-mode-button>
+        </div>
+      </nav>
     </header>
     <div class="bg-image"></div>
-    <br />
-    <br />
     <gutter-ads></gutter-ads>
 
     <!-- Main container with responsive padding -->
-    <main class="flex justify-center flex-grow">
-      <div class="container pt-12">
+    <main class="l-main flex justify-center flex-grow">
+      <div class="container pt-10">
+        <div id="game-version" class="version-badge">Loading version...</div>
+
         <token-login class="w-[20%] md:w-[15%]"></token-login>
 
         <div class="container__row">
@@ -197,7 +189,7 @@
           ></news-button>
         </div>
         <div></div>
-        <div>
+        <div id="lobby-panel" class="lobby-panel">
           <public-lobby class="block"></public-lobby>
         </div>
         <div class="container__row container__row--equal">
@@ -370,7 +362,6 @@
     <settings-modal></settings-modal>
     <player-panel></player-panel>
     <help-modal></help-modal>
-    <dark-mode-button></dark-mode-button>
     <alert-frame></alert-frame>
     <chat-modal></chat-modal>
     <user-setting></user-setting>

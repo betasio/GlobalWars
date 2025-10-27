@@ -20,7 +20,7 @@ import { CreateGameInputSchema, GameInputSchema } from "../core/WorkerSchemas";
 import { archive, finalizeGameRecord } from "./Archive";
 import { Client } from "./Client";
 import { GameManager } from "./GameManager";
-import { getUserMe, verifyClientToken } from "./jwt";
+import { verifyClientToken } from "./jwt";
 import { logger } from "./Logger";
 
 import { PrivilegeRefresher } from "./PrivilegeRefresher";
@@ -327,28 +327,21 @@ export async function startWorker() {
         }
         const { persistentId, claims } = result;
 
-        let roles: string[] | undefined;
-        let flares: string[] | undefined;
+        const roles: string[] | undefined = claims?.roles ?? [];
+        const flares: string[] | undefined = claims?.flares ?? [];
+        const isGuest = claims?.isGuest ?? true;
 
         const allowedFlares = config.allowedFlares();
-        if (claims === null) {
-          if (allowedFlares !== undefined) {
-            log.warn("Unauthorized: Anonymous user attempted to join game");
-            ws.close(1002, "Unauthorized");
-            return;
-          }
-        } else {
-          // Verify token and get player permissions
-          const result = await getUserMe(clientMsg.token, config);
-          if (result === false) {
-            log.warn("Unauthorized: Invalid session");
-            ws.close(1002, "Unauthorized");
-            return;
-          }
-          roles = result.player.roles;
-          flares = result.player.flares;
-
-          if (allowedFlares !== undefined) {
+        if (allowedFlares !== undefined) {
+          if (flares === undefined || flares.length === 0) {
+            if (allowedFlares.length > 0) {
+              log.warn(
+                "Forbidden: player without an allowed flare attempted to join game",
+              );
+              ws.close(1002, "Forbidden");
+              return;
+            }
+          } else {
             const allowed =
               allowedFlares.length === 0 ||
               allowedFlares.some((f) => flares?.includes(f));
@@ -360,6 +353,18 @@ export async function startWorker() {
               return;
             }
           }
+        }
+
+        const game = gm.game(clientMsg.gameID);
+        if (
+          game?.gameConfig?.gameType === GameType.Ranked &&
+          (claims === null || isGuest)
+        ) {
+          log.warn(
+            "Unauthorized: guest session attempted to join ranked lobby",
+          );
+          ws.close(1002, "RankedRequiresLogin");
+          return;
         }
 
         const cosmeticResult = privilegeRefresher

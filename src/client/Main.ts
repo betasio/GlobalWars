@@ -41,7 +41,12 @@ import "./components/NewsButton";
 import { NewsButton } from "./components/NewsButton";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
-import { discordLogin, getUserMe, isLoggedIn } from "./jwt";
+import {
+  ensureGuestSession,
+  getUserMe,
+  isGuestSession,
+  isLoggedIn,
+} from "./jwt";
 import "./styles.css";
 
 declare global {
@@ -103,6 +108,8 @@ class Client {
   private gutterAds: GutterAds | null = null;
   private gutterAdsLoader: Promise<GutterAds> | null = null;
 
+  private pendingJoin: { cancelled: boolean } | null = null;
+
   constructor() {}
 
   async initialize(): Promise<void> {
@@ -113,6 +120,12 @@ class Client {
       console.warn("Game version element not found");
     }
     gameVersion.innerText = version;
+
+    try {
+      await ensureGuestSession();
+    } catch (error) {
+      console.error("Failed to establish guest session", error);
+    }
 
     const newsModal = document.querySelector("news-modal") as NewsModal;
     if (!newsModal || !(newsModal instanceof NewsModal)) {
@@ -134,16 +147,17 @@ class Client {
     if (!langSelector) {
       console.warn("[GlobalWars] Language selector element not found");
     }
-    if (!languageModal) {
-      console.warn("[GlobalWars] Language modal element not found");
-    }
     void import(
       /* webpackChunkName: "language-modal" */ "./LanguageModal"
     ).then(({ LanguageModal }) => {
       const languageModal = document.querySelector(
         "language-modal",
       ) as LanguageModal | null;
-      if (!languageModal || !(languageModal instanceof LanguageModal)) {
+      if (!languageModal) {
+        console.warn("[GlobalWars] Language modal element not found");
+        return;
+      }
+      if (!(languageModal instanceof LanguageModal)) {
         console.warn("[GlobalWars] Language modal element not found");
       }
     });
@@ -168,6 +182,21 @@ class Client {
     }
 
     this.publicLobby = document.querySelector("public-lobby") as PublicLobby;
+    if (this.publicLobby) {
+      this.publicLobby.rankedRequiresAuth = isGuestSession();
+    }
+
+    const lobbyPanel = document.getElementById("lobby-panel");
+    const playNowButton = document.getElementById("play-now");
+    if (playNowButton && lobbyPanel) {
+      playNowButton.addEventListener("click", () => {
+        lobbyPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        lobbyPanel.classList.add("lobby-panel--highlight");
+        window.setTimeout(() => {
+          lobbyPanel.classList.remove("lobby-panel--highlight");
+        }, 1100);
+      });
+    }
 
     window.addEventListener("beforeunload", () => {
       console.log("Browser is closing");
@@ -267,93 +296,22 @@ class Client {
         }),
       );
 
+      if (this.publicLobby) {
+        this.publicLobby.rankedRequiresAuth = isGuestSession();
+      }
+
       const config = await getServerConfigFromClient();
       if (!hasAllowedFlare(userMeResponse, config)) {
         if (userMeResponse === false) {
-          // Login is required
-          document.body.innerHTML = `
-            <div style="
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
-              margin: 0;
-              font-family: sans-serif;
-              background-size: cover;
-              background-position: center;
-            ">
-              <div style="
-                background-color: rgba(0, 0, 0, 0.7);
-                color: white;
-                padding: 2em;
-                margin: 5em;
-                border-radius: 12px;
-                text-align: center;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-              ">
-                <p style="margin-bottom: 1em; text-transform: uppercase; letter-spacing: 0.08em;">
-                  GlobalWars Command Access Required
-                </p>
-                <p style="margin-bottom: 1.5em; color: rgba(170, 216, 255, 0.9);">
-                  ${translateText("auth.login_required")}
-                </p>
-                <p style="margin-bottom: 1.5em; color: rgba(170, 216, 255, 0.9);">
-                  ${translateText("auth.redirecting")}
-                </p>
-                <div style="width: 100%; height: 8px; background-color: #444; border-radius: 4px; overflow: hidden;">
-                  <div style="
-                    height: 100%;
-                    width: 0%;
-                    background: linear-gradient(135deg, #2ab6ff, #61e6ff);
-                  animation: fillBar 5s linear forwards;
-                "></div>
-                </div>
-              </div>
-            </div>
-            <div class="bg-image"></div>
-            <style>
-              @keyframes fillBar {
-                from { width: 0%; }
-                to { width: 100%; }
-              }
-            </style>
-          `;
-          setTimeout(discordLogin, 5000);
+          alert(
+            translateText("auth.login_required") ??
+              "Sign in to access restricted queues.",
+          );
         } else {
-          // Unauthorized
-          document.body.innerHTML = `
-            <div style="
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
-              margin: 0;
-              font-family: sans-serif;
-              background-size: cover;
-              background-position: center;
-            ">
-              <div style="
-                background-color: rgba(0, 0, 0, 0.7);
-                color: white;
-                padding: 2em;
-                margin: 5em;
-                border-radius: 12px;
-                text-align: center;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-              ">
-                <p style="margin-bottom: 1em; text-transform: uppercase; letter-spacing: 0.08em;">
-                  GlobalWars High Command
-                </p>
-                <p style="margin-bottom: 1em; color: rgba(170, 216, 255, 0.9);">
-                  ${translateText("auth.not_authorized")}
-                </p>
-                <p style="color: rgba(170, 216, 255, 0.9);">
-                  ${translateText("auth.contact_admin")}
-                </p>
-              </div>
-            </div>
-            <div class="bg-image"></div>
-          `;
+          alert(
+            translateText("auth.not_authorized") ??
+              "You are not authorized to access this queue.",
+          );
         }
         return;
       } else if (userMeResponse === false) {
@@ -376,13 +334,13 @@ class Client {
       }
     };
 
-    if (isLoggedIn() === false) {
-      // Not logged in
+    const loginState = isLoggedIn();
+    if (loginState === false) {
       onUserMe(false);
     } else {
-      // JWT appears to be valid
-      // TODO: Add caching
-      getUserMe().then(onUserMe);
+      getUserMe()
+        .then(onUserMe)
+        .catch(() => onUserMe(false));
     }
 
     const settingsModal = document.querySelector(
@@ -563,6 +521,8 @@ class Client {
 
   private async handleJoinLobby(event: CustomEvent<JoinLobbyEvent>) {
     const lobby = event.detail;
+    const pendingJoinToken = { cancelled: false };
+    this.pendingJoin = pendingJoinToken;
     console.log(`joining lobby ${lobby.gameID}`);
     if (this.gameStop !== null) {
       console.log("joining lobby, stopping existing game");
@@ -570,9 +530,21 @@ class Client {
     }
     const config = await getServerConfigFromClient();
 
+    if (pendingJoinToken.cancelled) {
+      console.log("join request cancelled before configuration resolved");
+      this.pendingJoin = null;
+      return;
+    }
+
     const pattern = this.userSettings.getSelectedPatternName(
       await fetchCosmetics(),
     );
+
+    if (pendingJoinToken.cancelled) {
+      console.log("join request cancelled before cosmetics resolved");
+      this.pendingJoin = null;
+      return;
+    }
 
     this.gameStop = joinLobby(
       this.eventBus,
@@ -661,17 +633,34 @@ class Client {
         history.pushState(null, "", `#join=${lobby.gameID}`);
       },
     );
+
+    this.pendingJoin = null;
   }
 
   private async handleLeaveLobby(/* event: CustomEvent */) {
-    if (this.gameStop === null) {
-      return;
+    if (this.pendingJoin) {
+      this.pendingJoin.cancelled = true;
+      this.pendingJoin = null;
     }
-    console.log("leaving lobby, cancelling game");
-    this.gameStop();
-    this.gameStop = null;
+
+    if (this.gameStop !== null) {
+      console.log("leaving lobby, cancelling game");
+      this.gameStop();
+      this.gameStop = null;
+    } else {
+      console.log("leaving lobby before connection completed");
+    }
+
     void this.hideGutterAds();
     this.publicLobby.leaveLobby();
+
+    if (window.location.hash.startsWith("#join=")) {
+      history.replaceState(
+        null,
+        "",
+        window.location.pathname + window.location.search,
+      );
+    }
   }
 
   private handleKickPlayer(event: CustomEvent) {

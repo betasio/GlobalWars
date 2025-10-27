@@ -60,6 +60,8 @@ const stubServerConfig: ServerConfig = {
   jwtAudience: () => "",
   jwtIssuer: () => "",
   jwkPublicKey: async () => ({}) as JWK,
+  authJwtSecret: () => "test-secret",
+  googleClientId: () => "",
   otelEnabled: () => false,
   otelEndpoint: () => "",
   otelAuthHeader: () => "",
@@ -114,6 +116,26 @@ describe("GameServer ranked mode", () => {
     expect(server.gameConfig.gameMode).toBe(GameMode.FFA);
   });
 
+  it("reports the ranked queue deadline as msUntilStart", () => {
+    jest.useFakeTimers();
+    const startTime = new Date("2025-01-01T00:00:00Z");
+    jest.setSystemTime(startTime);
+
+    const server = createRankedServer();
+
+    const info = server.gameInfo();
+    expect(info.msUntilStart).toBe(
+      startTime.getTime() + RANKED_TURN_TIMERS.queueSeconds * 1000,
+    );
+
+    const advanceMs = 15_000;
+    jest.setSystemTime(startTime.getTime() + advanceMs);
+    const updated = server.gameInfo();
+    expect(updated.msUntilStart).toBe(
+      startTime.getTime() + RANKED_TURN_TIMERS.queueSeconds * 1000,
+    );
+  });
+
   it("restricts configuration updates to the ranked preset", () => {
     const server = createRankedServer({ gameMap: GameMapType.World });
 
@@ -148,16 +170,24 @@ describe("GameServer ranked mode", () => {
       { length: maxPlayers },
       () => placeholderClient,
     );
-    expect(server.phase()).toBe(GamePhase.Lobby);
+    expect(server.phase()).toBe(GamePhase.Active);
 
-    server.activeClients = [];
-    jest.setSystemTime(
-      startTime.getTime() + RANKED_TURN_TIMERS.queueSeconds * 1000 + 1_000,
-    );
+    (server as unknown as { _hasPrestarted: boolean })._hasPrestarted = true;
     expect(server.phase()).toBe(GamePhase.Lobby);
 
     (server as unknown as { _hasStarted: boolean })._hasStarted = true;
     expect(server.phase()).toBe(GamePhase.Active);
+
+    (server as unknown as { _hasStarted: boolean })._hasStarted = false;
+    (server as unknown as { _hasPrestarted: boolean })._hasPrestarted = false;
+    server.activeClients = [];
+    jest.setSystemTime(
+      startTime.getTime() + RANKED_TURN_TIMERS.queueSeconds * 1000 + 1_000,
+    );
+    expect(server.phase()).toBe(GamePhase.Active);
+
+    (server as unknown as { _hasPrestarted: boolean })._hasPrestarted = true;
+    (server as unknown as { _hasStarted: boolean })._hasStarted = true;
 
     (server as unknown as { lastPingUpdate: number }).lastPingUpdate =
       Date.now() - 25_000;

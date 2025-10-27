@@ -2,7 +2,8 @@
   background: transparent;
   display: flex;
   justify-content: center;
-  padding: 2rem 1.5rem;
+  padding: clamp(0.75rem, 2vw, 1.25rem) clamp(1rem, 3vw, 2rem);
+  margin-bottom: clamp(0.75rem, 2vw, 1.5rem);
 }
 
 .l-header__content {

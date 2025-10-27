@@ -21,7 +21,7 @@
     "format": "prettier --ignore-unknown --write .",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky; fi",
+    "prepare": "node -e \"if (process.env.NODE_ENV !== 'production') { require('child_process').execSync('husky', { stdio: 'inherit', shell: true }); }\"",
     "gen-maps": "cd map-generator && go run . && npm run format"
   },
   "lint-staged": {
@@ -117,6 +117,7 @@
     "colord": "^2.9.3",
     "colorjs.io": "^0.5.2",
     "compression": "^1.8.1",
+    "google-auth-library": "^9.15.0",
     "dompurify": "^3.1.7",
     "dotenv": "^16.5.0",
     "express": "^4.21.1",

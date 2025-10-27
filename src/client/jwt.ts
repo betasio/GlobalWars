@@ -3,7 +3,6 @@ import { z } from "zod";
 import {
   PlayerProfile,
   PlayerProfileSchema,
-  RefreshResponseSchema,
   TokenPayload,
   TokenPayloadSchema,
   UserMeResponse,
@@ -68,7 +67,7 @@ function getToken(): string | null {
 
 async function clearToken() {
   localStorage.removeItem("token");
-  __isLoggedIn = false;
+  __isLoggedIn = undefined;
   const config = await getServerConfigFromClient();
   const audience = config.jwtAudience();
   const isSecure = window.location.protocol === "https:";
@@ -76,29 +75,76 @@ async function clearToken() {
   document.cookie = `token=logged_out; Path=/; Max-Age=0; Domain=${audience}${secure}`;
 }
 
-export function discordLogin() {
-  window.location.href = `${getApiBase()}/login/discord?redirect_uri=${window.location.href}`;
+async function storeToken(token: string) {
+  localStorage.setItem("token", token);
+  __isLoggedIn = undefined;
+  const config = await getServerConfigFromClient();
+  const audience = config.jwtAudience();
+  const isSecure = window.location.protocol === "https:";
+  const secure = isSecure ? "; Secure" : "";
+  const maxAge = 30 * 24 * 60 * 60;
+  document.cookie = `token=${token}; Path=/; Max-Age=${maxAge}; Domain=${audience}${secure}`;
 }
 
-export async function tokenLogin(token: string): Promise<string | null> {
-  const response = await fetch(
-    `${getApiBase()}/login/token?login-token=${token}`,
-  );
-  if (response.status !== 200) {
-    console.error("Token login failed", response);
+let guestSessionPromise: Promise<void> | null = null;
+
+export async function ensureGuestSession(): Promise<void> {
+  if (getToken()) {
+    return;
+  }
+  if (guestSessionPromise) {
+    return guestSessionPromise;
+  }
+  guestSessionPromise = (async () => {
+    const response = await fetch(`${getApiBase()}/login/guest`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!response.ok) {
+      guestSessionPromise = null;
+      throw new Error("Failed to provision guest session");
+    }
+    const body = await response.json();
+    const parsed = z
+      .object({ token: z.string(), profile: UserMeResponseSchema })
+      .safeParse(body);
+    if (!parsed.success) {
+      guestSessionPromise = null;
+      throw new Error("Invalid guest session payload");
+    }
+    await storeToken(parsed.data.token);
+    guestSessionPromise = null;
+  })();
+  return guestSessionPromise;
+}
+
+export async function loginWithGoogle(
+  credential: string,
+): Promise<UserMeResponse | null> {
+  const response = await fetch(`${getApiBase()}/login/google`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ credential }),
+  });
+  if (!response.ok) {
+    console.error("Google login failed", await response.text());
     return null;
   }
-  const json = await response.json();
-  const { jwt, email } = json;
-  const payload = decodeJwt(jwt);
-  const result = TokenPayloadSchema.safeParse(payload);
-  if (!result.success) {
-    console.error("Invalid token", result.error, result.error.message);
+  const body = await response.json();
+  const parsed = z
+    .object({ token: z.string(), profile: UserMeResponseSchema })
+    .safeParse(body);
+  if (!parsed.success) {
+    console.error("Invalid Google login payload", parsed.error);
     return null;
   }
-  clearToken();
-  localStorage.setItem("token", jwt);
-  return email;
+  await storeToken(parsed.data.token);
+  return parsed.data.profile;
+}
+
+export async function tokenLogin(_token: string): Promise<string | null> {
+  console.warn("Token login flow is not supported in this build.");
+  return null;
 }
 
 export function getAuthHeader(): string {
@@ -110,7 +156,7 @@ export function getAuthHeader(): string {
 export async function logOut(allSessions: boolean = false) {
   const token = getToken();
   if (token === null) return;
-  clearToken();
+  await clearToken();
 
   const response = await fetch(
     getApiBase() + (allSessions ? "/revoke" : "/logout"),
@@ -138,6 +184,17 @@ export function isLoggedIn(): IsLoggedInResponse {
 
   return __isLoggedIn;
 }
+
+export function getSessionClaims(): TokenPayload | null {
+  const result = isLoggedIn();
+  if (result === false) return null;
+  return result.claims;
+}
+
+export function isGuestSession(): boolean {
+  const claims = getSessionClaims();
+  return !claims || claims.isGuest;
+}
 function _isLoggedIn(): IsLoggedInResponse {
   try {
     const token = getToken();
@@ -157,7 +214,7 @@ function _isLoggedIn(): IsLoggedInResponse {
 
     // Decode the JWT
     const payload = decodeJwt(token);
-    const { iss, aud, exp, iat } = payload;
+    const { iss, aud, exp } = payload;
 
     if (iss !== getApiBase()) {
       // JWT was not issued by the correct server
@@ -188,19 +245,6 @@ function _isLoggedIn(): IsLoggedInResponse {
       logOut();
       return false;
     }
-    const refreshAge: number = 3 * 24 * 3600; // 3 days
-    if (iat !== undefined && now >= iat + refreshAge) {
-      console.log("Refreshing access token...");
-      postRefresh().then((success) => {
-        if (success) {
-          console.log("Refreshed access token successfully.");
-        } else {
-          console.error("Failed to refresh access token.");
-          // TODO: Update the UI to show logged out state
-        }
-      });
-    }
-
     const result = TokenPayloadSchema.safeParse(payload);
     if (!result.success) {
       const error = z.prettifyError(result.error);
@@ -213,38 +257,6 @@ function _isLoggedIn(): IsLoggedInResponse {
     return { token, claims };
   } catch (e) {
     console.log(e);
-    return false;
-  }
-}
-
-export async function postRefresh(): Promise<boolean> {
-  try {
-    const token = getToken();
-    if (!token) return false;
-
-    // Refresh the JWT
-    const response = await fetch(getApiBase() + "/refresh", {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
-    if (response.status === 401) {
-      clearToken();
-      return false;
-    }
-    if (response.status !== 200) return false;
-    const body = await response.json();
-    const result = RefreshResponseSchema.safeParse(body);
-    if (!result.success) {
-      const error = z.prettifyError(result.error);
-      console.error("Invalid response", error);
-      return false;
-    }
-    localStorage.setItem("token", result.data.token);
-    return true;
-  } catch (e) {
-    __isLoggedIn = false;
     return false;
   }
 }

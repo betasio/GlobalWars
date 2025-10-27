@@ -573,9 +573,13 @@ export class Transport {
         hash: event.hash,
       } satisfies ClientHashMessage);
     } else {
+      if (this.socket === null) {
+        console.log("dropping hash event: socket has been torn down");
+        return;
+      }
       console.log(
         "WebSocket is not open. Current state:",
-        this.socket!.readyState,
+        this.socket.readyState,
       );
       console.log("attempting reconnect");
     }

@@ -1,5 +1,5 @@
 import { LitElement, html } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { renderDuration, translateText } from "../client/Utils";
 import { GameMapType, GameMode, GameType } from "../core/game/Game";
 import { RANKED_FOG_RULE, RANKED_TURN_TIMERS } from "../core/game/GamePresets";
@@ -10,14 +10,23 @@ import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 
 @customElement("public-lobby")
 export class PublicLobby extends LitElement {
+  private static readonly RANKED_FIRST_DELAY_MS = 45_000;
+  private static readonly RANKED_ROTATION_INTERVAL_MS = 150_000;
+  private static readonly RANKED_DISPLAY_DURATION_MS = 60_000;
+
   @state() private lobbies: GameInfo[] = [];
   @state() public isLobbyHighlighted: boolean = false;
   @state() private isButtonDebounced: boolean = false;
   @state() private mapImages: Map<GameID, string> = new Map();
+  @state() private showRankedRotation: boolean = false;
+  @property({ type: Boolean }) rankedRequiresAuth = false;
   private lobbiesInterval: number | null = null;
   private currLobby: GameInfo | null = null;
   private debounceDelay: number = 750;
   private lobbyIDToStart = new Map<GameID, number>();
+  private hasRankedLobby = false;
+  private rankedRotationTimer: number | null = null;
+  private rankedHideTimer: number | null = null;
 
   createRenderRoot() {
     return this;
@@ -38,12 +47,47 @@ export class PublicLobby extends LitElement {
       clearInterval(this.lobbiesInterval);
       this.lobbiesInterval = null;
     }
+    this.clearRankedRotationTimers();
   }
 
   private async fetchAndUpdateLobbies(): Promise<void> {
     try {
-      this.lobbies = await this.fetchLobbies();
-      this.lobbies.forEach((l) => {
+      const lobbies = await this.fetchLobbies();
+      this.lobbies = lobbies;
+
+      const seenLobbyIDs = new Set(lobbies.map((l) => l.gameID));
+      Array.from(this.lobbyIDToStart.keys()).forEach((id) => {
+        if (!seenLobbyIDs.has(id)) {
+          this.lobbyIDToStart.delete(id);
+          this.mapImages.delete(id);
+        }
+      });
+
+      if (this.currLobby) {
+        const updatedLobby = lobbies.find(
+          (l) => l.gameID === this.currLobby?.gameID,
+        );
+
+        if (updatedLobby) {
+          this.currLobby = updatedLobby;
+        } else {
+          this.leaveLobby();
+        }
+      }
+
+      const hadRanked = this.hasRankedLobby;
+      this.hasRankedLobby = lobbies.some(
+        (l) => l.gameConfig?.gameType === GameType.Ranked,
+      );
+
+      if (!this.hasRankedLobby) {
+        this.showRankedRotation = false;
+        this.clearRankedRotationTimers();
+      } else if (!hadRanked) {
+        this.startRankedRotationCycle(this.currLobby === null);
+      }
+
+      lobbies.forEach((l) => {
         // Store the start time on first fetch because endpoint is cached, causing
         // the time to appear irregular.
         if (!this.lobbyIDToStart.has(l.gameID)) {
@@ -92,28 +136,62 @@ export class PublicLobby extends LitElement {
       clearInterval(this.lobbiesInterval);
       this.lobbiesInterval = null;
     }
+    this.showRankedRotation = false;
+    this.clearRankedRotationTimers();
   }
 
   render() {
-    if (this.lobbies.length === 0) return html``;
+    const selectedLobby =
+      this.currLobby && this.currLobby.gameConfig ? this.currLobby : null;
 
-    const standardLobby = this.lobbies.find(
-      (l) => l.gameConfig && l.gameConfig.gameType !== GameType.Ranked,
-    );
-    const rankedLobby = this.lobbies.find(
-      (l) => l.gameConfig && l.gameConfig.gameType === GameType.Ranked,
-    );
+    if (selectedLobby) {
+      const variant =
+        selectedLobby.gameConfig!.gameType === GameType.Ranked
+          ? "ranked"
+          : "public";
+
+      return html`
+        <div class="flex flex-col gap-4">
+          ${this.renderLobbyButton(selectedLobby, variant)}
+        </div>
+      `;
+    }
+
+    if (this.lobbies.length === 0) {
+      return html``;
+    }
+
+    const standardLobby =
+      this.lobbies.find(
+        (l) => l.gameConfig && l.gameConfig.gameType !== GameType.Ranked,
+      ) ?? null;
+    const rankedLobby =
+      this.lobbies.find(
+        (l) => l.gameConfig && l.gameConfig.gameType === GameType.Ranked,
+      ) ?? null;
 
     if (!standardLobby && !rankedLobby) {
       return html``;
     }
 
+    const shouldShowRanked = this.showRankedRotation && rankedLobby !== null;
+    const lobbyToRender =
+      (shouldShowRanked ? rankedLobby : standardLobby) ??
+      rankedLobby ??
+      standardLobby;
+
+    if (!lobbyToRender) {
+      return html``;
+    }
+
+    const variant =
+      lobbyToRender.gameConfig?.gameType === GameType.Ranked
+        ? "ranked"
+        : "public";
+
     return html`
       <div class="flex flex-col gap-4">
-        ${standardLobby
-          ? this.renderLobbyButton(standardLobby, "public")
-          : null}
-        ${rankedLobby ? this.renderLobbyButton(rankedLobby, "ranked") : null}
+        ${this.renderLobbyButton(lobbyToRender, variant)}
       </div>
     `;
   }
@@ -131,27 +209,18 @@ export class PublicLobby extends LitElement {
 
     const baseGradient =
       variant === "ranked"
-        ? "bg-gradient-to-r from-purple-600 to-purple-500"
-        : "bg-gradient-to-r from-blue-600 to-blue-500";
+        ? "from-purple-700/90 via-purple-500/80 to-purple-400/70"
+        : "from-blue-700/90 via-sky-600/80 to-sky-500/70";
     const highlightGradient =
       variant === "ranked"
-        ? "bg-gradient-to-r from-amber-500 to-amber-400"
-        : "bg-gradient-to-r from-green-600 to-green-500";
+        ? "from-amber-500/90 via-amber-400/85 to-amber-300/75"
+        : "from-emerald-500/90 via-emerald-400/85 to-emerald-300/75";
 
-    const labelColor =
-      variant === "ranked"
-        ? selected
-          ? "text-amber-600"
-          : "text-purple-600"
-        : selected
-          ? "text-green-600"
-          : "text-blue-600";
-
-    const buttonClass = `${
-      selected ? highlightGradient : baseGradient
-    } isolate grid h-40 grid-cols-[100%] grid-rows-[100%] place-content-stretch w-full overflow-hidden text-white font-medium rounded-xl transition-opacity duration-200 hover:opacity-90 ${
-      this.isButtonDebounced ? "opacity-70 cursor-not-allowed" : ""
-    }`;
+    const buttonClass = `relative isolate flex min-h-[11.5rem] w-full flex-col overflow-hidden rounded-2xl text-white shadow-xl transition duration-200 hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80 ${
+      selected
+        ? `bg-gradient-to-br ${highlightGradient}`
+        : `bg-gradient-to-br ${baseGradient}`
+    } ${this.isButtonDebounced ? "opacity-70 cursor-not-allowed" : ""}`;
 
     const title =
       variant === "ranked"
@@ -161,7 +230,7 @@ export class PublicLobby extends LitElement {
     const content =
       variant === "ranked"
         ? this.renderRankedDetails(lobby)
-        : this.renderStandardDetails(lobby, labelColor);
+        : this.renderStandardDetails(lobby);
 
     return html`
       <button
@@ -173,39 +242,72 @@ export class PublicLobby extends LitElement {
           ? html`<img
               src="${mapImageSrc}"
               alt="${lobby.gameConfig.gameMap}"
-              class="place-self-start col-span-full row-span-full h-full -z-10"
-              style="mask-image: linear-gradient(to left, transparent, #fff)"
+              class="absolute inset-0 -z-20 h-full w-full object-cover"
             />`
           : html`<div
-              class="place-self-start col-span-full row-span-full h-full -z-10 bg-gray-300"
+              class="absolute inset-0 -z-20 h-full w-full bg-slate-900/60"
             ></div>`}
         <div
-          class="flex flex-col justify-between h-full col-span-full row-span-full p-4 md:p-6 text-right z-0"
+          class="absolute inset-0 -z-10 bg-gradient-to-br from-black/55 via-black/35 to-black/10"
+        ></div>
+        <div
+          class="relative flex h-full flex-col justify-between gap-5 px-5 py-4 md:px-6 md:py-6"
         >
-          <div>
-            <div class="text-lg md:text-2xl font-semibold">${title}</div>
+          <div class="flex flex-col gap-3 text-left">
+            <div class="text-lg font-semibold leading-tight md:text-2xl">
+              ${title}
+            </div>
             ${content}
           </div>
 
-          <div>
-            <div class="text-md font-medium text-white/80">
-              ${lobby.numClients} / ${lobby.gameConfig.maxPlayers ?? "∞"}
+          <div
+            class="flex flex-wrap items-center justify-between gap-3 text-sm font-semibold text-white/90 md:text-base"
+          >
+            <div
+              class="inline-flex items-center gap-2 rounded-full bg-black/35 px-3 py-1.5 backdrop-blur-sm"
+              aria-label="${translateText(
+                "host_modal.players",
+              )}: ${lobby.numClients}"
+              title="${translateText(
+                "host_modal.players",
+              )}: ${lobby.numClients}"
+            >
+              <span class="text-lg leading-tight">👥</span>
+              <span
+                >${lobby.numClients} /
+                ${lobby.gameConfig.maxPlayers ?? "∞"}</span
+              >
             </div>
-            <div class="text-md font-medium text-white/80">${timeDisplay}</div>
+            <div
+              class="inline-flex items-center gap-2 rounded-full bg-black/35 px-3 py-1.5 backdrop-blur-sm"
+              aria-label="${translateText(
+                "game_starting_modal.title",
+              )}: ${timeDisplay}"
+              title="${translateText(
+                "game_starting_modal.title",
+              )}: ${timeDisplay}"
+            >
+              <span class="text-lg leading-tight">⏱</span>
+              <span>${timeDisplay}</span>
+            </div>
           </div>
         </div>
       </button>
     `;
   }
 
-  private renderStandardDetails(lobby: GameInfo, labelColor: string) {
+  private renderStandardDetails(lobby: GameInfo) {
     const config = lobby.gameConfig!;
     const teamCount =
       config.gameMode === GameMode.Team ? (config.playerTeams ?? 0) : null;
 
     return html`
-      <div class="text-md font-medium text-blue-100">
-        <span class="text-sm ${labelColor} bg-white rounded-sm px-1">
+      <div
+        class="flex flex-wrap items-center gap-2 text-sm font-medium text-white/85 md:text-base"
+      >
+        <span
+          class="rounded-full bg-white/20 px-3 py-[2px] text-xs font-semibold uppercase tracking-wide text-white/80"
+        >
           ${config.gameMode === GameMode.Team
             ? typeof teamCount === "string"
               ? translateText(`public_lobby.teams_${teamCount}`)
@@ -214,11 +316,11 @@ export class PublicLobby extends LitElement {
                 })
             : translateText("game_mode.ffa")}
         </span>
-        <span
-          >${translateText(
+        <span class="text-sm md:text-base">
+          ${translateText(
             `map.${config.gameMap.toLowerCase().replace(/\s+/g, "")}`,
-          )}</span
-        >
+          )}
+        </span>
       </div>
     `;
   }
@@ -229,23 +331,32 @@ export class PublicLobby extends LitElement {
     const fogRule = config.fogRule ?? RANKED_FOG_RULE;
 
     return html`
-      <div class="flex flex-col gap-1 text-sm font-medium text-white/80">
-        <div>
-          <span class="bg-white/20 rounded-sm px-1">
+      <div
+        class="flex flex-col gap-2 text-sm font-medium text-white/85 md:text-base"
+      >
+        <div class="flex flex-wrap items-center gap-2">
+          <span
+            class="rounded-full bg-white/20 px-3 py-[2px] text-xs font-semibold uppercase tracking-wide text-white/80"
+          >
+            Ranked Queue
+          </span>
+          <span>
             ${translateText(
               `map.${config.gameMap.toLowerCase().replace(/\s+/g, "")}`,
             )}
           </span>
         </div>
-        <div>
+        <div class="text-xs font-medium text-white/80 md:text-sm">
           Queue ${turnTimers.queueSeconds}s · Turn ${turnTimers.turnSeconds}s ·
           Fog ${fogRule}
         </div>
         ${config.mapPool
-          ? html`<div class="flex flex-wrap gap-1 justify-end text-xs">
+          ? html`<div class="flex flex-wrap gap-2 text-xs">
               ${config.mapPool.map((map) => {
                 const key = `map.${map.toLowerCase().replace(/\s+/g, "")}`;
-                return html`<span class="bg-white/15 rounded px-2 py-[2px]">
+                return html`<span
+                  class="rounded-full bg-white/15 px-3 py-[2px]"
+                >
                   ${translateText(key)}
                 </span>`;
               })}
@@ -258,9 +369,24 @@ export class PublicLobby extends LitElement {
   leaveLobby() {
     this.isLobbyHighlighted = false;
     this.currLobby = null;
+    if (this.hasRankedLobby) {
+      this.startRankedRotationCycle(false);
+    }
   }
 
   private lobbyClicked(lobby: GameInfo) {
+    if (this.currLobby?.gameID === lobby.gameID) {
+      this.dispatchEvent(
+        new CustomEvent("leave-lobby", {
+          detail: { lobby: this.currLobby },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+      this.leaveLobby();
+      return;
+    }
+
     if (this.isButtonDebounced) {
       return;
     }
@@ -278,18 +404,6 @@ export class PublicLobby extends LitElement {
       return;
     }
 
-    if (this.currLobby.gameID === lobby.gameID) {
-      this.dispatchEvent(
-        new CustomEvent("leave-lobby", {
-          detail: { lobby: this.currLobby },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-      this.leaveLobby();
-      return;
-    }
-
     this.dispatchEvent(
       new CustomEvent("leave-lobby", {
         detail: { lobby: this.currLobby },
@@ -301,6 +415,16 @@ export class PublicLobby extends LitElement {
   }
 
   private joinLobbyInternal(lobby: GameInfo) {
+    if (
+      lobby.gameConfig?.gameType === GameType.Ranked &&
+      this.rankedRequiresAuth
+    ) {
+      alert(
+        translateText("public_lobby.ranked_requires_login") ??
+          "Sign in with Google to play ranked matches.",
+      );
+      return;
+    }
     this.isLobbyHighlighted = true;
     this.currLobby = lobby;
     this.dispatchEvent(
@@ -312,6 +436,76 @@ export class PublicLobby extends LitElement {
         bubbles: true,
         composed: true,
       }),
+    );
+  }
+
+  private clearRankedRotationTimers() {
+    if (this.rankedRotationTimer !== null) {
+      clearTimeout(this.rankedRotationTimer);
+      this.rankedRotationTimer = null;
+    }
+
+    if (this.rankedHideTimer !== null) {
+      clearTimeout(this.rankedHideTimer);
+      this.rankedHideTimer = null;
+    }
+  }
+
+  private startRankedRotationCycle(showImmediately: boolean) {
+    this.clearRankedRotationTimers();
+
+    if (!this.hasRankedLobby) {
+      this.showRankedRotation = false;
+      return;
+    }
+
+    const scheduleNextDisplay = (delay: number) => {
+      this.rankedRotationTimer = window.setTimeout(() => {
+        if (!this.hasRankedLobby) {
+          this.showRankedRotation = false;
+          return;
+        }
+
+        const selectedType = this.currLobby?.gameConfig?.gameType;
+
+        if (selectedType && selectedType !== GameType.Ranked) {
+          this.showRankedRotation = false;
+          scheduleNextDisplay(PublicLobby.RANKED_ROTATION_INTERVAL_MS);
+          return;
+        }
+
+        if (!this.currLobby) {
+          this.showRankedRotation = true;
+        } else {
+          this.showRankedRotation =
+            this.currLobby.gameConfig?.gameType === GameType.Ranked;
+        }
+
+        if (!this.showRankedRotation) {
+          scheduleNextDisplay(PublicLobby.RANKED_ROTATION_INTERVAL_MS);
+          return;
+        }
+
+        this.rankedHideTimer = window.setTimeout(() => {
+          if (
+            this.currLobby &&
+            this.currLobby.gameConfig?.gameType === GameType.Ranked
+          ) {
+            scheduleNextDisplay(PublicLobby.RANKED_ROTATION_INTERVAL_MS);
+            return;
+          }
+
+          this.showRankedRotation = false;
+
+          if (this.hasRankedLobby) {
+            scheduleNextDisplay(PublicLobby.RANKED_ROTATION_INTERVAL_MS);
+          }
+        }, PublicLobby.RANKED_DISPLAY_DURATION_MS);
+      }, delay);
+    };
+
+    scheduleNextDisplay(
+      showImmediately ? 0 : PublicLobby.RANKED_FIRST_DELAY_MS,
     );
   }
 }
