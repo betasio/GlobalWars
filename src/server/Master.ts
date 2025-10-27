@@ -1,19 +1,31 @@
 import cluster from "cluster";
+import { randomUUID } from "crypto";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { v5 as uuidv5 } from "uuid";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
 import { GameType } from "../core/game/Game";
 import { GameConfig, GameID, GameInfo, ID } from "../core/Schemas";
 import { generateID } from "../core/Util";
+import {
+  claimsToUserResponse,
+  generateGuestName,
+  issueSessionToken,
+  sanitizeUsername,
+  verifyGoogleCredential,
+} from "./auth/Sessions";
+import { verifyClientToken } from "./jwt";
 import { logger } from "./Logger";
 import { MapPlaylist } from "./MapPlaylist";
 
 const config = getServerConfigFromServer();
 const playlist = new MapPlaylist();
 const readyWorkers = new Set<number>();
+
+const GOOGLE_NAMESPACE = "9ddbf8be-913c-4df4-8d41-1ade5078e1bc";
 
 const RANKED_QUEUE_COOLDOWN_MS = 3 * 60_000;
 let lastRankedScheduledAt = 0;
@@ -159,9 +171,82 @@ export async function startMaster() {
 app.get("/api/env", async (req, res) => {
   const envConfig = {
     game_env: process.env.GAME_ENV,
+    google_client_id: config.googleClientId(),
   };
   if (!envConfig.game_env) return res.sendStatus(500);
   res.json(envConfig);
+});
+
+app.post("/login/guest", async (req, res) => {
+  try {
+    const persistentId = randomUUID();
+    const username = generateGuestName();
+    const { token, claims } = await issueSessionToken(config, {
+      persistentId,
+      username,
+      provider: "guest",
+      ttlSeconds: 6 * 60 * 60,
+    });
+    res.json({
+      token,
+      profile: claimsToUserResponse(claims),
+    });
+  } catch (error) {
+    log.error("Failed to issue guest session", error);
+    res.status(500).json({ error: "Failed to issue guest session" });
+  }
+});
+
+app.post("/login/google", async (req, res) => {
+  try {
+    if (typeof req.body?.credential !== "string") {
+      res.status(400).json({ error: "Missing credential" });
+      return;
+    }
+    const result = await verifyGoogleCredential(config, req.body.credential);
+    const persistentId = uuidv5(result.sub, GOOGLE_NAMESPACE);
+    const username = sanitizeUsername(
+      result.name,
+      `Commander-${result.sub.slice(0, 6)}`,
+    );
+    const { token, claims } = await issueSessionToken(config, {
+      persistentId,
+      username,
+      provider: "google",
+      email: result.email,
+      ttlSeconds: 14 * 24 * 60 * 60,
+    });
+    res.json({
+      token,
+      profile: claimsToUserResponse(claims),
+    });
+  } catch (error) {
+    log.error("Failed to verify Google credential", error);
+    res.status(401).json({ error: "Invalid Google credential" });
+  }
+});
+
+app.get("/users/@me", async (req, res) => {
+  const authorization = req.headers.authorization;
+  if (!authorization?.startsWith("Bearer ")) {
+    res.sendStatus(401);
+    return;
+  }
+  const token = authorization.slice("Bearer ".length);
+  const verification = await verifyClientToken(token, config);
+  if (verification === false || verification.claims === null) {
+    res.sendStatus(401);
+    return;
+  }
+  res.json(claimsToUserResponse(verification.claims));
+});
+
+app.post("/logout", (_req, res) => {
+  res.sendStatus(204);
+});
+
+app.post("/revoke", (_req, res) => {
+  res.sendStatus(204);
 });
 
 // Add lobbies endpoint to list public games for this worker

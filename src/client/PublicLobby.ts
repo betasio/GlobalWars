@@ -1,5 +1,5 @@
 import { LitElement, html } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { renderDuration, translateText } from "../client/Utils";
 import { GameMapType, GameMode, GameType } from "../core/game/Game";
 import { RANKED_FOG_RULE, RANKED_TURN_TIMERS } from "../core/game/GamePresets";
@@ -19,6 +19,7 @@ export class PublicLobby extends LitElement {
   @state() private isButtonDebounced: boolean = false;
   @state() private mapImages: Map<GameID, string> = new Map();
   @state() private showRankedRotation: boolean = false;
+  @property({ type: Boolean }) rankedRequiresAuth = false;
   private lobbiesInterval: number | null = null;
   private currLobby: GameInfo | null = null;
   private debounceDelay: number = 750;
@@ -414,6 +415,16 @@ export class PublicLobby extends LitElement {
   }
 
   private joinLobbyInternal(lobby: GameInfo) {
+    if (
+      lobby.gameConfig?.gameType === GameType.Ranked &&
+      this.rankedRequiresAuth
+    ) {
+      alert(
+        translateText("public_lobby.ranked_requires_login") ??
+          "Sign in with Google to play ranked matches.",
+      );
+      return;
+    }
     this.isLobbyHighlighted = true;
     this.currLobby = lobby;
     this.dispatchEvent(

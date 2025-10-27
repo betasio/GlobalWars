@@ -30,6 +30,12 @@ export const TokenPayloadSchema = z.object({
   iss: z.string(),
   aud: z.string(),
   exp: z.number(),
+  username: z.string().min(1),
+  provider: z.enum(["guest", "google"]),
+  isGuest: z.boolean(),
+  roles: z.array(z.string()).optional(),
+  flares: z.array(z.string()).optional(),
+  email: z.string().optional(),
 });
 export type TokenPayload = z.infer<typeof TokenPayloadSchema>;
 
@@ -49,6 +55,7 @@ export const UserMeResponseSchema = z.object({
   }),
   player: z.object({
     publicId: z.string(),
+    username: z.string().optional(),
     roles: z.string().array().optional(),
     flares: z.string().array().optional(),
   }),
