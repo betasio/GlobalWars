@@ -80,6 +80,11 @@ export function discordLogin() {
   window.location.href = `${getApiBase()}/login/discord?redirect_uri=${window.location.href}`;
 }
 
+export function googleLogin() {
+  const redirectUri = encodeURIComponent(window.location.href);
+  window.location.href = `${getApiBase()}/login/google?redirect_uri=${redirectUri}`;
+}
+
 export async function tokenLogin(token: string): Promise<string | null> {
   const response = await fetch(
     `${getApiBase()}/login/token?login-token=${token}`,

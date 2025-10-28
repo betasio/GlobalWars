@@ -152,14 +152,14 @@
           />
         </picture>
         <div class="masthead__actions">
-          <a
+          <button
+            id="sign-in-button"
+            type="button"
             class="masthead__button masthead__button--secondary"
-            href="https://discord.gg/jRpxXvG42t"
-            target="_blank"
-            rel="noreferrer"
+            data-i18n="main.sign_in"
           >
-            Join Discord
-          </a>
+            Sign In
+          </button>
           <dark-mode-button variant="inline"></dark-mode-button>
         </div>
       </nav>
@@ -345,6 +345,7 @@
       </div>
     </footer>
     <account-button hidden></account-button>
+    <account-modal id="masthead-account-modal"></account-modal>
     <!-- Game modals and overlays -->
     <single-player-modal></single-player-modal>
     <host-lobby-modal></host-lobby-modal>
