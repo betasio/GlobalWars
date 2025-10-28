@@ -205,8 +205,7 @@ class Client {
 
     if (mastheadAccountModal) {
       document.addEventListener("ranked-auth-required", () => {
-        void mastheadAccountModal.open();
-        alert("Sign in is required to join ranked games.");
+        void mastheadAccountModal.openWithRankedAuthPrompt();
       });
     } else {
       document.addEventListener("ranked-auth-required", () => {
