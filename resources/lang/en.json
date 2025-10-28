@@ -160,7 +160,8 @@
     "logged_in_with_discord": "Logged in with Discord",
     "recovery_email_sent": "Recovery email sent to {email}",
     "choose_login": "Sign in to Global Wars",
-    "google_only_copy": "Use your Google account to continue."
+    "google_only_copy": "Use your Google account to continue.",
+    "ranked_auth_required": "Sign in is required to join ranked games."
   },
   "map": {
     "map": "Map",
@@ -650,6 +651,10 @@
   "error_modal": {
     "crashed": "Game crashed!",
     "connection_error": "Connection error!",
+    "worker_init_failed": "Game failed to load",
+    "worker_init_failed_body": "We couldn't finish downloading the match data. Check your connection and try again.",
+    "too_few_teams_title": "Match could not start",
+    "too_few_teams_body": "This match started without enough teams ({teamCount}). We sent you back to the lobby so you can join a different game.",
     "paste_discord": "Please paste the following in your bug report in Discord:",
     "copy_clipboard": "Copy to clipboard",
     "copied": "Copied!",

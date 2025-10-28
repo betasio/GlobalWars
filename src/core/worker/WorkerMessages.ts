@@ -12,6 +12,7 @@ export type WorkerMessageType =
   | "heartbeat"
   | "init"
   | "initialized"
+  | "init_error"
   | "turn"
   | "game_update"
   | "player_actions"
@@ -50,6 +51,11 @@ export interface TurnMessage extends BaseWorkerMessage {
 // Messages from worker to main thread
 export interface InitializedMessage extends BaseWorkerMessage {
   type: "initialized";
+}
+
+export interface InitErrorMessage extends BaseWorkerMessage {
+  type: "init_error";
+  error: string;
 }
 
 export interface GameUpdateMessage extends BaseWorkerMessage {
@@ -126,6 +132,7 @@ export type MainThreadMessage =
 // Message send from worker
 export type WorkerMessage =
   | InitializedMessage
+  | InitErrorMessage
   | GameUpdateMessage
   | PlayerActionsResultMessage
   | PlayerProfileResultMessage
