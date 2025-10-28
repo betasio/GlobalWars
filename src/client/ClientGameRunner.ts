@@ -8,11 +8,19 @@ import {
   PlayerCosmeticRefs,
   PlayerRecord,
   ServerMessage,
+  TeamCountConfig,
 } from "../core/Schemas";
 import { createPartialGameRecord, replacer } from "../core/Util";
-import { ServerConfig } from "../core/configuration/Config";
+import { Config, ServerConfig } from "../core/configuration/Config";
 import { getConfig } from "../core/configuration/ConfigLoader";
-import { PlayerActions, UnitType } from "../core/game/Game";
+import {
+  Duos,
+  GameMode,
+  PlayerActions,
+  Quads,
+  Trios,
+  UnitType,
+} from "../core/game/Game";
 import { TileRef } from "../core/game/GameMap";
 import { GameMapLoader } from "../core/game/GameMapLoader";
 import {
@@ -118,14 +126,23 @@ export function joinLobby(
         })
         .catch((error) => {
           console.error("Failed to initialize client game", error);
+          const isTooFewTeams = error instanceof TooFewTeamsError;
+          const message = translateText(
+            isTooFewTeams
+              ? "error_modal.too_few_teams_body"
+              : "error_modal.worker_init_failed_body",
+            isTooFewTeams ? { teamCount: error.teamCount } : {},
+          );
           showErrorModal(
             error instanceof Error ? error.message : String(error),
-            translateText("error_modal.worker_init_failed_body"),
+            message,
             lobbyConfig.gameID,
             lobbyConfig.clientID,
             true,
             false,
-            "error_modal.worker_init_failed",
+            isTooFewTeams
+              ? "error_modal.too_few_teams_title"
+              : "error_modal.worker_init_failed",
           );
           onError?.(error);
         });
@@ -165,22 +182,24 @@ async function createClientGame(
     userSettings,
     lobbyConfig.gameRecord !== undefined,
   );
-  let gameMap: TerrainMapData | null = null;
-
-  if (terrainLoad) {
-    gameMap = await terrainLoad;
-  } else {
-    gameMap = await loadTerrainMap(
-      lobbyConfig.gameStartInfo.config.gameMap,
-      lobbyConfig.gameStartInfo.config.gameMapSize,
-      mapLoader,
-    );
-  }
+  const terrainData: TerrainMapData = terrainLoad
+    ? await terrainLoad
+    : await loadTerrainMap(
+        lobbyConfig.gameStartInfo.config.gameMap,
+        lobbyConfig.gameStartInfo.config.gameMapSize,
+        mapLoader,
+      );
   const worker = new WorkerClient(
     lobbyConfig.gameStartInfo,
     lobbyConfig.clientID,
   );
   try {
+    ensureValidTeamSetup(
+      config,
+      terrainData,
+      lobbyConfig.gameStartInfo.players.length,
+      lobbyConfig.gameStartInfo.config.disableNPCs,
+    );
     await worker.initialize();
   } catch (error) {
     transport.leaveGame();
@@ -189,7 +208,7 @@ async function createClientGame(
   const gameView = new GameView(
     worker,
     config,
-    gameMap,
+    terrainData,
     lobbyConfig.clientID,
     lobbyConfig.gameStartInfo.gameID,
     lobbyConfig.gameStartInfo.players,
@@ -642,6 +661,52 @@ export class ClientGameRunner {
       this.lastMessageTime = now;
       this.transport.reconnect();
     }
+  }
+}
+
+class TooFewTeamsError extends Error {
+  constructor(public readonly teamCount: number) {
+    super(`Too few teams: ${teamCount}`);
+    this.name = "TooFewTeamsError";
+  }
+}
+
+function ensureValidTeamSetup(
+  config: Config,
+  terrainData: TerrainMapData,
+  humanCount: number,
+  disableNPCs: boolean,
+): void {
+  if (config.gameConfig().gameMode !== GameMode.Team) {
+    return;
+  }
+
+  const totalPlayers =
+    humanCount + (disableNPCs ? 0 : terrainData.nations.length);
+  const teamCount = resolveTeamCount(config.playerTeams(), totalPlayers);
+
+  if (teamCount < 2) {
+    throw new TooFewTeamsError(teamCount);
+  }
+}
+
+function resolveTeamCount(
+  teamConfig: TeamCountConfig,
+  totalPlayers: number,
+): number {
+  if (typeof teamConfig === "number") {
+    return teamConfig;
+  }
+
+  switch (teamConfig) {
+    case Duos:
+      return Math.ceil(totalPlayers / 2);
+    case Trios:
+      return Math.ceil(totalPlayers / 3);
+    case Quads:
+      return Math.ceil(totalPlayers / 4);
+    default:
+      throw new Error(`Unknown TeamCountConfig ${teamConfig}`);
   }
 }
 

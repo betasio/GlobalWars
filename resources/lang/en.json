@@ -653,6 +653,8 @@
     "connection_error": "Connection error!",
     "worker_init_failed": "Game failed to load",
     "worker_init_failed_body": "We couldn't finish downloading the match data. Check your connection and try again.",
+    "too_few_teams_title": "Match could not start",
+    "too_few_teams_body": "This match started without enough teams ({teamCount}). We sent you back to the lobby so you can join a different game.",
     "paste_discord": "Please paste the following in your bug report in Discord:",
     "copy_clipboard": "Copy to clipboard",
     "copied": "Copied!",
