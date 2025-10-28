@@ -127,6 +127,18 @@ To connect to production api servers:
 npm run dev:prod
 ```
 
+## 🔐 Authentication configuration
+
+The API server issues EdDSA access tokens for both Discord and Google logins. Configure the following environment variables when running the backend locally:
+
+| Variable                              | Description                                                       |
+| ------------------------------------- | ----------------------------------------------------------------- |
+| `GOOGLE_CLIENT_ID`                    | OAuth client ID created in the Google Cloud console.              |
+| `GOOGLE_CLIENT_SECRET`                | OAuth client secret paired with the client ID.                    |
+| `JWT_PRIVATE_JWK` / `JWT_PRIVATE_KEY` | Ed25519 signing key in JWK or PEM form for issuing client tokens. |
+
+`example.env` lists these keys with placeholder values for local development. Never commit real secrets to source control—load them via your shell or an `.env` file outside of version control instead.
+
 ## ☁️ Cloudflare tunnel configuration
 
 The server can provision and launch Cloudflare tunnels automatically. The behaviour is controlled via environment variables so the same code path works across Windows and Ubuntu deployments.
