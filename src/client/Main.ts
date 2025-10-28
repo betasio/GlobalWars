@@ -203,18 +203,6 @@ class Client {
       console.warn("[GlobalWars] Sign-in button element not found");
     }
 
-    if (mastheadAccountModal) {
-      document.addEventListener("ranked-auth-required", () => {
-        void mastheadAccountModal.openWithRankedAuthPrompt();
-      });
-    } else {
-      document.addEventListener("ranked-auth-required", () => {
-        console.warn(
-          "Ranked authentication required, but account modal unavailable",
-        );
-      });
-    }
-
     window.addEventListener("beforeunload", () => {
       console.log("Browser is closing");
       if (this.gameStop !== null) {

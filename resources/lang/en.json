@@ -160,8 +160,7 @@
     "logged_in_with_discord": "Logged in with Discord",
     "recovery_email_sent": "Recovery email sent to {email}",
     "choose_login": "Sign in to Global Wars",
-    "google_only_copy": "Use your Google account to continue.",
-    "ranked_auth_required": "Sign in is required to join ranked games."
+    "google_only_copy": "Use your Google account to continue."
   },
   "map": {
     "map": "Map",
