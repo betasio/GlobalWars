@@ -74,6 +74,7 @@ declare global {
   interface DocumentEventMap {
     "join-lobby": CustomEvent<JoinLobbyEvent>;
     "kick-player": CustomEvent;
+    "ranked-auth-required": CustomEvent;
   }
 }
 
@@ -200,6 +201,19 @@ class Client {
       });
     } else {
       console.warn("[GlobalWars] Sign-in button element not found");
+    }
+
+    if (mastheadAccountModal) {
+      document.addEventListener("ranked-auth-required", () => {
+        void mastheadAccountModal.open();
+        alert("Sign in is required to join ranked games.");
+      });
+    } else {
+      document.addEventListener("ranked-auth-required", () => {
+        console.warn(
+          "Ranked authentication required, but account modal unavailable",
+        );
+      });
     }
 
     window.addEventListener("beforeunload", () => {
@@ -858,7 +872,6 @@ function getPersistentIDFromCookie(): string {
   const newID = generateCryptoRandomUUID();
   document.cookie = [
     `${COOKIE_NAME}=${newID}`,
-    `max-age=${5 * 365 * 24 * 60 * 60}`, // 5 years
     "path=/",
     "SameSite=Strict",
     "Secure",
