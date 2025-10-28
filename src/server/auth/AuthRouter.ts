@@ -1,8 +1,7 @@
 import { createHash, randomUUID } from "crypto";
 import express from "express";
+import type { JWK, KeyLike } from "jose";
 import {
-  JWK,
-  KeyLike,
   SignJWT,
   base64url,
   createRemoteJWKSet,
