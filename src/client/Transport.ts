@@ -27,6 +27,8 @@ import { replacer } from "../core/Util";
 import { LobbyConfig } from "./ClientGameRunner";
 import { LocalServer } from "./LocalServer";
 
+const RANKED_AUTH_REQUIRED_CLOSE_CODE = 4401;
+
 export class PauseGameEvent implements GameEvent {
   constructor(public readonly paused: boolean) {}
 }
@@ -352,6 +354,8 @@ export class Transport {
       if (event.code === 1002) {
         // TODO: make this a modal
         alert(`connection refused: ${event.reason}`);
+      } else if (event.code === RANKED_AUTH_REQUIRED_CLOSE_CODE) {
+        document.dispatchEvent(new CustomEvent("ranked-auth-required"));
       } else if (event.code !== 1000) {
         console.log(`received error code ${event.code}, reconnecting`);
         this.reconnect();

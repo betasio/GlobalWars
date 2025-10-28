@@ -16,6 +16,9 @@ export class AccountModal extends LitElement {
   private loggedInEmail: string | null = null;
   private loggedInDiscord: string | null = null;
 
+  @state()
+  private showRankedAuthPrompt = false;
+
   constructor() {
     super();
   }
@@ -85,6 +88,18 @@ export class AccountModal extends LitElement {
   private renderLoginOptions() {
     return html`
       <div class="p-6 space-y-6">
+        ${this.showRankedAuthPrompt
+          ? html`
+              <div
+                class="rounded-md border border-red-500 bg-red-600/70 p-4 text-white shadow-lg"
+              >
+                <p class="text-sm font-medium">
+                  ${translateText("account_modal.ranked_auth_required") ||
+                  "Sign in is required to join ranked games."}
+                </p>
+              </div>
+            `
+          : null}
         <div class="text-center space-y-2">
           <h3 class="text-lg font-medium text-white">
             ${translateText("account_modal.choose_login") ||
@@ -115,18 +130,26 @@ export class AccountModal extends LitElement {
     googleLogin();
   };
 
-  public readonly open = async () => {
+  public readonly open = async (options?: {
+    showRankedAuthPrompt?: boolean;
+  }) => {
     const userMe = await getUserMe();
     if (userMe) {
       this.loggedInEmail = userMe.user.email ?? null;
       this.loggedInDiscord = userMe.user.discord?.global_name ?? null;
     }
+    this.showRankedAuthPrompt = options?.showRankedAuthPrompt ?? false;
     this.modalEl?.open();
     this.requestUpdate();
   };
 
   public readonly close = () => {
+    this.showRankedAuthPrompt = false;
     this.modalEl?.close();
+  };
+
+  public readonly openWithRankedAuthPrompt = async () => {
+    await this.open({ showRankedAuthPrompt: true });
   };
 
   private readonly handleLogout = async () => {

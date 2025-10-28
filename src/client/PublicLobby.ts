@@ -5,6 +5,7 @@ import { GameMapType, GameMode, GameType } from "../core/game/Game";
 import { RANKED_FOG_RULE, RANKED_TURN_TIMERS } from "../core/game/GamePresets";
 import { GameID, GameInfo } from "../core/Schemas";
 import { generateID } from "../core/Util";
+import { isLoggedIn } from "./jwt";
 import { JoinLobbyEvent } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 
@@ -215,11 +216,19 @@ export class PublicLobby extends LitElement {
         ? "from-amber-500/90 via-amber-400/85 to-amber-300/75"
         : "from-emerald-500/90 via-emerald-400/85 to-emerald-300/75";
 
+    const requiresRankedAuth = variant === "ranked" && isLoggedIn() === false;
+
     const buttonClass = `relative isolate flex min-h-[11.5rem] w-full flex-col overflow-hidden rounded-2xl text-white shadow-xl transition duration-200 hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80 ${
       selected
         ? `bg-gradient-to-br ${highlightGradient}`
         : `bg-gradient-to-br ${baseGradient}`
-    } ${this.isButtonDebounced ? "opacity-70 cursor-not-allowed" : ""}`;
+    } ${
+      this.isButtonDebounced
+        ? "opacity-70 cursor-not-allowed"
+        : requiresRankedAuth
+          ? "opacity-80"
+          : "hover:shadow-2xl"
+    }`;
 
     const title =
       variant === "ranked"
@@ -235,7 +244,12 @@ export class PublicLobby extends LitElement {
       <button
         @click=${() => this.lobbyClicked(lobby)}
         ?disabled=${this.isButtonDebounced}
+        aria-disabled=${requiresRankedAuth}
         class="${buttonClass}"
+        title="${requiresRankedAuth
+          ? translateText("account_modal.ranked_auth_required") ||
+            "Sign in is required to join ranked games."
+          : title}"
       >
         ${mapImageSrc
           ? html`<img
@@ -328,6 +342,7 @@ export class PublicLobby extends LitElement {
     const config = lobby.gameConfig!;
     const turnTimers = config.turnTimers ?? RANKED_TURN_TIMERS;
     const fogRule = config.fogRule ?? RANKED_FOG_RULE;
+    const requiresRankedAuth = isLoggedIn() === false;
 
     return html`
       <div
@@ -349,6 +364,14 @@ export class PublicLobby extends LitElement {
           Queue ${turnTimers.queueSeconds}s · Turn ${turnTimers.turnSeconds}s ·
           Fog ${fogRule}
         </div>
+        ${requiresRankedAuth
+          ? html`<div
+              class="rounded-md border border-red-500 bg-red-600/80 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-md"
+            >
+              ${translateText("account_modal.ranked_auth_required") ||
+              "Sign in is required to join ranked games."}
+            </div>`
+          : null}
         ${config.mapPool
           ? html`<div class="flex flex-wrap gap-2 text-xs">
               ${config.mapPool.map((map) => {
@@ -374,6 +397,18 @@ export class PublicLobby extends LitElement {
   }
 
   private lobbyClicked(lobby: GameInfo) {
+    const isRankedLobby = lobby.gameConfig?.gameType === GameType.Ranked;
+    const isLoggedOut = isLoggedIn() === false;
+
+    if (
+      isRankedLobby &&
+      isLoggedOut &&
+      this.currLobby?.gameID !== lobby.gameID
+    ) {
+      document.dispatchEvent(new CustomEvent("ranked-auth-required"));
+      return;
+    }
+
     if (this.currLobby?.gameID === lobby.gameID) {
       this.dispatchEvent(
         new CustomEvent("leave-lobby", {
