@@ -23,6 +23,8 @@
     "title": "GlobalWars",
     "join_discord": "Join the Discord!",
     "login_discord": "Login with Discord",
+    "login_google": "Login with Google",
+    "sign_in": "Sign In",
     "checking_login": "Checking login...",
     "logged_in": "Logged in!",
     "log_out": "Log out",
@@ -156,7 +158,9 @@
     "title": "Account",
     "logged_in_as": "Logged in as {email}",
     "logged_in_with_discord": "Logged in with Discord",
-    "recovery_email_sent": "Recovery email sent to {email}"
+    "recovery_email_sent": "Recovery email sent to {email}",
+    "choose_login": "Sign in to Global Wars",
+    "google_only_copy": "Use your Google account to continue."
   },
   "map": {
     "map": "Map",
