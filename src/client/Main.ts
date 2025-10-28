@@ -720,6 +720,27 @@ class Client {
         }
         history.pushState(null, "", `#join=${lobby.gameID}`);
       },
+      (error) => {
+        console.error("Failed to finish joining lobby", error);
+        this.gameStop = null;
+        this.pendingJoin = null;
+
+        const settingsButton = document.getElementById("settings-button");
+        settingsButton?.classList.remove("hidden");
+
+        document.querySelectorAll(".ad").forEach((ad) => {
+          (ad as HTMLElement).style.display = "";
+        });
+
+        const startingModal = document.querySelector(
+          "game-starting-modal",
+        ) as GameStartingModal | null;
+        startingModal?.hide();
+
+        this.publicLobby.leaveLobby();
+        this.publicLobby.start();
+        void this.showGutterAds();
+      },
     );
 
     this.pendingJoin = null;

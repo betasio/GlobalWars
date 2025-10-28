@@ -34,11 +34,7 @@ export class PublicLobby extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.fetchAndUpdateLobbies();
-    this.lobbiesInterval = window.setInterval(
-      () => this.fetchAndUpdateLobbies(),
-      1000,
-    );
+    this.start();
   }
 
   disconnectedCallback() {
@@ -48,6 +44,19 @@ export class PublicLobby extends LitElement {
       this.lobbiesInterval = null;
     }
     this.clearRankedRotationTimers();
+  }
+
+  public start() {
+    if (this.lobbiesInterval !== null) {
+      clearInterval(this.lobbiesInterval);
+      this.lobbiesInterval = null;
+    }
+
+    void this.fetchAndUpdateLobbies();
+    this.lobbiesInterval = window.setInterval(
+      () => this.fetchAndUpdateLobbies(),
+      1000,
+    );
   }
 
   private async fetchAndUpdateLobbies(): Promise<void> {
