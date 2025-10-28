@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "crypto";
 import express from "express";
-import type { JWK, KeyLike } from "jose";
+import type { JWK } from "jose";
 import {
   SignJWT,
   base64url,
@@ -61,8 +61,8 @@ type SessionDetails = Pick<SessionEntry, "email" | "name" | "picture">;
 const sessionStore = new Map<string, SessionEntry>();
 
 let signingJwk: JWK | undefined;
-let signingKeyPromise: Promise<KeyLike> | undefined;
-let verificationKeyPromise: Promise<KeyLike> | undefined;
+let signingKeyPromise: ReturnType<typeof importJWK> | undefined;
+let verificationKeyPromise: ReturnType<typeof importJWK> | undefined;
 
 function ensureGoogleConfig(): GoogleConfig {
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -122,12 +122,12 @@ function getPublicJwk(): JWK {
   } as JWK;
 }
 
-async function getSigningKey(): Promise<KeyLike> {
+async function getSigningKey() {
   signingKeyPromise ??= importJWK(getSigningJwk(), "EdDSA");
   return signingKeyPromise;
 }
 
-async function getVerificationKey(): Promise<KeyLike> {
+async function getVerificationKey() {
   verificationKeyPromise ??= importJWK(getPublicJwk(), "EdDSA");
   return verificationKeyPromise;
 }
