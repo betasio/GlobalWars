@@ -111,15 +111,11 @@ export class AccountModal extends LitElement {
     `;
   }
 
-  private handleGoogleLogin() {
+  private readonly handleGoogleLogin = () => {
     googleLogin();
-  }
+  };
 
-  private handleGoogleLogin() {
-    googleLogin();
-  }
-
-  public async open() {
+  public readonly open = async () => {
     const userMe = await getUserMe();
     if (userMe) {
       this.loggedInEmail = userMe.user.email ?? null;
@@ -127,18 +123,18 @@ export class AccountModal extends LitElement {
     }
     this.modalEl?.open();
     this.requestUpdate();
-  }
+  };
 
-  public close() {
+  public readonly close = () => {
     this.modalEl?.close();
-  }
+  };
 
-  private async handleLogout() {
+  private readonly handleLogout = async () => {
     await logOut();
     this.close();
     // Refresh the page after logout to update the UI state
     window.location.reload();
-  }
+  };
 }
 
 @customElement("account-button")
@@ -148,7 +144,7 @@ export class AccountButton extends LitElement {
 
   private isVisible = true;
 
-  @query("account-modal") private recoveryModal: AccountModal;
+  @query("account-modal") private recoveryModal!: AccountModal;
 
   constructor() {
     super();
