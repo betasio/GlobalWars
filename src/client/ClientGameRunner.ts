@@ -67,6 +67,7 @@ export function joinLobby(
   lobbyConfig: LobbyConfig,
   onPrestart: () => void,
   onJoin: () => void,
+  onError?: (error: unknown) => void,
 ): () => void {
   console.log(
     `joining lobby: gameID: ${lobbyConfig.gameID}, clientID: ${lobbyConfig.clientID}`,
@@ -101,7 +102,6 @@ export function joinLobby(
       console.log(
         `lobby: game started: ${JSON.stringify(message, replacer, 2)}`,
       );
-      onJoin();
       // For multiplayer games, GameStartInfo is not known until game starts.
       lobbyConfig.gameStartInfo = message.gameStartInfo;
       createClientGame(
@@ -111,7 +111,24 @@ export function joinLobby(
         userSettings,
         terrainLoad,
         terrainMapFileLoader,
-      ).then((r) => r.start());
+      )
+        .then((r) => {
+          onJoin();
+          r.start();
+        })
+        .catch((error) => {
+          console.error("Failed to initialize client game", error);
+          showErrorModal(
+            error instanceof Error ? error.message : String(error),
+            translateText("error_modal.worker_init_failed_body"),
+            lobbyConfig.gameID,
+            lobbyConfig.clientID,
+            true,
+            false,
+            "error_modal.worker_init_failed",
+          );
+          onError?.(error);
+        });
     }
     if (message.type === "error") {
       showErrorModal(
@@ -163,7 +180,12 @@ async function createClientGame(
     lobbyConfig.gameStartInfo,
     lobbyConfig.clientID,
   );
-  await worker.initialize();
+  try {
+    await worker.initialize();
+  } catch (error) {
+    transport.leaveGame();
+    throw error;
+  }
   const gameView = new GameView(
     worker,
     config,

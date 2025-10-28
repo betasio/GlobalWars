@@ -74,6 +74,7 @@ declare global {
   interface DocumentEventMap {
     "join-lobby": CustomEvent<JoinLobbyEvent>;
     "kick-player": CustomEvent;
+    "ranked-auth-required": CustomEvent;
   }
 }
 
@@ -200,6 +201,18 @@ class Client {
       });
     } else {
       console.warn("[GlobalWars] Sign-in button element not found");
+    }
+
+    if (mastheadAccountModal) {
+      document.addEventListener("ranked-auth-required", () => {
+        void mastheadAccountModal.openWithRankedAuthPrompt();
+      });
+    } else {
+      document.addEventListener("ranked-auth-required", () => {
+        console.warn(
+          "Ranked authentication required, but account modal unavailable",
+        );
+      });
     }
 
     window.addEventListener("beforeunload", () => {
@@ -707,6 +720,27 @@ class Client {
         }
         history.pushState(null, "", `#join=${lobby.gameID}`);
       },
+      (error) => {
+        console.error("Failed to finish joining lobby", error);
+        this.gameStop = null;
+        this.pendingJoin = null;
+
+        const settingsButton = document.getElementById("settings-button");
+        settingsButton?.classList.remove("hidden");
+
+        document.querySelectorAll(".ad").forEach((ad) => {
+          (ad as HTMLElement).style.display = "";
+        });
+
+        const startingModal = document.querySelector(
+          "game-starting-modal",
+        ) as GameStartingModal | null;
+        startingModal?.hide();
+
+        this.publicLobby.leaveLobby();
+        this.publicLobby.start();
+        void this.showGutterAds();
+      },
     );
 
     this.pendingJoin = null;
@@ -858,7 +892,6 @@ function getPersistentIDFromCookie(): string {
   const newID = generateCryptoRandomUUID();
   document.cookie = [
     `${COOKIE_NAME}=${newID}`,
-    `max-age=${5 * 365 * 24 * 60 * 60}`, // 5 years
     "path=/",
     "SameSite=Strict",
     "Secure",
