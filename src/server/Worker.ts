@@ -327,6 +327,22 @@ export async function startWorker() {
         }
         const { persistentId, claims } = result;
 
+        const gameForJoin = gm.game(clientMsg.gameID);
+        if (
+          gameForJoin?.gameConfig.gameType === GameType.Ranked &&
+          claims === null
+        ) {
+          log.warn(
+            "Unauthorized: Anonymous user attempted to join ranked game",
+            {
+              gameID: clientMsg.gameID,
+              clientID: clientMsg.clientID,
+            },
+          );
+          ws.close(4401, "RankedAuthRequired");
+          return;
+        }
+
         let roles: string[] | undefined;
         let flares: string[] | undefined;
 

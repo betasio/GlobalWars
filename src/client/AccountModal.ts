@@ -16,6 +16,9 @@ export class AccountModal extends LitElement {
   private loggedInEmail: string | null = null;
   private loggedInDiscord: string | null = null;
 
+  @state()
+  private showRankedAuthPrompt = false;
+
   constructor() {
     super();
   }
@@ -125,6 +128,7 @@ export class AccountModal extends LitElement {
       this.loggedInEmail = userMe.user.email ?? null;
       this.loggedInDiscord = userMe.user.discord?.global_name ?? null;
     }
+    this.showRankedAuthPrompt = options?.showRankedAuthPrompt ?? false;
     this.modalEl?.open();
     this.requestUpdate();
   };
