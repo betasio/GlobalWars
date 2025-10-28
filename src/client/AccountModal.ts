@@ -3,7 +3,13 @@ import { customElement, query, state } from "lit/decorators.js";
 import { UserMeResponse } from "../core/ApiSchemas";
 import "./components/Difficulties";
 import "./components/PatternButton";
-import { discordLogin, getApiBase, getUserMe, logOut } from "./jwt";
+import {
+  discordLogin,
+  getApiBase,
+  getUserMe,
+  googleLogin,
+  logOut,
+} from "./jwt";
 import { isInIframe, translateText } from "./Utils";
 
 @customElement("account-modal")
@@ -110,6 +116,20 @@ export class AccountModal extends LitElement {
             </button>
           </div>
 
+          <!-- Google Login Button -->
+          <div class="mb-6">
+            <button
+              @click="${this.handleGoogleLogin}"
+              class="w-full px-6 py-3 text-sm font-medium text-gray-900 bg-white border border-transparent rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200 flex items-center justify-center space-x-2"
+            >
+              <img src="/images/GoogleLogo.svg" alt="Google" class="w-5 h-5" />
+              <span
+                >${translateText("main.login_google") ||
+                "Login with Google"}</span
+              >
+            </button>
+          </div>
+
           <!-- Divider -->
           <div class="relative mb-6">
             <div class="absolute inset-0 flex items-center">
@@ -206,6 +226,10 @@ export class AccountModal extends LitElement {
 
   private handleDiscordLogin() {
     discordLogin();
+  }
+
+  private handleGoogleLogin() {
+    googleLogin();
   }
 
   public async open() {
