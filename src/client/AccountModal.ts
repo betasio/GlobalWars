@@ -9,7 +9,7 @@ import { isInIframe, translateText } from "./Utils";
 @customElement("account-modal")
 export class AccountModal extends LitElement {
   @query("o-modal") private modalEl!: HTMLElement & {
-    open: () => void;
+    open: (options?: unknown) => void;
     close: () => void;
   };
 
@@ -122,14 +122,13 @@ export class AccountModal extends LitElement {
     googleLogin();
   };
 
-  public readonly open = async () => {
+  public readonly open = async (options?: unknown) => {
     const userMe = await getUserMe();
     if (userMe) {
       this.loggedInEmail = userMe.user.email ?? null;
       this.loggedInDiscord = userMe.user.discord?.global_name ?? null;
     }
-    this.showRankedAuthPrompt = options?.showRankedAuthPrompt ?? false;
-    this.modalEl?.open();
+    this.modalEl?.open(options);
     this.requestUpdate();
   };
 
