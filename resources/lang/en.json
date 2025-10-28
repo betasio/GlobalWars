@@ -159,8 +159,10 @@
     "logged_in_as": "Logged in as {email}",
     "logged_in_with_discord": "Logged in with Discord",
     "recovery_email_sent": "Recovery email sent to {email}",
-    "choose_login": "Sign in to Global Wars",
-    "google_only_copy": "Use your Google account to continue."
+    "google_only_copy": "Use your Google account to join Ranked matches and sync your progress.",
+    "sign_in_heading": "Sign in to join Ranked games",
+    "sign_in_hint": "Signing in lets you keep your stats and unlock Ranked rewards.",
+    "sign_in_prompt": "Sign in to join Ranked games"
   },
   "map": {
     "map": "Map",

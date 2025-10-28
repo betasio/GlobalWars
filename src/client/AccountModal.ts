@@ -88,14 +88,18 @@ export class AccountModal extends LitElement {
   private renderLoginOptions() {
     return html`
       <div class="p-6 space-y-6">
-        <div class="text-center space-y-2">
+        <div class="text-center space-y-3">
           <h3 class="text-lg font-medium text-white">
-            ${translateText("account_modal.choose_login") ||
-            "Sign in to Global Wars"}
+            ${translateText("account_modal.sign_in_heading") ||
+            "Sign in to join Ranked games"}
           </h3>
           <p class="text-sm text-gray-300">
             ${translateText("account_modal.google_only_copy") ||
-            "Use your Google account to continue."}
+            "Use your Google account to join Ranked matches and sync your progress."}
+          </p>
+          <p class="text-xs text-gray-400">
+            ${translateText("account_modal.sign_in_hint") ||
+            "Signing in lets you keep your stats and unlock Ranked rewards."}
           </p>
         </div>
         <div>
@@ -187,11 +191,10 @@ export class AccountButton extends LitElement {
       return html``;
     }
 
-    let buttonTitle = "";
+    let buttonTitle = translateText("account_modal.sign_in_prompt");
     if (this.loggedInEmail) {
-      buttonTitle = translateText("account_modal.logged_in_as", {
-        email: this.loggedInEmail,
-      });
+      const titleParams = { email: this.loggedInEmail } as const;
+      buttonTitle = translateText("account_modal.logged_in_as", titleParams);
     } else if (this.loggedInDiscord) {
       buttonTitle = translateText("account_modal.logged_in_with_discord");
     }
