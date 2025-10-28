@@ -115,6 +115,10 @@ export class AccountModal extends LitElement {
     googleLogin();
   }
 
+  private handleGoogleLogin() {
+    googleLogin();
+  }
+
   public async open() {
     const userMe = await getUserMe();
     if (userMe) {
