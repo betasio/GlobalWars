@@ -65,11 +65,6 @@ export function getApiBase() {
     return resolvedApiBase;
   }
 
-  if (cachedSC) {
-    resolvedApiBase = cachedSC.jwtIssuer();
-    return resolvedApiBase;
-  }
-
   if (resolvedApiBase) {
     return resolvedApiBase;
   }
@@ -77,6 +72,22 @@ export function getApiBase() {
   const { hostname, protocol } = new URL(window.location.href);
   const scheme = protocol === "https:" ? "https" : "http";
   const audience = getEffectiveDomain(hostname);
+
+  if (cachedSC) {
+    const issuer = cachedSC.jwtIssuer();
+    const cachedAudience = cachedSC.jwtAudience();
+    const isLocalCachedAudience = cachedAudience === "localhost";
+    const isLocalLocation =
+      audience === "localhost" || isIpv4(audience) || isIpv6(audience);
+
+    if (!isLocalCachedAudience || isLocalLocation) {
+      resolvedApiBase = issuer;
+      return resolvedApiBase;
+    }
+    // Fall through to derive the API base from the current location when the
+    // server configuration only contains localhost details but the site is
+    // being served from a public hostname.
+  }
 
   if (audience === "localhost") {
     const apiDomain = process?.env?.API_DOMAIN;
