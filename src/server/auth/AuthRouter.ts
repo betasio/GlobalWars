@@ -165,9 +165,56 @@ function deriveUserUuid(googleSub: string): string {
   ].join("-");
 }
 
-function buildRedirectUri(): string {
-  const issuer = config.jwtIssuer();
-  const url = new URL("/login/google", issuer);
+function selectHeaderValue(
+  value: string | string[] | undefined,
+): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+  return value;
+}
+
+function coerceHeaderToken(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const token = value.split(",")[0]?.trim();
+  return token ? token : undefined;
+}
+
+function getRequestOrigin(req: express.Request): URL {
+  const forwardedProtoHeader = selectHeaderValue(
+    req.headers["x-forwarded-proto"],
+  );
+  const protocol =
+    coerceHeaderToken(forwardedProtoHeader)?.toLowerCase() ??
+    req.protocol ??
+    "http";
+
+  const forwardedHostHeader = selectHeaderValue(
+    req.headers["x-forwarded-host"],
+  );
+  const rawHost = forwardedHostHeader ?? selectHeaderValue(req.headers.host);
+  const host = Array.isArray(rawHost) ? rawHost[0] : rawHost;
+
+  if (host) {
+    try {
+      return new URL(`${protocol}://${host}`);
+    } catch (error) {
+      log.warn("Failed to parse request host, falling back to issuer", {
+        error,
+        host,
+        protocol,
+      });
+    }
+  }
+
+  return new URL(config.jwtIssuer());
+}
+
+function buildRedirectUri(req: express.Request): string {
+  const origin = getRequestOrigin(req);
+  const url = new URL("/login/google", origin);
   return url.toString();
 }
 
@@ -193,11 +240,13 @@ function appendTokenToHash(urlString: string, token: string): string {
 
 function sanitizeRedirectUri(
   candidate: string | undefined,
+  req: express.Request,
 ): string | undefined {
   if (!candidate) return undefined;
   try {
     const url = new URL(candidate);
     const audience = config.jwtAudience();
+    const requestHost = getRequestOrigin(req).hostname;
 
     if (!audience) {
       return url.toString();
@@ -211,6 +260,13 @@ function sanitizeRedirectUri(
     }
 
     if (url.hostname === audience || url.hostname.endsWith(`.${audience}`)) {
+      return url.toString();
+    }
+
+    if (
+      url.hostname === requestHost ||
+      url.hostname.endsWith(`.${requestHost}`)
+    ) {
       return url.toString();
     }
   } catch (error) {
@@ -381,14 +437,14 @@ router.get("/.well-known/jwks.json", (req, res) => {
 router.get("/login/google", async (req, res) => {
   try {
     const google = ensureGoogleConfig();
-    const redirectUri = buildRedirectUri();
+    const redirectUri = buildRedirectUri(req);
     const code =
       typeof req.query.code === "string" ? req.query.code : undefined;
     const rawRedirect =
       typeof req.query.redirect_uri === "string"
         ? req.query.redirect_uri
         : undefined;
-    const sanitizedRedirect = sanitizeRedirectUri(rawRedirect);
+    const sanitizedRedirect = sanitizeRedirectUri(rawRedirect, req);
     const stateParam =
       typeof req.query.state === "string" ? req.query.state : undefined;
     const state = decodeState(stateParam) ?? {};
@@ -478,7 +534,8 @@ router.get("/login/google", async (req, res) => {
       picture: claims.picture,
     });
 
-    const targetRedirect = state.redirectUri ?? config.jwtIssuer();
+    const targetRedirect =
+      state.redirectUri ?? getRequestOrigin(req).toString();
     const finalRedirect = appendTokenToHash(targetRedirect, jwt);
     res.setHeader("Set-Cookie", buildCookie(jwt, finalRedirect));
     res.redirect(finalRedirect);
