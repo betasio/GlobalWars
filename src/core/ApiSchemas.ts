@@ -13,7 +13,7 @@ export const TokenPayloadSchema = z.object({
   exp: z.number().optional(),
   iat: z.number().optional(),
   iss: z.string().optional(),
-  aud: z.string().optional(),
+  aud: z.union([z.string(), z.array(z.string())]).optional(),
   sub: z.string().optional(),
 });
 export type TokenPayload = z.infer<typeof TokenPayloadSchema>;

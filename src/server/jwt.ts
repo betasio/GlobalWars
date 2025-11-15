@@ -11,6 +11,7 @@ import { PersistentIdSchema } from "../core/Schemas";
 
 const FIREBASE_PROJECT_ID =
   process.env.FIREBASE_PROJECT_ID ?? "globalwars-75bcf";
+const FIREBASE_PROJECT_NUMBER = process.env.FIREBASE_PROJECT_NUMBER ?? null;
 const FIREBASE_ISSUER = `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`;
 const FIREBASE_JWKS_URL = new URL(
   "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
@@ -135,10 +136,20 @@ async function verifyFirebaseToken(
       return null;
     }
 
-    const { payload } = await jwtVerify(token, key, {
+    const audiences = [FIREBASE_PROJECT_ID, FIREBASE_PROJECT_NUMBER].filter(
+      (aud): aud is string => Boolean(aud),
+    );
+    const verifyOptions: Parameters<typeof jwtVerify>[2] = {
       issuer: FIREBASE_ISSUER,
-      audience: FIREBASE_PROJECT_ID,
-    });
+      audience:
+        audiences.length === 1
+          ? audiences[0]
+          : audiences.length > 1
+            ? audiences
+            : FIREBASE_PROJECT_ID,
+    };
+
+    const { payload } = await jwtVerify(token, key, verifyOptions);
     const result = TokenPayloadSchema.safeParse(payload);
     if (!result.success) {
       const error = z.prettifyError(result.error);

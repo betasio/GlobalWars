@@ -131,9 +131,10 @@ npm run dev:prod
 
 GlobalWars now relies on [Firebase Authentication](https://firebase.google.com/docs/auth) for Google sign-in. Supply the Firebase project identifier so the game servers can validate the ID tokens emitted by the client SDK:
 
-| Variable              | Description                                                                       |
-| --------------------- | --------------------------------------------------------------------------------- |
-| `FIREBASE_PROJECT_ID` | Firebase project ID used for token verification (defaults to `globalwars-75bcf`). |
+| Variable                  | Description                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `FIREBASE_PROJECT_ID`     | Firebase project ID used for token verification (defaults to `globalwars-75bcf`).                        |
+| `FIREBASE_PROJECT_NUMBER` | Optional Firebase project number accepted as an additional token audience (`833972164306`, for example). |
 
 The browser client bootstraps Firebase using the configuration in `src/client/firebase.ts`. If you fork the project, update that file with your own Firebase credentials.
 
