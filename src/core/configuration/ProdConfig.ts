@@ -9,6 +9,6 @@ export const prodConfig = new (class extends DefaultServerConfig {
     return GameEnv.Prod;
   }
   jwtAudience(): string {
-    return "openfront.io";
+    return process.env.JWT_AUDIENCE ?? "openfront.io";
   }
 })();
