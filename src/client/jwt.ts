@@ -119,7 +119,10 @@ export function getApiBase() {
     return resolvedApiBase;
   }
 
-  resolvedApiBase = `https://api.${audience}`;
+  const origin = window.location.origin;
+  resolvedApiBase = origin.startsWith("http")
+    ? origin
+    : `${scheme}://${hostname}`;
   return resolvedApiBase;
 }
 
