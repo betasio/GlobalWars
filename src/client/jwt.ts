@@ -330,3 +330,7 @@ export async function tokenLogin(_token: string): Promise<string | null> {
   console.warn("Token login is not supported with Firebase authentication");
   return null;
 }
+
+if (typeof window !== "undefined") {
+  void initializeFirebaseAuth();
+}
