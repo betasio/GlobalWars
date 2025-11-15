@@ -154,6 +154,22 @@ async function initializeFirebaseAuth(): Promise<void> {
         setStoredToken(null);
       }
       __isLoggedIn = undefined;
+
+      if (typeof document !== "undefined") {
+        void getUserMe()
+          .then((detail) => {
+            document.dispatchEvent(
+              new CustomEvent("userMeResponse", {
+                detail,
+                bubbles: true,
+                cancelable: true,
+              }),
+            );
+          })
+          .catch((error) => {
+            console.warn("Failed to broadcast auth state", error);
+          });
+      }
     });
 
     if (auth.getRedirectResult) {
@@ -190,12 +206,19 @@ export async function googleLogin() {
     await firebaseAuth.signInWithPopup(provider);
   } catch (error: any) {
     const code = error?.code ?? "";
-    if (code === "auth/popup-blocked" || code === "auth/popup-closed-by-user") {
+    if (code === "auth/popup-blocked") {
       await firebaseAuth.signInWithRedirect(provider);
       return;
     }
+    if (
+      code === "auth/popup-closed-by-user" ||
+      code === "auth/user-cancelled" ||
+      code === "auth/cancelled-popup-request"
+    ) {
+      console.info("Google sign-in was cancelled", error);
+      return;
+    }
     console.error("Google sign-in failed", error);
-    throw error;
   }
 }
 
