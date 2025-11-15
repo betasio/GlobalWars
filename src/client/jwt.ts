@@ -9,26 +9,136 @@ import {
   UserMeResponse,
   UserMeResponseSchema,
 } from "../core/ApiSchemas";
-import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
+import {
+  cachedSC,
+  getServerConfigFromClient,
+} from "../core/configuration/ConfigLoader";
+
+const ENV: NodeJS.ProcessEnv | undefined =
+  typeof process !== "undefined" ? process.env : undefined;
+
+function isIpv4(hostname: string): boolean {
+  if (!/^\d+(?:\.\d+){3}$/.test(hostname)) {
+    return false;
+  }
+
+  return hostname.split(".").every((segment) => {
+    const value = Number(segment);
+    return value >= 0 && value <= 255;
+  });
+}
+
+function isIpv6(hostname: string): boolean {
+  return hostname.includes(":");
+}
+
+function getEffectiveDomain(hostname: string): string {
+  if (isIpv4(hostname) || isIpv6(hostname)) {
+    return hostname;
+  }
+
+  const parts = hostname.split(".").filter(Boolean);
+  if (parts.length <= 2) {
+    return hostname;
+  }
+
+  const last = parts[parts.length - 1];
+  const secondLast = parts[parts.length - 2];
+  const isSecondLevelCcTld = last.length === 2 && secondLast.length <= 3;
+  const keepCount = isSecondLevelCcTld ? 3 : 2;
+
+  if (parts.length <= keepCount) {
+    return hostname;
+  }
+
+  return parts.slice(-keepCount).join(".");
+}
 
 function getAudience() {
   const { hostname } = new URL(window.location.href);
-  const domainname = hostname.split(".").slice(-2).join(".");
-  return domainname;
+  return getEffectiveDomain(hostname);
 }
 
-export function getApiBase() {
-  const domainname = getAudience();
+let resolvedApiBase: string | null = null;
 
-  if (domainname === "localhost") {
-    const apiDomain = process?.env?.API_DOMAIN;
-    if (apiDomain) {
-      return `https://${apiDomain}`;
-    }
-    return localStorage.getItem("apiHost") ?? "http://localhost:8787";
+export function getApiBase() {
+  const storedHost = localStorage.getItem("apiHost");
+  if (storedHost) {
+    resolvedApiBase = storedHost;
+    return resolvedApiBase;
   }
 
-  return `https://api.${domainname}`;
+  if (resolvedApiBase) {
+    return resolvedApiBase;
+  }
+
+  const { hostname, protocol } = new URL(window.location.href);
+  const scheme = protocol === "https:" ? "https" : "http";
+  const audience = getEffectiveDomain(hostname);
+  const isLocalLocation =
+    audience === "localhost" || isIpv4(audience) || isIpv6(audience);
+
+  if (cachedSC) {
+    const issuer = cachedSC.jwtIssuer();
+    try {
+      const issuerUrl = new URL(issuer);
+      if (issuerUrl.hostname !== "localhost") {
+        resolvedApiBase = issuerUrl.origin;
+        return resolvedApiBase;
+      }
+
+      if (isLocalLocation) {
+        const portSegment = issuerUrl.port
+          ? `:${issuerUrl.port}`
+          : issuerUrl.protocol === "https:"
+            ? ""
+            : ":8787";
+        resolvedApiBase = `${scheme}://${hostname}${portSegment}`;
+        return resolvedApiBase;
+      }
+    } catch (error) {
+      console.warn("Failed to parse server issuer", error);
+    }
+    // Fall through to derive the API base from the current location when the
+    // server configuration only contains localhost details but the site is
+    // being served from a public hostname.
+  }
+
+  if (audience === "localhost") {
+    const apiDomain = ENV?.API_DOMAIN;
+    if (apiDomain) {
+      resolvedApiBase = apiDomain.startsWith("http")
+        ? apiDomain
+        : `https://${apiDomain}`;
+      return resolvedApiBase;
+    }
+    resolvedApiBase = "http://localhost:8787";
+    return resolvedApiBase;
+  }
+
+  if (isIpv4(audience) || isIpv6(audience)) {
+    const apiDomain = ENV?.API_DOMAIN;
+    if (apiDomain) {
+      resolvedApiBase = apiDomain.startsWith("http")
+        ? apiDomain
+        : `${scheme}://${apiDomain}`;
+      return resolvedApiBase;
+    }
+    const apiPort = ENV?.API_PORT;
+    const portSegment = apiPort
+      ? `:${apiPort}`
+      : scheme === "https"
+        ? ""
+        : ":8787";
+    resolvedApiBase = `${scheme}://${audience}${portSegment}`;
+    return resolvedApiBase;
+  }
+
+  const origin = window.location.origin;
+  resolvedApiBase = origin.startsWith("http")
+    ? origin
+    : `${scheme}://${hostname}`;
+  return resolvedApiBase;
 }
 
 function getToken(): string | null {
@@ -78,6 +188,11 @@ async function clearToken() {
 
 export function discordLogin() {
   window.location.href = `${getApiBase()}/login/discord?redirect_uri=${window.location.href}`;
+}
+
+export function googleLogin() {
+  const redirectUri = encodeURIComponent(window.location.href);
+  window.location.href = `${getApiBase()}/login/google?redirect_uri=${redirectUri}`;
 }
 
 export async function tokenLogin(token: string): Promise<string | null> {
