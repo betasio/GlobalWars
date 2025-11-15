@@ -19,6 +19,8 @@ export class WorkerClient {
     update: GameUpdateViewData | ErrorUpdate,
   ) => void;
 
+  private static readonly INIT_TIMEOUT_MS = 20_000;
+
   constructor(
     private gameStartInfo: GameStartInfo,
     private clientID: ClientID,
@@ -58,15 +60,24 @@ export class WorkerClient {
     return new Promise((resolve, reject) => {
       const messageId = generateID();
       let settled = false;
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+      const cleanup = () => {
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        this.messageHandlers.delete(messageId);
+        this.worker.removeEventListener("error", onWorkerError);
+        this.worker.removeEventListener("messageerror", onMessageError);
+      };
 
       const fail = (error: unknown) => {
         if (settled) {
           return;
         }
         settled = true;
-        this.messageHandlers.delete(messageId);
-        this.worker.removeEventListener("error", onWorkerError);
-        this.worker.removeEventListener("messageerror", onMessageError);
+        cleanup();
         reject(
           error instanceof Error
             ? error
@@ -92,10 +103,10 @@ export class WorkerClient {
           }
           settled = true;
           this.isInitialized = true;
-          this.messageHandlers.delete(messageId);
-          this.worker.removeEventListener("error", onWorkerError);
-          this.worker.removeEventListener("messageerror", onMessageError);
+          cleanup();
           resolve();
+        } else if (message.type === "init_error") {
+          fail(new Error(message.error));
         }
       });
 
@@ -107,11 +118,11 @@ export class WorkerClient {
       });
 
       // Add timeout for initialization
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         if (!this.isInitialized) {
           fail(new Error("Worker initialization timeout"));
         }
-      }, 5000); // 5 second timeout
+      }, WorkerClient.INIT_TIMEOUT_MS);
     });
   }
 
