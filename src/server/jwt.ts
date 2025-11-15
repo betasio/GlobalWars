@@ -1,4 +1,4 @@
-import { decodeProtectedHeader, importJWK, jwtVerify } from "jose";
+import { decodeJwt, decodeProtectedHeader, importJWK, jwtVerify } from "jose";
 import https from "node:https";
 import { z } from "zod";
 import {
@@ -16,6 +16,8 @@ const FIREBASE_ISSUER = `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`;
 const FIREBASE_JWKS_URL = new URL(
   "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
 );
+const FIREBASE_API_KEY =
+  process.env.FIREBASE_API_KEY ?? "AIzaSyARehGFiYvbAqfqCiDyluBdqvw0jDUW5d8";
 
 type ImportedKey = Awaited<ReturnType<typeof importJWK>>;
 
@@ -126,7 +128,7 @@ type TokenVerificationResult =
     }
   | false;
 
-async function verifyFirebaseToken(
+async function verifyFirebaseTokenWithJwks(
   token: string,
 ): Promise<TokenPayload | null> {
   try {
@@ -161,6 +163,109 @@ async function verifyFirebaseToken(
     console.warn("Firebase token verification failed", error);
     return null;
   }
+}
+
+async function verifyFirebaseTokenViaApi(
+  token: string,
+): Promise<TokenPayload | null> {
+  if (!FIREBASE_API_KEY) {
+    return null;
+  }
+
+  const payload = JSON.stringify({ idToken: token });
+  const url = new URL(
+    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`,
+  );
+
+  return new Promise((resolve) => {
+    const request = https.request(
+      url,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(payload).toString(),
+        },
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on("data", (chunk) => {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        });
+        res.on("end", () => {
+          try {
+            const raw = Buffer.concat(chunks).toString("utf-8");
+            if ((res.statusCode ?? 0) !== 200) {
+              console.warn(
+                `Firebase token lookup failed: ${res.statusCode} ${res.statusMessage} ${raw}`,
+              );
+              resolve(null);
+              return;
+            }
+
+            const parsed = JSON.parse(raw) as {
+              users?: Array<{ localId?: string; email?: string }>;
+            };
+            const user = parsed.users?.[0];
+            if (!user?.localId) {
+              console.warn("Firebase token lookup missing user record");
+              resolve(null);
+              return;
+            }
+
+            try {
+              const decoded = decodeJwt(token);
+              const result = TokenPayloadSchema.safeParse(decoded);
+              if (result.success) {
+                resolve(result.data);
+                return;
+              }
+              const error = z.prettifyError(result.error);
+              console.warn(
+                "Fallback Firebase token validation failed strict parse",
+                error,
+              );
+            } catch (error) {
+              console.warn(
+                "Failed to decode Firebase token during fallback verification",
+                error,
+              );
+            }
+
+            resolve({
+              user_id: user.localId,
+              email: user.email ?? undefined,
+            });
+          } catch (error) {
+            console.warn("Failed to parse Firebase lookup response", error);
+            resolve(null);
+          }
+        });
+      },
+    );
+
+    request.on("error", (error) => {
+      console.warn("Failed to verify Firebase token via API", error);
+      resolve(null);
+    });
+
+    request.write(payload);
+    request.end();
+  });
+}
+
+async function verifyFirebaseToken(
+  token: string,
+): Promise<TokenPayload | null> {
+  const claims = await verifyFirebaseTokenWithJwks(token);
+  if (claims) {
+    return claims;
+  }
+  const fallback = await verifyFirebaseTokenViaApi(token);
+  if (!fallback) {
+    console.warn("Firebase token verification failed after API fallback");
+  }
+  return fallback;
 }
 
 export async function verifyClientToken(

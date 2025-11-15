@@ -16,11 +16,30 @@ export class AccountModal extends LitElement {
   private loggedInEmail: string | null = null;
   private loggedInDiscord: string | null = null;
 
-  @state()
-  private showRankedAuthPrompt = false;
+  private readonly handleUserMeResponse = (event: Event) => {
+    const detail = (event as CustomEvent<UserMeResponse | false>).detail;
+    if (detail && detail !== false) {
+      this.loggedInEmail = detail.user.email ?? null;
+      this.loggedInDiscord = detail.user.discord?.global_name ?? null;
+    } else {
+      this.loggedInEmail = null;
+      this.loggedInDiscord = null;
+    }
+    this.requestUpdate();
+  };
 
   constructor() {
     super();
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    document.addEventListener("userMeResponse", this.handleUserMeResponse);
+  }
+
+  disconnectedCallback(): void {
+    document.removeEventListener("userMeResponse", this.handleUserMeResponse);
+    super.disconnectedCallback();
   }
 
   createRenderRoot() {

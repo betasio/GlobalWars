@@ -297,6 +297,27 @@ export async function tokenLogin(_token: string): Promise<string | null> {
   return null;
 }
 
+export async function ensureAuthToken(): Promise<string | null> {
+  await initializeFirebaseAuth();
+  const stored = getStoredToken();
+  if (stored) {
+    return stored;
+  }
+  const user = firebaseAuth?.currentUser ?? cachedUser;
+  if (!user) {
+    return null;
+  }
+  try {
+    const token = await user.getIdToken();
+    cachedToken = token;
+    setStoredToken(token);
+    return token;
+  } catch (error) {
+    console.warn("Failed to obtain Firebase ID token", error);
+    return null;
+  }
+}
+
 if (typeof window !== "undefined") {
   void initializeFirebaseAuth();
 }

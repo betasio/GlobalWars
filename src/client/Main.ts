@@ -42,7 +42,7 @@ import "./components/NewsButton";
 import { NewsButton } from "./components/NewsButton";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
-import { getUserMe, googleLogin, isLoggedIn } from "./jwt";
+import { ensureAuthToken, getUserMe, googleLogin, isLoggedIn } from "./jwt";
 import "./styles.css";
 
 declare global {
@@ -623,6 +623,8 @@ class Client {
       this.pendingJoin = null;
       return;
     }
+
+    await ensureAuthToken();
 
     this.gameStop = joinLobby(
       this.eventBus,

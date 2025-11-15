@@ -135,6 +135,7 @@ GlobalWars now relies on [Firebase Authentication](https://firebase.google.com/d
 | ------------------------- | -------------------------------------------------------------------------------------------------------- |
 | `FIREBASE_PROJECT_ID`     | Firebase project ID used for token verification (defaults to `globalwars-75bcf`).                        |
 | `FIREBASE_PROJECT_NUMBER` | Optional Firebase project number accepted as an additional token audience (`833972164306`, for example). |
+| `FIREBASE_API_KEY`        | Firebase Web API key used for fallback token introspection (defaults to the bundled client key).         |
 
 The browser client bootstraps Firebase using the configuration in `src/client/firebase.ts`. If you fork the project, update that file with your own Firebase credentials.
 
