@@ -11,7 +11,9 @@ import { PersistentIdSchema } from "../core/Schemas";
 
 const FIREBASE_PROJECT_ID =
   process.env.FIREBASE_PROJECT_ID ?? "globalwars-75bcf";
-const FIREBASE_PROJECT_NUMBER = process.env.FIREBASE_PROJECT_NUMBER ?? null;
+const FIREBASE_PROJECT_NUMBER_FALLBACK = "833972164306";
+const FIREBASE_PROJECT_NUMBER =
+  process.env.FIREBASE_PROJECT_NUMBER ?? FIREBASE_PROJECT_NUMBER_FALLBACK;
 const FIREBASE_ISSUER = `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`;
 const FIREBASE_JWKS_URL = new URL(
   "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
@@ -128,7 +130,7 @@ type TokenVerificationResult =
     }
   | false;
 
-async function verifyFirebaseTokenWithJwks(
+export async function verifyFirebaseTokenWithJwks(
   token: string,
 ): Promise<TokenPayload | null> {
   try {
@@ -138,8 +140,14 @@ async function verifyFirebaseTokenWithJwks(
       return null;
     }
 
-    const audiences = [FIREBASE_PROJECT_ID, FIREBASE_PROJECT_NUMBER].filter(
-      (aud): aud is string => Boolean(aud),
+    const audiences = Array.from(
+      new Set(
+        [
+          FIREBASE_PROJECT_ID,
+          FIREBASE_PROJECT_NUMBER,
+          FIREBASE_PROJECT_NUMBER_FALLBACK,
+        ].filter((aud): aud is string => Boolean(aud)),
+      ),
     );
     const verifyOptions: Parameters<typeof jwtVerify>[2] = {
       issuer: FIREBASE_ISSUER,
