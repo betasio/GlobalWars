@@ -1,6 +1,8 @@
 import { GameEnv } from "./Config";
 import { DefaultServerConfig } from "./DefaultConfig";
 
+const ENV = typeof process !== "undefined" ? process.env : undefined;
+
 export const prodConfig = new (class extends DefaultServerConfig {
   numWorkers(): number {
     return 20;
@@ -9,6 +11,6 @@ export const prodConfig = new (class extends DefaultServerConfig {
     return GameEnv.Prod;
   }
   jwtAudience(): string {
-    return process.env.JWT_AUDIENCE ?? "openfront.io";
+    return ENV?.JWT_AUDIENCE ?? "openfront.io";
   }
 })();

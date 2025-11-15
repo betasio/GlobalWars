@@ -4,6 +4,8 @@ import { GameConfig } from "../Schemas";
 import { GameEnv, ServerConfig } from "./Config";
 import { DefaultConfig, DefaultServerConfig } from "./DefaultConfig";
 
+const ENV = typeof process !== "undefined" ? process.env : undefined;
+
 export class DevServerConfig extends DefaultServerConfig {
   adminToken(): string {
     return "WARNING_DEV_ADMIN_KEY_DO_NOT_USE_IN_PRODUCTION";
@@ -33,7 +35,7 @@ export class DevServerConfig extends DefaultServerConfig {
     return 2;
   }
   jwtAudience(): string {
-    return process.env.JWT_AUDIENCE ?? "localhost";
+    return ENV?.JWT_AUDIENCE ?? "localhost";
   }
   gitCommit(): string {
     return "DEV";
