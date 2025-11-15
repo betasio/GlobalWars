@@ -33,7 +33,7 @@ export class DevServerConfig extends DefaultServerConfig {
     return 2;
   }
   jwtAudience(): string {
-    return "localhost";
+    return process.env.JWT_AUDIENCE ?? "localhost";
   }
   gitCommit(): string {
     return "DEV";

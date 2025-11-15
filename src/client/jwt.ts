@@ -72,17 +72,29 @@ export function getApiBase() {
   const { hostname, protocol } = new URL(window.location.href);
   const scheme = protocol === "https:" ? "https" : "http";
   const audience = getEffectiveDomain(hostname);
+  const isLocalLocation =
+    audience === "localhost" || isIpv4(audience) || isIpv6(audience);
 
   if (cachedSC) {
     const issuer = cachedSC.jwtIssuer();
-    const cachedAudience = cachedSC.jwtAudience();
-    const isLocalCachedAudience = cachedAudience === "localhost";
-    const isLocalLocation =
-      audience === "localhost" || isIpv4(audience) || isIpv6(audience);
+    try {
+      const issuerUrl = new URL(issuer);
+      if (issuerUrl.hostname !== "localhost") {
+        resolvedApiBase = issuerUrl.origin;
+        return resolvedApiBase;
+      }
 
-    if (!isLocalCachedAudience || isLocalLocation) {
-      resolvedApiBase = issuer;
-      return resolvedApiBase;
+      if (isLocalLocation) {
+        const portSegment = issuerUrl.port
+          ? `:${issuerUrl.port}`
+          : issuerUrl.protocol === "https:"
+            ? ""
+            : ":8787";
+        resolvedApiBase = `${scheme}://${hostname}${portSegment}`;
+        return resolvedApiBase;
+      }
+    } catch (error) {
+      console.warn("Failed to parse server issuer", error);
     }
     // Fall through to derive the API base from the current location when the
     // server configuration only contains localhost details but the site is

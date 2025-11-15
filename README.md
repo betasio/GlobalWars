@@ -131,11 +131,13 @@ npm run dev:prod
 
 The API server issues EdDSA access tokens for both Discord and Google logins. Configure the following environment variables when running the backend locally:
 
-| Variable                              | Description                                                       |
-| ------------------------------------- | ----------------------------------------------------------------- |
-| `GOOGLE_CLIENT_ID`                    | OAuth client ID created in the Google Cloud console.              |
-| `GOOGLE_CLIENT_SECRET`                | OAuth client secret paired with the client ID.                    |
-| `JWT_PRIVATE_JWK` / `JWT_PRIVATE_KEY` | Ed25519 signing key in JWK or PEM form for issuing client tokens. |
+| Variable                              | Description                                                                                        |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `GOOGLE_CLIENT_ID`                    | OAuth client ID created in the Google Cloud console.                                               |
+| `GOOGLE_CLIENT_SECRET`                | OAuth client secret paired with the client ID.                                                     |
+| `JWT_PRIVATE_JWK` / `JWT_PRIVATE_KEY` | Ed25519 signing key in JWK or PEM form for issuing client tokens.                                  |
+| `JWT_AUDIENCE`                        | (Optional) Overrides the hostname used when validating redirect URIs and issued JWT tokens.        |
+| `JWT_ISSUER`                          | (Optional) Explicit HTTPS origin that hosts the auth endpoints if it differs from `api.$AUDIENCE`. |
 
 `example.env` lists these keys with placeholder values for local development. Never commit real secrets to source control—load them via your shell or an `.env` file outside of version control instead.
 

@@ -106,6 +106,13 @@ export abstract class DefaultServerConfig implements ServerConfig {
   private publicKey: JWK;
   abstract jwtAudience(): string;
   jwtIssuer(): string {
+    const envIssuer =
+      process.env.JWT_ISSUER ??
+      process.env.PUBLIC_API_BASE_URL ??
+      process.env.API_BASE_URL;
+    if (envIssuer) {
+      return envIssuer.startsWith("http") ? envIssuer : `https://${envIssuer}`;
+    }
     const audience = this.jwtAudience();
     return audience === "localhost"
       ? "http://localhost:8787"
