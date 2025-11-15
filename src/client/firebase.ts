@@ -37,6 +37,22 @@ async function initFirebaseCompat() {
     throw new Error("Firebase initialization requires a browser environment");
   }
 
+  const originalConsoleError = window.console?.error?.bind(window.console);
+  if (originalConsoleError) {
+    window.console.error = (...args: unknown[]) => {
+      const firstArg = args[0];
+      if (
+        typeof firstArg === "string" &&
+        firstArg.includes(
+          "Cross-Origin-Opener-Policy policy would block the window.close call",
+        )
+      ) {
+        return;
+      }
+      originalConsoleError(...args);
+    };
+  }
+
   if (window.firebase && window.firebase.apps && window.firebase.apps.length) {
     return window.firebase;
   }

@@ -38,26 +38,6 @@ export type IsLoggedInResponse =
 
 let __isLoggedIn: IsLoggedInResponse | undefined = undefined;
 
-function isLikelyLocalhost(hostname: string): boolean {
-  if (!hostname) {
-    return false;
-  }
-  const normalized = hostname.replace(/\.$/, "");
-  if (normalized === "localhost" || normalized.endsWith(".localhost")) {
-    return true;
-  }
-  if (normalized === "::1" || normalized === "[::1]") {
-    return true;
-  }
-  if (/^127(?:\.\d{1,3}){3}$/.test(normalized)) {
-    return true;
-  }
-  if (/^(?:10|192\.168|172\.(?:1[6-9]|2[0-9]|3[0-1]))\./.test(normalized)) {
-    return true;
-  }
-  return false;
-}
-
 function setStoredToken(token: string | null) {
   if (token) {
     localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, token);
@@ -222,27 +202,13 @@ export async function googleLogin() {
   }
   const provider = new firebaseNamespace.auth.GoogleAuthProvider();
   provider.setCustomParameters?.({ prompt: "select_account" });
-  const hostname =
-    typeof window !== "undefined" ? window.location.hostname : "";
-  const preferRedirect =
-    Boolean(hostname) &&
-    !isLikelyLocalhost(hostname) &&
-    typeof firebaseAuth.signInWithRedirect === "function";
-
-  if (preferRedirect) {
-    await firebaseAuth.signInWithRedirect(provider);
-    return;
-  }
   try {
     await firebaseAuth.signInWithPopup(provider);
   } catch (error: any) {
     const code = error?.code ?? "";
     const shouldRedirect =
       typeof firebaseAuth.signInWithRedirect === "function" &&
-      (preferRedirect ||
-        code === "auth/popup-blocked" ||
-        (typeof error?.message === "string" &&
-          error.message.includes("Cross-Origin-Opener-Policy")));
+      code === "auth/popup-blocked";
     if (shouldRedirect) {
       await firebaseAuth.signInWithRedirect(provider);
       return;
