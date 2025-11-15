@@ -16,6 +16,9 @@ export class AccountModal extends LitElement {
   private loggedInEmail: string | null = null;
   private loggedInDiscord: string | null = null;
 
+  @state()
+  private showRankedAuthPrompt = false;
+
   constructor() {
     super();
   }
