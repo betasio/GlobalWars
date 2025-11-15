@@ -1,6 +1,8 @@
 import { GameEnv } from "./Config";
 import { DefaultServerConfig } from "./DefaultConfig";
 
+const ENV = typeof process !== "undefined" ? process.env : undefined;
+
 export const preprodConfig = new (class extends DefaultServerConfig {
   env(): GameEnv {
     return GameEnv.Preprod;
@@ -9,7 +11,7 @@ export const preprodConfig = new (class extends DefaultServerConfig {
     return 2;
   }
   jwtAudience(): string {
-    return "openfront.dev";
+    return ENV?.JWT_AUDIENCE ?? "openfront.dev";
   }
   allowedFlares(): string[] | undefined {
     return undefined;

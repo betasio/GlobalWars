@@ -1,319 +1,290 @@
 import { decodeJwt } from "jose";
-import { z } from "zod";
 import {
-  PlayerProfile,
-  PlayerProfileSchema,
-  RefreshResponseSchema,
   TokenPayload,
   TokenPayloadSchema,
   UserMeResponse,
-  UserMeResponseSchema,
 } from "../core/ApiSchemas";
-import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
+import { firebasePromise } from "./firebase";
 
-function getAudience() {
-  const { hostname } = new URL(window.location.href);
-  const domainname = hostname.split(".").slice(-2).join(".");
-  return domainname;
+interface FirebaseUser {
+  uid: string;
+  email?: string | null;
+  displayName?: string | null;
+  photoURL?: string | null;
+  getIdToken: (forceRefresh?: boolean) => Promise<string>;
 }
 
-export function getApiBase() {
-  const domainname = getAudience();
-
-  if (domainname === "localhost") {
-    const apiDomain = process?.env?.API_DOMAIN;
-    if (apiDomain) {
-      return `https://${apiDomain}`;
-    }
-    return localStorage.getItem("apiHost") ?? "http://localhost:8787";
-  }
-
-  return `https://api.${domainname}`;
+interface FirebaseAuthCompat {
+  currentUser: FirebaseUser | null;
+  useDeviceLanguage?: () => void;
+  signInWithPopup: (provider: any) => Promise<any>;
+  signInWithRedirect: (provider: any) => Promise<void>;
+  signOut: () => Promise<void>;
+  onIdTokenChanged: (callback: (user: FirebaseUser | null) => void) => void;
+  getRedirectResult?: () => Promise<{ user?: FirebaseUser | null } | null>;
+  GoogleAuthProvider: new () => any;
 }
 
-function getToken(): string | null {
-  // Check window hash
-  const { hash } = window.location;
-  if (hash.startsWith("#")) {
-    const params = new URLSearchParams(hash.slice(1));
-    const token = params.get("token");
-    if (token) {
-      localStorage.setItem("token", token);
-      params.delete("token");
-      params.toString();
-    }
-    // Clean the URL
-    history.replaceState(
-      null,
-      "",
-      window.location.pathname +
-        window.location.search +
-        (params.size > 0 ? "#" + params.toString() : ""),
-    );
-  }
-
-  // Check cookie
-  const cookie = document.cookie
-    .split(";")
-    .find((c) => c.trim().startsWith("token="))
-    ?.trim()
-    .substring(6);
-  if (cookie !== undefined) {
-    return cookie;
-  }
-
-  // Check local storage
-  return localStorage.getItem("token");
-}
-
-async function clearToken() {
-  localStorage.removeItem("token");
-  __isLoggedIn = false;
-  const config = await getServerConfigFromClient();
-  const audience = config.jwtAudience();
-  const isSecure = window.location.protocol === "https:";
-  const secure = isSecure ? "; Secure" : "";
-  document.cookie = `token=logged_out; Path=/; Max-Age=0; Domain=${audience}${secure}`;
-}
-
-export function discordLogin() {
-  window.location.href = `${getApiBase()}/login/discord?redirect_uri=${window.location.href}`;
-}
-
-export async function tokenLogin(token: string): Promise<string | null> {
-  const response = await fetch(
-    `${getApiBase()}/login/token?login-token=${token}`,
-  );
-  if (response.status !== 200) {
-    console.error("Token login failed", response);
-    return null;
-  }
-  const json = await response.json();
-  const { jwt, email } = json;
-  const payload = decodeJwt(jwt);
-  const result = TokenPayloadSchema.safeParse(payload);
-  if (!result.success) {
-    console.error("Invalid token", result.error, result.error.message);
-    return null;
-  }
-  clearToken();
-  localStorage.setItem("token", jwt);
-  return email;
-}
-
-export function getAuthHeader(): string {
-  const token = getToken();
-  if (!token) return "";
-  return `Bearer ${token}`;
-}
-
-export async function logOut(allSessions: boolean = false) {
-  const token = getToken();
-  if (token === null) return;
-  clearToken();
-
-  const response = await fetch(
-    getApiBase() + (allSessions ? "/revoke" : "/logout"),
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    },
-  );
-
-  if (response.ok === false) {
-    console.error("Logout failed", response);
-    return false;
-  }
-  return true;
-}
+const LOCAL_STORAGE_TOKEN_KEY = "token";
+let firebaseAuth: FirebaseAuthCompat | null = null;
+let firebaseNamespace: any | null = null;
+let cachedUser: FirebaseUser | null = null;
+let cachedToken: string | null = null;
+let initializing = false;
 
 export type IsLoggedInResponse =
   | { token: string; claims: TokenPayload }
   | false;
+
 let __isLoggedIn: IsLoggedInResponse | undefined = undefined;
-export function isLoggedIn(): IsLoggedInResponse {
-  __isLoggedIn ??= _isLoggedIn();
 
-  return __isLoggedIn;
+function setStoredToken(token: string | null) {
+  if (token) {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY);
+  }
+  __isLoggedIn = undefined;
 }
-function _isLoggedIn(): IsLoggedInResponse {
+
+function parseToken(token: string): TokenPayload | null {
   try {
-    const token = getToken();
-    if (!token) {
-      // console.log("No token found");
-      return false;
-    }
-
-    // Verify the JWT (requires browser support)
-    // const jwks = createRemoteJWKSet(
-    //   new URL(getApiBase() + "/.well-known/jwks.json"),
-    // );
-    // const { payload, protectedHeader } = await jwtVerify(token, jwks, {
-    //   issuer: getApiBase(),
-    //   audience: getAudience(),
-    // });
-
-    // Decode the JWT
     const payload = decodeJwt(token);
-    const { iss, aud, exp, iat } = payload;
-
-    if (iss !== getApiBase()) {
-      // JWT was not issued by the correct server
-      console.error(
-        'unexpected "iss" claim value',
-        // JSON.stringify(payload, null, 2),
-      );
-      logOut();
-      return false;
-    }
-    const myAud = getAudience();
-    if (myAud !== "localhost" && aud !== myAud) {
-      // JWT was not issued for this website
-      console.error(
-        'unexpected "aud" claim value',
-        // JSON.stringify(payload, null, 2),
-      );
-      logOut();
-      return false;
-    }
-    const now = Math.floor(Date.now() / 1000);
-    if (exp !== undefined && now >= exp) {
-      // JWT expired
-      console.error(
-        'after "exp" claim value',
-        // JSON.stringify(payload, null, 2),
-      );
-      logOut();
-      return false;
-    }
-    const refreshAge: number = 3 * 24 * 3600; // 3 days
-    if (iat !== undefined && now >= iat + refreshAge) {
-      console.log("Refreshing access token...");
-      postRefresh().then((success) => {
-        if (success) {
-          console.log("Refreshed access token successfully.");
-        } else {
-          console.error("Failed to refresh access token.");
-          // TODO: Update the UI to show logged out state
-        }
-      });
-    }
-
     const result = TokenPayloadSchema.safeParse(payload);
     if (!result.success) {
-      const error = z.prettifyError(result.error);
-      // Invalid response
-      console.error("Invalid payload", error);
-      return false;
+      console.warn("Token validation failed", result.error);
+      return null;
     }
+    return result.data;
+  } catch (error) {
+    console.warn("Failed to decode token", error);
+    return null;
+  }
+}
 
-    const claims = result.data;
-    return { token, claims };
-  } catch (e) {
-    console.log(e);
+function getStoredToken(): string | null {
+  if (cachedToken) {
+    return cachedToken;
+  }
+  const stored = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
+  if (!stored) {
+    return null;
+  }
+  const claims = parseToken(stored);
+  if (!claims) {
+    setStoredToken(null);
+    return null;
+  }
+  if (claims.exp) {
+    const now = Math.floor(Date.now() / 1000);
+    if (now >= claims.exp) {
+      setStoredToken(null);
+      return null;
+    }
+  }
+  cachedToken = stored;
+  return stored;
+}
+
+async function ensureUserDocument(user: FirebaseUser) {
+  try {
+    if (!firebaseNamespace?.firestore) {
+      return;
+    }
+    const firestore = firebaseNamespace.firestore();
+    const fieldValue = firebaseNamespace.firestore.FieldValue;
+    const docRef = firestore.collection("users").doc(user.uid);
+    const lastLoginAt =
+      fieldValue && typeof fieldValue.serverTimestamp === "function"
+        ? fieldValue.serverTimestamp()
+        : new Date().toISOString();
+    await docRef.set(
+      {
+        email: user.email ?? null,
+        displayName: user.displayName ?? null,
+        photoURL: user.photoURL ?? null,
+        lastLoginAt,
+      },
+      { merge: true },
+    );
+  } catch (error) {
+    console.warn("Failed to write user document", error);
+  }
+}
+
+async function refreshIdToken(forceRefresh = false): Promise<string | null> {
+  await initializeFirebaseAuth();
+  if (!firebaseAuth || !firebaseAuth.currentUser) {
+    setStoredToken(null);
+    cachedToken = null;
+    return null;
+  }
+  try {
+    const token = await firebaseAuth.currentUser.getIdToken(forceRefresh);
+    cachedToken = token;
+    setStoredToken(token);
+    return token;
+  } catch (error) {
+    console.warn("Failed to refresh Firebase ID token", error);
+    setStoredToken(null);
+    cachedToken = null;
+    return null;
+  }
+}
+
+async function initializeFirebaseAuth(): Promise<void> {
+  if (firebaseAuth || initializing) {
+    return;
+  }
+  initializing = true;
+  try {
+    firebaseNamespace = await firebasePromise;
+    const auth = firebaseNamespace.auth();
+    firebaseAuth = auth;
+    auth.useDeviceLanguage?.();
+
+    auth.onIdTokenChanged(async (user: FirebaseUser | null) => {
+      cachedUser = user;
+      if (user) {
+        cachedToken = await user.getIdToken();
+        setStoredToken(cachedToken);
+        await ensureUserDocument(user);
+      } else {
+        cachedToken = null;
+        setStoredToken(null);
+      }
+      __isLoggedIn = undefined;
+
+      if (typeof document !== "undefined") {
+        void getUserMe()
+          .then((detail) => {
+            document.dispatchEvent(
+              new CustomEvent("userMeResponse", {
+                detail,
+                bubbles: true,
+                cancelable: true,
+              }),
+            );
+          })
+          .catch((error) => {
+            console.warn("Failed to broadcast auth state", error);
+          });
+      }
+    });
+
+    if (auth.getRedirectResult) {
+      auth
+        .getRedirectResult()
+        .then((result) => {
+          if (result?.user) {
+            void ensureUserDocument(result.user);
+          }
+        })
+        .catch((error) => {
+          console.warn("Firebase redirect result failed", error);
+        });
+    }
+  } catch (error) {
+    console.error("Failed to initialize Firebase Auth", error);
+  } finally {
+    initializing = false;
+  }
+}
+
+export function getApiBase(): string {
+  return window.location.origin;
+}
+
+export async function googleLogin() {
+  await initializeFirebaseAuth();
+  if (!firebaseAuth || !firebaseNamespace) {
+    throw new Error("Firebase Auth not available");
+  }
+  const provider = new firebaseNamespace.auth.GoogleAuthProvider();
+  provider.setCustomParameters?.({ prompt: "select_account" });
+  try {
+    await firebaseAuth.signInWithPopup(provider);
+  } catch (error: any) {
+    const code = error?.code ?? "";
+    if (code === "auth/popup-blocked") {
+      await firebaseAuth.signInWithRedirect(provider);
+      return;
+    }
+    if (
+      code === "auth/popup-closed-by-user" ||
+      code === "auth/user-cancelled" ||
+      code === "auth/cancelled-popup-request"
+    ) {
+      console.info("Google sign-in was cancelled", error);
+      return;
+    }
+    console.error("Google sign-in failed", error);
+  }
+}
+
+export function getAuthHeader(): string {
+  const token = getStoredToken();
+  if (!token) return "";
+  return `Bearer ${token}`;
+}
+
+export async function logOut() {
+  await initializeFirebaseAuth();
+  if (!firebaseAuth) {
+    return;
+  }
+  await firebaseAuth.signOut();
+  cachedUser = null;
+  cachedToken = null;
+  setStoredToken(null);
+}
+
+export function isLoggedIn(): IsLoggedInResponse {
+  __isLoggedIn ??= _isLoggedIn();
+  return __isLoggedIn;
+}
+
+function _isLoggedIn(): IsLoggedInResponse {
+  const token = getStoredToken();
+  if (!token) {
     return false;
   }
+  const claims = parseToken(token);
+  if (!claims) {
+    return false;
+  }
+  const now = Math.floor(Date.now() / 1000);
+  if (claims.exp && now >= claims.exp) {
+    void refreshIdToken(true);
+    return false;
+  }
+  return { token, claims };
 }
 
 export async function postRefresh(): Promise<boolean> {
-  try {
-    const token = getToken();
-    if (!token) return false;
-
-    // Refresh the JWT
-    const response = await fetch(getApiBase() + "/refresh", {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
-    if (response.status === 401) {
-      clearToken();
-      return false;
-    }
-    if (response.status !== 200) return false;
-    const body = await response.json();
-    const result = RefreshResponseSchema.safeParse(body);
-    if (!result.success) {
-      const error = z.prettifyError(result.error);
-      console.error("Invalid response", error);
-      return false;
-    }
-    localStorage.setItem("token", result.data.token);
-    return true;
-  } catch (e) {
-    __isLoggedIn = false;
-    return false;
-  }
+  const token = await refreshIdToken(true);
+  return token !== null;
 }
 
 export async function getUserMe(): Promise<UserMeResponse | false> {
-  try {
-    const token = getToken();
-    if (!token) return false;
-
-    // Get the user object
-    const response = await fetch(getApiBase() + "/users/@me", {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
-    if (response.status === 401) {
-      clearToken();
-      return false;
-    }
-    if (response.status !== 200) return false;
-    const body = await response.json();
-    const result = UserMeResponseSchema.safeParse(body);
-    if (!result.success) {
-      const error = z.prettifyError(result.error);
-      console.error("Invalid response", error);
-      return false;
-    }
-    return result.data;
-  } catch (e) {
-    __isLoggedIn = false;
+  await initializeFirebaseAuth();
+  const user = firebaseAuth?.currentUser ?? cachedUser;
+  if (!user) {
     return false;
   }
+  return {
+    user: {
+      email: user.email ?? undefined,
+    },
+    player: {
+      publicId: user.uid,
+      roles: [],
+      flares: [],
+    },
+  };
 }
 
-export async function fetchPlayerById(
-  playerId: string,
-): Promise<PlayerProfile | false> {
-  try {
-    const base = getApiBase();
-    const token = getToken();
-    if (!token) return false;
-    const url = `${base}/player/${encodeURIComponent(playerId)}`;
-
-    const res = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (res.status !== 200) {
-      console.warn(
-        "fetchPlayerById: unexpected status",
-        res.status,
-        res.statusText,
-      );
-      return false;
-    }
-
-    const json = await res.json();
-    const parsed = PlayerProfileSchema.safeParse(json);
-    if (!parsed.success) {
-      console.warn("fetchPlayerById: Zod validation failed", parsed.error);
-      return false;
-    }
-
-    return parsed.data;
-  } catch (err) {
-    console.warn("fetchPlayerById: request failed", err);
-    return false;
-  }
+export async function tokenLogin(_token: string): Promise<string | null> {
+  console.warn("Token login is not supported with Firebase authentication");
+  return null;
 }
