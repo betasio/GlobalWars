@@ -8,7 +8,7 @@ export const RefreshResponseSchema = z.object({
 export type RefreshResponse = z.infer<typeof RefreshResponseSchema>;
 
 export const TokenPayloadSchema = z.object({
-  user_id: z.string(),
+  user_id: z.string().optional(),
   email: z.string().optional(),
   exp: z.number().optional(),
   iat: z.number().optional(),

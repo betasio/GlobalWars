@@ -253,6 +253,11 @@ function _isLoggedIn(): IsLoggedInResponse {
   if (!claims) {
     return false;
   }
+  const identifier = claims.user_id ?? claims.sub;
+  if (!identifier) {
+    console.warn("Token missing user identifier");
+    return false;
+  }
   const now = Math.floor(Date.now() / 1000);
   if (claims.exp && now >= claims.exp) {
     void refreshIdToken(true);
