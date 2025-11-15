@@ -29,6 +29,9 @@ import { Config, GameEnv, NukeMagnitude, ServerConfig, Theme } from "./Config";
 import { PastelTheme } from "./PastelTheme";
 import { PastelThemeDark } from "./PastelThemeDark";
 
+const ENV: NodeJS.ProcessEnv | undefined =
+  typeof process !== "undefined" ? process.env : undefined;
+
 const DEFENSE_DEBUFF_MIDPOINT = 150_000;
 const DEFENSE_DEBUFF_DECAY_RATE = Math.LN2 / 50000;
 
@@ -82,34 +85,32 @@ export abstract class DefaultServerConfig implements ServerConfig {
     return;
   }
   stripePublishableKey(): string {
-    return process.env.STRIPE_PUBLISHABLE_KEY ?? "";
+    return ENV?.STRIPE_PUBLISHABLE_KEY ?? "";
   }
   domain(): string {
-    return process.env.DOMAIN ?? "";
+    return ENV?.DOMAIN ?? "";
   }
   subdomain(): string {
-    return process.env.SUBDOMAIN ?? "";
+    return ENV?.SUBDOMAIN ?? "";
   }
   cloudflareAccountId(): string {
-    return process.env.CF_ACCOUNT_ID ?? "";
+    return ENV?.CF_ACCOUNT_ID ?? "";
   }
   cloudflareApiToken(): string {
-    return process.env.CF_API_TOKEN ?? "";
+    return ENV?.CF_API_TOKEN ?? "";
   }
   cloudflareConfigPath(): string {
-    return process.env.CF_CONFIG_PATH ?? "";
+    return ENV?.CF_CONFIG_PATH ?? "";
   }
   cloudflareCredsPath(): string {
-    return process.env.CF_CREDS_PATH ?? "";
+    return ENV?.CF_CREDS_PATH ?? "";
   }
 
   private publicKey: JWK;
   abstract jwtAudience(): string;
   jwtIssuer(): string {
     const envIssuer =
-      process.env.JWT_ISSUER ??
-      process.env.PUBLIC_API_BASE_URL ??
-      process.env.API_BASE_URL;
+      ENV?.JWT_ISSUER ?? ENV?.PUBLIC_API_BASE_URL ?? ENV?.API_BASE_URL;
     if (envIssuer) {
       return envIssuer.startsWith("http") ? envIssuer : `https://${envIssuer}`;
     }
@@ -140,37 +141,38 @@ export abstract class DefaultServerConfig implements ServerConfig {
     );
   }
   otelEndpoint(): string {
-    return process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "";
+    return ENV?.OTEL_EXPORTER_OTLP_ENDPOINT ?? "";
   }
   otelAuthHeader(): string {
-    return process.env.OTEL_AUTH_HEADER ?? "";
+    return ENV?.OTEL_AUTH_HEADER ?? "";
   }
   gitCommit(): string {
-    return process.env.GIT_COMMIT ?? "";
+    return ENV?.GIT_COMMIT ?? "";
   }
   r2Endpoint(): string {
-    return `https://${process.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`;
+    const accountId = ENV?.CF_ACCOUNT_ID;
+    return accountId ? `https://${accountId}.r2.cloudflarestorage.com` : "";
   }
   r2AccessKey(): string {
-    return process.env.R2_ACCESS_KEY ?? "";
+    return ENV?.R2_ACCESS_KEY ?? "";
   }
   r2SecretKey(): string {
-    return process.env.R2_SECRET_KEY ?? "";
+    return ENV?.R2_SECRET_KEY ?? "";
   }
 
   r2Bucket(): string {
-    return process.env.R2_BUCKET ?? "";
+    return ENV?.R2_BUCKET ?? "";
   }
 
   apiKey(): string {
-    return process.env.API_KEY ?? "";
+    return ENV?.API_KEY ?? "";
   }
 
   adminHeader(): string {
     return "x-admin-key";
   }
   adminToken(): string {
-    return process.env.ADMIN_TOKEN ?? "dummy-admin-token";
+    return ENV?.ADMIN_TOKEN ?? "dummy-admin-token";
   }
   abstract numWorkers(): number;
   abstract env(): GameEnv;
@@ -233,7 +235,7 @@ export class DefaultConfig implements Config {
   ) {}
 
   stripePublishableKey(): string {
-    return process.env.STRIPE_PUBLISHABLE_KEY ?? "";
+    return ENV?.STRIPE_PUBLISHABLE_KEY ?? "";
   }
 
   isReplay(): boolean {

@@ -14,6 +14,9 @@ import {
   getServerConfigFromClient,
 } from "../core/configuration/ConfigLoader";
 
+const ENV: NodeJS.ProcessEnv | undefined =
+  typeof process !== "undefined" ? process.env : undefined;
+
 function isIpv4(hostname: string): boolean {
   if (!/^\d+(?:\.\d+){3}$/.test(hostname)) {
     return false;
@@ -102,7 +105,7 @@ export function getApiBase() {
   }
 
   if (audience === "localhost") {
-    const apiDomain = process?.env?.API_DOMAIN;
+    const apiDomain = ENV?.API_DOMAIN;
     if (apiDomain) {
       resolvedApiBase = apiDomain.startsWith("http")
         ? apiDomain
@@ -114,14 +117,14 @@ export function getApiBase() {
   }
 
   if (isIpv4(audience) || isIpv6(audience)) {
-    const apiDomain = process?.env?.API_DOMAIN;
+    const apiDomain = ENV?.API_DOMAIN;
     if (apiDomain) {
       resolvedApiBase = apiDomain.startsWith("http")
         ? apiDomain
         : `${scheme}://${apiDomain}`;
       return resolvedApiBase;
     }
-    const apiPort = process?.env?.API_PORT;
+    const apiPort = ENV?.API_PORT;
     const portSegment = apiPort
       ? `:${apiPort}`
       : scheme === "https"
