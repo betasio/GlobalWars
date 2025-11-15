@@ -20,24 +20,30 @@ describe("verifyFirebaseTokenWithJwks", () => {
     jest.resetModules();
     process.env.FIREBASE_PROJECT_NUMBER = "1122334455";
 
-    const jwtVerify = jest.fn(async (_token, _key, options) => {
-      const rawAudience = options?.audience;
-      const audiences = Array.isArray(rawAudience)
-        ? rawAudience
-        : rawAudience
-          ? [rawAudience]
-          : [];
+    const jwtVerify = jest.fn(
+      async (
+        _token: string,
+        _key: unknown,
+        options?: { audience?: string | string[] },
+      ) => {
+        const rawAudience = options?.audience;
+        const audiences = Array.isArray(rawAudience)
+          ? rawAudience
+          : rawAudience
+            ? [rawAudience]
+            : [];
 
-      expect(audiences).toEqual(
-        expect.arrayContaining([
-          "globalwars-75bcf",
-          "1122334455",
-          FALLBACK_PROJECT_NUMBER,
-        ]),
-      );
+        expect(audiences).toEqual(
+          expect.arrayContaining([
+            "globalwars-75bcf",
+            "1122334455",
+            FALLBACK_PROJECT_NUMBER,
+          ]),
+        );
 
-      return { payload: { aud: FALLBACK_PROJECT_NUMBER } };
-    });
+        return { payload: { aud: FALLBACK_PROJECT_NUMBER } };
+      },
+    );
 
     jest.doMock("jose", () => ({
       decodeJwt: jest.fn(),
@@ -47,20 +53,31 @@ describe("verifyFirebaseTokenWithJwks", () => {
     }));
 
     jest.doMock("node:https", () => ({
-      get: jest.fn((_url, callback) => {
-        const res = new EventEmitter() as any;
-        res.statusCode = 200;
-        res.statusMessage = "OK";
-        process.nextTick(() => {
-          callback(res);
-          const jwks = JSON.stringify({
-            keys: [{ kid: "test-kid", alg: "RS256", kty: "RSA" }],
+      get: jest.fn(
+        (
+          _url: unknown,
+          callback: (
+            res: EventEmitter & {
+              statusCode?: number;
+              statusMessage?: string;
+              on: EventEmitter["on"];
+            },
+          ) => void,
+        ) => {
+          const res = new EventEmitter() as any;
+          res.statusCode = 200;
+          res.statusMessage = "OK";
+          process.nextTick(() => {
+            callback(res);
+            const jwks = JSON.stringify({
+              keys: [{ kid: "test-kid", alg: "RS256", kty: "RSA" }],
+            });
+            res.emit("data", Buffer.from(jwks));
+            res.emit("end");
           });
-          res.emit("data", Buffer.from(jwks));
-          res.emit("end");
-        });
-        return { on: jest.fn() };
-      }),
+          return { on: jest.fn() };
+        },
+      ),
       request: jest.fn(() => ({
         on: jest.fn(),
         write: jest.fn(),

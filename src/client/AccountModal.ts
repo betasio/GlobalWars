@@ -17,8 +17,10 @@ export class AccountModal extends LitElement {
   private loggedInDiscord: string | null = null;
 
   private readonly handleUserMeResponse = (event: Event) => {
-    const detail = (event as CustomEvent<UserMeResponse | false>).detail;
-    if (detail && detail !== false) {
+    const detail = (
+      event as CustomEvent<UserMeResponse | false | null | undefined>
+    ).detail;
+    if (detail !== false && detail !== null && detail !== undefined) {
       this.loggedInEmail = detail.user.email ?? null;
       this.loggedInDiscord = detail.user.discord?.global_name ?? null;
     } else {
