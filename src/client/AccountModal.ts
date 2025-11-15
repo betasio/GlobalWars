@@ -119,7 +119,7 @@ export class AccountModal extends LitElement {
   }
 
   private readonly handleGoogleLogin = () => {
-    googleLogin();
+    void googleLogin();
   };
 
   public readonly open = async (options?: unknown) => {

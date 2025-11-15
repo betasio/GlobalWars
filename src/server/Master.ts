@@ -53,8 +53,6 @@ app.use(
     },
   }),
 );
-app.use(authRouter);
-
 app.set("trust proxy", 3);
 app.use(
   rateLimit({

@@ -42,7 +42,7 @@ import "./components/NewsButton";
 import { NewsButton } from "./components/NewsButton";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
-import { discordLogin, getUserMe, isLoggedIn } from "./jwt";
+import { getUserMe, googleLogin, isLoggedIn } from "./jwt";
 import "./styles.css";
 
 declare global {
@@ -352,7 +352,9 @@ class Client {
               }
             </style>
           `;
-          setTimeout(discordLogin, 5000);
+          setTimeout(() => {
+            void googleLogin();
+          }, 5000);
         } else {
           // Unauthorized
           document.body.innerHTML = `
@@ -859,7 +861,12 @@ function getPlayToken(): string {
 // WARNING: DO NOT EXPOSE THIS ID
 export function getPersistentID(): string {
   const result = isLoggedIn();
-  if (result !== false) return result.claims.sub;
+  if (result !== false) {
+    const claimId = result.claims.user_id ?? result.claims.sub;
+    if (claimId) {
+      return claimId;
+    }
+  }
   return getPersistentIDFromCookie();
 }
 

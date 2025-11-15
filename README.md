@@ -129,17 +129,15 @@ npm run dev:prod
 
 ## 🔐 Authentication configuration
 
-The API server issues EdDSA access tokens for both Discord and Google logins. Configure the following environment variables when running the backend locally:
+GlobalWars now relies on [Firebase Authentication](https://firebase.google.com/docs/auth) for Google sign-in. Supply the Firebase project identifier so the game servers can validate the ID tokens emitted by the client SDK:
 
-| Variable                              | Description                                                                                        |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `GOOGLE_CLIENT_ID`                    | OAuth client ID created in the Google Cloud console.                                               |
-| `GOOGLE_CLIENT_SECRET`                | OAuth client secret paired with the client ID.                                                     |
-| `JWT_PRIVATE_JWK` / `JWT_PRIVATE_KEY` | Ed25519 signing key in JWK or PEM form for issuing client tokens.                                  |
-| `JWT_AUDIENCE`                        | (Optional) Overrides the hostname used when validating redirect URIs and issued JWT tokens.        |
-| `JWT_ISSUER`                          | (Optional) Explicit HTTPS origin that hosts the auth endpoints if it differs from `api.$AUDIENCE`. |
+| Variable              | Description                                                                       |
+| --------------------- | --------------------------------------------------------------------------------- |
+| `FIREBASE_PROJECT_ID` | Firebase project ID used for token verification (defaults to `globalwars-75bcf`). |
 
-`example.env` lists these keys with placeholder values for local development. Never commit real secrets to source control—load them via your shell or an `.env` file outside of version control instead.
+The browser client bootstraps Firebase using the configuration in `src/client/firebase.ts`. If you fork the project, update that file with your own Firebase credentials.
+
+`example.env` lists the environment keys with placeholder values for local development. Never commit real secrets to source control—load them via your shell or an `.env` file outside of version control instead.
 
 ## ☁️ Cloudflare tunnel configuration
 

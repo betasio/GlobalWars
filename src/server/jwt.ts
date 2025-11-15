@@ -1,13 +1,21 @@
-import { jwtVerify } from "jose";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod";
 import {
   TokenPayload,
   TokenPayloadSchema,
   UserMeResponse,
-  UserMeResponseSchema,
 } from "../core/ApiSchemas";
 import { ServerConfig } from "../core/configuration/Config";
 import { PersistentIdSchema } from "../core/Schemas";
+
+const FIREBASE_PROJECT_ID =
+  process.env.FIREBASE_PROJECT_ID ?? "globalwars-75bcf";
+const FIREBASE_ISSUER = `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`;
+const FIREBASE_JWKS_URL = new URL(
+  "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
+);
+
+const firebaseJwks = createRemoteJWKSet(FIREBASE_JWKS_URL);
 
 type TokenVerificationResult =
   | {
@@ -16,60 +24,70 @@ type TokenVerificationResult =
     }
   | false;
 
-export async function verifyClientToken(
+async function verifyFirebaseToken(
   token: string,
-  config: ServerConfig,
-): Promise<TokenVerificationResult> {
-  if (PersistentIdSchema.safeParse(token).success) {
-    return { persistentId: token, claims: null };
-  }
+): Promise<TokenPayload | null> {
   try {
-    const issuer = config.jwtIssuer();
-    const audience = config.jwtAudience();
-    const key = await config.jwkPublicKey();
-    const { payload } = await jwtVerify(token, key, {
-      algorithms: ["EdDSA"],
-      issuer,
-      audience,
+    const { payload } = await jwtVerify(token, firebaseJwks, {
+      issuer: FIREBASE_ISSUER,
+      audience: FIREBASE_PROJECT_ID,
     });
     const result = TokenPayloadSchema.safeParse(payload);
     if (!result.success) {
       const error = z.prettifyError(result.error);
-      console.warn("Error parsing token payload", error);
-      return false;
+      console.warn("Error parsing Firebase token payload", error);
+      return null;
     }
-    const claims = result.data;
-    const persistentId = claims.sub;
-    return { persistentId, claims };
-  } catch (e) {
+    return result.data;
+  } catch (error) {
+    console.warn("Firebase token verification failed", error);
+    return null;
+  }
+}
+
+export async function verifyClientToken(
+  token: string,
+  _config: ServerConfig,
+): Promise<TokenVerificationResult> {
+  if (PersistentIdSchema.safeParse(token).success) {
+    return { persistentId: token, claims: null };
+  }
+
+  const claims = await verifyFirebaseToken(token);
+  if (!claims) {
     return false;
   }
+
+  const persistentId = claims.user_id ?? claims.sub;
+  if (!persistentId) {
+    return false;
+  }
+
+  return { persistentId, claims };
 }
 
 export async function getUserMe(
   token: string,
-  config: ServerConfig,
+  _config: ServerConfig,
 ): Promise<UserMeResponse | false> {
-  try {
-    // Get the user object
-    const response = await fetch(config.jwtIssuer() + "/users/@me", {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
-    if (response.status !== 200) return false;
-    const body = await response.json();
-    const result = UserMeResponseSchema.safeParse(body);
-    if (!result.success) {
-      console.error(
-        "Invalid response",
-        JSON.stringify(body),
-        JSON.stringify(result.error),
-      );
-      return false;
-    }
-    return result.data;
-  } catch (e) {
+  const claims = await verifyFirebaseToken(token);
+  if (!claims) {
     return false;
   }
+
+  const publicId = claims.user_id ?? claims.sub;
+  if (!publicId) {
+    return false;
+  }
+
+  return {
+    user: {
+      email: claims.email ?? undefined,
+    },
+    player: {
+      publicId,
+      roles: [],
+      flares: [],
+    },
+  };
 }
