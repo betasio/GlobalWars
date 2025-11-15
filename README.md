@@ -127,6 +127,20 @@ To connect to production api servers:
 npm run dev:prod
 ```
 
+## 🔐 Authentication configuration
+
+GlobalWars now relies on [Firebase Authentication](https://firebase.google.com/docs/auth) for Google sign-in. Supply the Firebase project identifier so the game servers can validate the ID tokens emitted by the client SDK:
+
+| Variable                  | Description                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `FIREBASE_PROJECT_ID`     | Firebase project ID used for token verification (defaults to `globalwars-75bcf`).                        |
+| `FIREBASE_PROJECT_NUMBER` | Optional Firebase project number accepted as an additional token audience (`833972164306`, for example). |
+| `FIREBASE_API_KEY`        | Firebase Web API key used for fallback token introspection (defaults to the bundled client key).         |
+
+The browser client bootstraps Firebase using the configuration in `src/client/firebase.ts`. If you fork the project, update that file with your own Firebase credentials.
+
+`example.env` lists the environment keys with placeholder values for local development. Never commit real secrets to source control—load them via your shell or an `.env` file outside of version control instead.
+
 ## ☁️ Cloudflare tunnel configuration
 
 The server can provision and launch Cloudflare tunnels automatically. The behaviour is controlled via environment variables so the same code path works across Windows and Ubuntu deployments.

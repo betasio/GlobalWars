@@ -29,19 +29,28 @@ export async function getServerConfigFromClient(): Promise<ServerConfig> {
   if (cachedSC) {
     return cachedSC;
   }
-  const response = await fetch("/api/env");
+  try {
+    const response = await fetch("/api/env");
 
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch server config: ${response.status} ${response.statusText}`,
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch server config: ${response.status} ${response.statusText}`,
+      );
+    }
+    const config = await response.json();
+    // Log the retrieved configuration
+    console.log("Server config loaded:", config);
+
+    cachedSC = getServerConfig(config.game_env);
+    return cachedSC;
+  } catch (error) {
+    console.warn(
+      "Falling back to dev server configuration after failing to load /api/env",
+      error,
     );
+    cachedSC = getServerConfig("dev");
+    return cachedSC;
   }
-  const config = await response.json();
-  // Log the retrieved configuration
-  console.log("Server config loaded:", config);
-
-  cachedSC = getServerConfig(config.game_env);
-  return cachedSC;
 }
 export function getServerConfigFromServer(): ServerConfig {
   const gameEnv = process.env.GAME_ENV ?? "dev";
