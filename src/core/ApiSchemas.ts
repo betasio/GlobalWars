@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { base64urlToUuid } from "./Base64";
 import { BigIntStringSchema, PlayerStatsSchema } from "./StatsSchemas";
 import { Difficulty, GameMapType, GameMode, GameType } from "./game/Game";
 
@@ -9,27 +8,13 @@ export const RefreshResponseSchema = z.object({
 export type RefreshResponse = z.infer<typeof RefreshResponseSchema>;
 
 export const TokenPayloadSchema = z.object({
-  jti: z.string(),
-  sub: z
-    .string()
-    .refine(
-      (val) => {
-        const uuid = base64urlToUuid(val);
-        return !!uuid;
-      },
-      {
-        message: "Invalid base64-encoded UUID",
-      },
-    )
-    .transform((val) => {
-      const uuid = base64urlToUuid(val);
-      if (!uuid) throw new Error("Invalid base64 UUID");
-      return uuid;
-    }),
-  iat: z.number(),
-  iss: z.string(),
-  aud: z.string(),
-  exp: z.number(),
+  user_id: z.string().optional(),
+  email: z.string().optional(),
+  exp: z.number().optional(),
+  iat: z.number().optional(),
+  iss: z.string().optional(),
+  aud: z.string().optional(),
+  sub: z.string().optional(),
 });
 export type TokenPayload = z.infer<typeof TokenPayloadSchema>;
 
