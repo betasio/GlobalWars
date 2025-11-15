@@ -8,19 +8,11 @@ import {
   PlayerCosmeticRefs,
   PlayerRecord,
   ServerMessage,
-  TeamCountConfig,
 } from "../core/Schemas";
 import { createPartialGameRecord, replacer } from "../core/Util";
-import { Config, ServerConfig } from "../core/configuration/Config";
+import { ServerConfig } from "../core/configuration/Config";
 import { getConfig } from "../core/configuration/ConfigLoader";
-import {
-  Duos,
-  GameMode,
-  PlayerActions,
-  Quads,
-  Trios,
-  UnitType,
-} from "../core/game/Game";
+import { PlayerActions, UnitType } from "../core/game/Game";
 import { TileRef } from "../core/game/GameMap";
 import { GameMapLoader } from "../core/game/GameMapLoader";
 import {
@@ -56,6 +48,7 @@ import {
 import { createCanvas } from "./Utils";
 import { createRenderer, GameRenderer } from "./graphics/GameRenderer";
 import SoundManager from "./sound/SoundManager";
+import { ensureValidTeamSetup, TooFewTeamsError } from "./teamSetupValidation";
 
 export interface LobbyConfig {
   serverConfig: ServerConfig;
@@ -661,52 +654,6 @@ export class ClientGameRunner {
       this.lastMessageTime = now;
       this.transport.reconnect();
     }
-  }
-}
-
-class TooFewTeamsError extends Error {
-  constructor(public readonly teamCount: number) {
-    super(`Too few teams: ${teamCount}`);
-    this.name = "TooFewTeamsError";
-  }
-}
-
-function ensureValidTeamSetup(
-  config: Config,
-  terrainData: TerrainMapData,
-  humanCount: number,
-  disableNPCs: boolean,
-): void {
-  if (config.gameConfig().gameMode !== GameMode.Team) {
-    return;
-  }
-
-  const totalPlayers =
-    humanCount + (disableNPCs ? 0 : terrainData.nations.length);
-  const teamCount = resolveTeamCount(config.playerTeams(), totalPlayers);
-
-  if (teamCount < 2) {
-    throw new TooFewTeamsError(teamCount);
-  }
-}
-
-function resolveTeamCount(
-  teamConfig: TeamCountConfig,
-  totalPlayers: number,
-): number {
-  if (typeof teamConfig === "number") {
-    return teamConfig;
-  }
-
-  switch (teamConfig) {
-    case Duos:
-      return Math.ceil(totalPlayers / 2);
-    case Trios:
-      return Math.ceil(totalPlayers / 3);
-    case Quads:
-      return Math.ceil(totalPlayers / 4);
-    default:
-      throw new Error(`Unknown TeamCountConfig ${teamConfig}`);
   }
 }
 
