@@ -6,6 +6,7 @@ import { ServerConfig } from "../core/configuration/Config";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import { UserSettings } from "../core/game/UserSettings";
 import "./AccountModal";
+import type { AccountModal } from "./AccountModal";
 import { joinLobby } from "./ClientGameRunner";
 import { fetchCosmetics } from "./Cosmetics";
 import "./DarkModeButton";
@@ -182,6 +183,23 @@ class Client {
           lobbyPanel.classList.remove("lobby-panel--highlight");
         }, 1100);
       });
+    }
+
+    const signInButton = document.getElementById(
+      "sign-in-button",
+    ) as HTMLButtonElement | null;
+    const mastheadAccountModal = document.getElementById(
+      "masthead-account-modal",
+    ) as AccountModal | null;
+
+    if (!mastheadAccountModal) {
+      console.warn("[GlobalWars] Masthead account modal element not found");
+    } else if (signInButton) {
+      signInButton.addEventListener("click", () => {
+        void mastheadAccountModal.open();
+      });
+    } else {
+      console.warn("[GlobalWars] Sign-in button element not found");
     }
 
     window.addEventListener("beforeunload", () => {
