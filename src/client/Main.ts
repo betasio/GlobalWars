@@ -6,6 +6,7 @@ import { ServerConfig } from "../core/configuration/Config";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import { UserSettings } from "../core/game/UserSettings";
 import "./AccountModal";
+import type { AccountModal } from "./AccountModal";
 import { joinLobby } from "./ClientGameRunner";
 import { fetchCosmetics } from "./Cosmetics";
 import "./DarkModeButton";
@@ -41,7 +42,7 @@ import "./components/NewsButton";
 import { NewsButton } from "./components/NewsButton";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
-import { discordLogin, getUserMe, isLoggedIn } from "./jwt";
+import { getUserMe, googleLogin, isLoggedIn } from "./jwt";
 import "./styles.css";
 
 declare global {
@@ -182,6 +183,23 @@ class Client {
           lobbyPanel.classList.remove("lobby-panel--highlight");
         }, 1100);
       });
+    }
+
+    const signInButton = document.getElementById(
+      "sign-in-button",
+    ) as HTMLButtonElement | null;
+    const mastheadAccountModal = document.getElementById(
+      "masthead-account-modal",
+    ) as AccountModal | null;
+
+    if (!mastheadAccountModal) {
+      console.warn("[GlobalWars] Masthead account modal element not found");
+    } else if (signInButton) {
+      signInButton.addEventListener("click", () => {
+        void mastheadAccountModal.open();
+      });
+    } else {
+      console.warn("[GlobalWars] Sign-in button element not found");
     }
 
     window.addEventListener("beforeunload", () => {
@@ -333,7 +351,9 @@ class Client {
               }
             </style>
           `;
-          setTimeout(discordLogin, 5000);
+          setTimeout(() => {
+            void googleLogin();
+          }, 5000);
         } else {
           // Unauthorized
           document.body.innerHTML = `
@@ -819,7 +839,12 @@ function getPlayToken(): string {
 // WARNING: DO NOT EXPOSE THIS ID
 export function getPersistentID(): string {
   const result = isLoggedIn();
-  if (result !== false) return result.claims.sub;
+  if (result !== false) {
+    const claimId = result.claims.user_id ?? result.claims.sub;
+    if (claimId) {
+      return claimId;
+    }
+  }
   return getPersistentIDFromCookie();
 }
 
