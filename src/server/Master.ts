@@ -8,6 +8,7 @@ import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
 import { GameType } from "../core/game/Game";
 import { GameConfig, GameID, GameInfo, ID } from "../core/Schemas";
 import { generateID } from "../core/Util";
+import { authRouter } from "./auth/AuthRouter";
 import { logger } from "./Logger";
 import { MapPlaylist } from "./MapPlaylist";
 
