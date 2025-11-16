@@ -54,7 +54,7 @@ export async function handlePurchase(
 
 export async function fetchCosmetics(): Promise<Cosmetics | null> {
   try {
-    const response = await fetch(`${getApiBase()}/cosmetics.json`);
+    const response = await fetch(`${getApiBase()}/cosmetics/cosmetics.json`);
     if (!response.ok) {
       console.error(`HTTP error! status: ${response.status}`);
       return null;
