@@ -20,7 +20,7 @@
     "none": "هیچ"
   },
   "main": {
-    "title": "OpenFront (نسخه آلفا)",
+    "title": "GlobalWars (نسخه آلفا)",
     "join_discord": "به Discord بپیوندید!",
     "login_discord": "ورود از طریق Discord",
     "checking_login": "در حال بررسی ورود...",
@@ -502,7 +502,7 @@
     "not_enough_money": "پول کافی نیست"
   },
   "win_modal": {
-    "support_openfront": "از OpenFront حمایت کنید!",
+    "support_globalwars": "از GlobalWars حمایت کنید!",
     "territory_pattern": "یک پوستهٔ سرزمین بخرید تا از تبلیغات رها شوید!",
     "died": "شما کشته شدید",
     "your_team": "تیم شما پیروز شد!",

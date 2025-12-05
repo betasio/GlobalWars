@@ -1,26 +1,26 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="resources/images/OpenFrontLogoDark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="resources/images/OpenFrontLogo.svg">
-    <img src="resources/images/OpenFrontLogo.svg" alt="OpenFrontIO Logo" width="300">
+    <source media="(prefers-color-scheme: dark)" srcset="resources/images/GlobalWarsLogoDark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="resources/images/GlobalWarsLogo.svg">
+    <img src="resources/images/GlobalWarsLogo.svg" alt="GlobalWarsIO Logo" width="300">
   </picture>
 </p>
 
-[OpenFront.io](https://openfront.io/) is an online real-time strategy game focused on territorial control and alliance building. Players compete to expand their territory, build structures, and form strategic alliances in various maps based on real-world geography.
+[GlobalWars.io](https://globalwars.io/) is an online real-time strategy game focused on territorial control and alliance building. Players compete to expand their territory, build structures, and form strategic alliances in various maps based on real-world geography.
 
 This is a fork/rewrite of WarFront.io. Credit to https://github.com/WarFrontIO.
 
-![CI](https://github.com/openfrontio/OpenFrontIO/actions/workflows/ci.yml/badge.svg)
-[![Crowdin](https://badges.crowdin.net/openfront-mls/localized.svg)](https://crowdin.com/project/openfront-mls)
-[![CLA assistant](https://cla-assistant.io/readme/badge/openfrontio/OpenFrontIO)](https://cla-assistant.io/openfrontio/OpenFrontIO)
+![CI](https://github.com/globalwarsio/GlobalWarsIO/actions/workflows/ci.yml/badge.svg)
+[![Crowdin](https://badges.crowdin.net/globalwars-mls/localized.svg)](https://crowdin.com/project/globalwars-mls)
+[![CLA assistant](https://cla-assistant.io/readme/badge/globalwarsio/GlobalWarsIO)](https://cla-assistant.io/globalwarsio/GlobalWarsIO)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Assets: CC BY-SA 4.0](https://img.shields.io/badge/Assets-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ## License
 
-OpenFront source code is licensed under the **GNU Affero General Public License v3.0** with additional attribution requirements:
+GlobalWars source code is licensed under the **GNU Affero General Public License v3.0** with additional attribution requirements:
 
-- Any forks or derivative works must display attribution (e.g., "Based on OpenFront", "Derived from OpenFront", "Powered by OpenFront", or "Fork of OpenFront") prominently on the main menu and/or initial title screen.
+- Any forks or derivative works must display attribution (e.g., "Based on GlobalWars", "Derived from GlobalWars", "Powered by GlobalWars", or "Fork of GlobalWars") prominently on the main menu and/or initial title screen.
 
 See the `ADDITIONAL TERMS` section in [LICENSE](LICENSE) for complete requirements.
 
@@ -45,8 +45,8 @@ For license history, see [LICENSING.md](LICENSING.md).
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/openfrontio/OpenFrontIO.git
-   cd OpenFrontIO
+   git clone https://github.com/globalwarsio/GlobalWarsIO.git
+   cd GlobalWarsIO
    ```
 
 2. **Install dependencies**
@@ -91,7 +91,7 @@ npm run start:server-dev
 
 Sometimes it's useful to connect to production servers when replaying a game, testing user profiles, purchases, or login flow.
 
-> To replay a production game, make sure you're on the same commit that the game you want to replay was executed on, you can find the `gitCommit` value via `https://api.openfront.io/game/[gameId]`.
+> To replay a production game, make sure you're on the same commit that the game you want to replay was executed on, you can find the `gitCommit` value via `https://api.globalwars.io/game/[gameId]`.
 > Unfinished games cannot be replayed on localhost.
 
 To connect to staging api servers:
@@ -155,7 +155,7 @@ Translators are welcome! Please feel free to help translate into your language.
 How to help?
 
 1. Join the translation [Discord](https://discord.gg/3zZzacjWFr)
-2. Go to the project's Crowdin translation page: [https://crowdin.com/project/openfront-mls](https://crowdin.com/project/openfront-mls)
+2. Go to the project's Crowdin translation page: [https://crowdin.com/project/globalwars-mls](https://crowdin.com/project/globalwars-mls)
 3. Login if you already have an account / Sign up if you don't have one
 4. Join the project
 5. Select the language you want to translate in. If your language isn't on the list, click the "Request New Language" button and enter the language you want added there.
@@ -220,4 +220,4 @@ To ensure code quality and project stability, we use a progressive contribution 
 
 Remember that maintaining this project requires significant effort. The maintainer appreciates your contributions but must prioritize long-term project health and stability. Not all contributions will be accepted, and that's okay.
 
-Thank you for helping make OpenFront better!
+Thank you for helping make GlobalWars better!

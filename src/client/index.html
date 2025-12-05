@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
     />
-    <title>OpenFront (ALPHA)</title>
+    <title>GlobalWars (ALPHA)</title>
     <link rel="manifest" href="../../resources/manifest.json" />
     <link
       rel="icon"
@@ -15,22 +15,22 @@
     />
 
     <!-- SEO -->
-    <link rel="canonical" href="https://openfront.io/" />
+    <link rel="canonical" href="https://globalwars.io/" />
     <meta
       name="description"
       content="Conquer the world in this multiplayer battle royale! Expand your nation, eliminate opponents, and dominate the map in this fast-paced IO game."
     />
 
     <!-- Open Graph -->
-    <meta property="og:url" content="https://openfront.io/" />
-    <meta property="og:title" content="OpenFront - Battle Royale" />
+    <meta property="og:url" content="https://globalwars.io/" />
+    <meta property="og:title" content="GlobalWars - Battle Royale" />
     <meta
       property="og:description"
       content="Conquer the world in this multiplayer battle royale! Expand your nation, eliminate opponents, and dominate the map in this fast-paced IO game."
     />
     <meta
       property="og:image"
-      content="https://openfront.io/images/GameplayScreenshot.png"
+      content="https://globalwars.io/images/GameplayScreenshot.png"
     />
     <meta property="og:type" content="game" />
 
@@ -56,7 +56,12 @@
 
       .bg-image {
         content: "";
-        background-image: url("/images/EuropeBackgroundBlurred.webp");
+        background-image: linear-gradient(
+            145deg,
+            rgba(14, 165, 233, 0.45),
+            rgba(99, 102, 241, 0.35)
+          ),
+          url("/images/EuropeBackgroundBlurred.webp");
         background-position: center;
         background-attachment: fixed;
         background-size: cover;
@@ -66,6 +71,7 @@
         width: 100%;
         height: 100%;
         z-index: -1;
+        filter: saturate(1.2);
       }
 
       .bg-image::before {
@@ -73,10 +79,21 @@
         position: absolute;
         width: 100%;
         height: 100vh;
+        background: radial-gradient(
+          circle at 20% 20%,
+          rgba(14, 165, 233, 0.25),
+          transparent 28%
+        ),
+          radial-gradient(
+            circle at 80% 0%,
+            rgba(99, 102, 241, 0.22),
+            transparent 26%
+          );
+        mix-blend-mode: screen;
       }
 
       .dark .bg-image {
-        filter: brightness(0.4) saturate(0.3) contrast(1.2);
+        filter: brightness(0.45) saturate(0.65) contrast(1.15);
       }
 
       /* display:none if child has class parent-hidden since we can't use shadow DOM in Lit due to Tailwind */
@@ -99,7 +116,7 @@
     <script>
       window.googletag = window.googletag || { cmd: [] };
       googletag.cmd.push(function () {
-        googletag.pubads().set("page_url", "http://openfront.io ");
+        googletag.pubads().set("page_url", "http://globalwars.io ");
       });
     </script>
 
@@ -155,8 +172,8 @@
               x2="100%"
               y2="0%"
             >
-              <stop offset="0%" style="stop-color: #2563eb" />
-              <stop offset="100%" style="stop-color: #3b82f6" />
+              <stop offset="0%" style="stop-color: #0ea5e9" />
+              <stop offset="100%" style="stop-color: #6366f1" />
             </linearGradient>
           </defs>
           <g>
@@ -327,7 +344,7 @@
           class="flex flex-col sm:flex-row gap-4 sm:gap-5 text-white/70 justify-center md:justify-start flex-shrink-0"
         >
           <a
-            href="https://openfront.wiki/Main_Page"
+            href="https://globalwars.wiki/Main_Page"
             data-i18n="main.wiki"
             class="text-white/70 hover:text-white transition-colors duration-300 ease-in-out whitespace-nowrap"
             target="_blank"
@@ -336,7 +353,7 @@
           </a>
           <a
             target="_blank"
-            href="https://www.reddit.com/r/Openfront/"
+            href="https://www.reddit.com/r/GlobalWars/"
             class="text-white/70 hover:text-white transition-colors duration-300 ease-in-out whitespace-nowrap"
           >
             <span data-i18n="main.reddit"> Reddit </span>
@@ -351,11 +368,11 @@
         </div>
         <div class="flex justify-center text-white/70 flex-shrink-0">
           <a
-            href="https://github.com/openfrontio/OpenFrontIO"
+            href="https://github.com/globalwarsio/GlobalWarsIO"
             class="text-white/70 hover:text-white transition-colors duration-300 ease-in-out inline-flex items-center gap-2 whitespace-nowrap"
             target="_blank"
           >
-            © OpenFront™ and Contributors
+            © GlobalWars™ and Contributors
             <img
               src="../../resources/icons/github-mark-white.svg"
               alt="GitHub"
