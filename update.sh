@@ -26,7 +26,7 @@ echo "🔄 UPDATING SERVER: ${HOST} ENVIRONMENT"
 echo "======================================================"
 
 # Container and image configuration
-CONTAINER_NAME="openfront-${ENV}-${SUBDOMAIN}"
+CONTAINER_NAME="globalwars-${ENV}-${SUBDOMAIN}"
 
 echo "Pulling ${DOCKER_IMAGE} from Docker Hub..."
 docker pull "${DOCKER_IMAGE}"
@@ -51,7 +51,7 @@ if [ -n "$STOPPED_CONTAINER" ]; then
     echo "Container $STOPPED_CONTAINER removed."
 fi
 
-if [ "${SUBDOMAIN}" = main ] || [ "${DOMAIN}" = openfront.io ]; then
+if [ "${SUBDOMAIN}" = main ] || [ "${DOMAIN}" = globalwars.io ]; then
     RESTART=always
 else
     RESTART=no

@@ -1,6 +1,6 @@
 import { Howl } from "howler";
 import of4 from "../../../proprietary/sounds/music/of4.mp3";
-import openfront from "../../../proprietary/sounds/music/openfront.mp3";
+import globalwars from "../../../proprietary/sounds/music/globalwars.mp3";
 import war from "../../../proprietary/sounds/music/war.mp3";
 import kaChingSound from "../../../resources/sounds/effects/ka-ching.mp3";
 
@@ -24,7 +24,7 @@ class SoundManager {
         volume: 0,
       }),
       new Howl({
-        src: [openfront],
+        src: [globalwars],
         loop: false,
         onend: this.playNext.bind(this),
         volume: 0,
