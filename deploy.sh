@@ -124,9 +124,9 @@ fi
 
 # Configuration
 UPDATE_SCRIPT="./update.sh" # Path to your update script
-REMOTE_USER="openfront"
+REMOTE_USER="globalwars"
 REMOTE_UPDATE_PATH="/home/$REMOTE_USER"
-REMOTE_UPDATE_SCRIPT="$REMOTE_UPDATE_PATH/update-openfront.sh" # Where to place the script on server
+REMOTE_UPDATE_SCRIPT="$REMOTE_UPDATE_PATH/update-globalwars.sh" # Where to place the script on server
 
 # Check if update script exists
 if [ ! -f "$UPDATE_SCRIPT" ]; then

@@ -20,7 +20,7 @@
     "none": "Немає"
   },
   "main": {
-    "title": "OpenFront (АЛЬФА)",
+    "title": "GlobalWars (АЛЬФА)",
     "join_discord": "Приєднуйтеся до Discord!",
     "login_discord": "Увійти з Discord",
     "checking_login": "Перевірка входу...",
@@ -502,7 +502,7 @@
     "not_enough_money": "Недостатньо коштів"
   },
   "win_modal": {
-    "support_openfront": "Підтримайте OpenFront!",
+    "support_globalwars": "Підтримайте GlobalWars!",
     "territory_pattern": "Придбайте скін території, щоб позбавитися від реклами!",
     "died": "Ви загинули",
     "your_team": "Ваша команда перемогла!",

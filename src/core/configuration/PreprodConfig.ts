@@ -9,7 +9,7 @@ export const preprodConfig = new (class extends DefaultServerConfig {
     return 2;
   }
   jwtAudience(): string {
-    return "openfront.dev";
+    return "globalwars.dev";
   }
   allowedFlares(): string[] | undefined {
     return undefined;
@@ -17,7 +17,7 @@ export const preprodConfig = new (class extends DefaultServerConfig {
     // Allow access without login for now to test
     // the new login flow.
     // return [
-    //   // "access:openfront.dev"
+    //   // "access:globalwars.dev"
     // ];
   }
 })();
