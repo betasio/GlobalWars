@@ -23,7 +23,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - id: build
         env:
-          DOCKER_REPO: openfront-prod
+          DOCKER_REPO: globalwars-prod
           DOCKER_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           RELEASE_BODY: ${{ github.event.release.body }}
           RELEASE_NAME: ${{ github.event.release.name }}
@@ -66,7 +66,7 @@ jobs:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          DOCKER_REPO: openfront-prod
+          DOCKER_REPO: globalwars-prod
           DOCKER_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOMAIN: ${{ vars.DOMAIN }}
           IMAGE_ID: ${{ needs.build.outputs.IMAGE_ID }}
