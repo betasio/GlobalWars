@@ -1,39 +1,250 @@
+
 .l-header {
-  background: var(--boxBackgroundColor);
-  backdrop-filter: blur(var(--blur-md));
+  background: linear-gradient(140deg, rgba(9, 14, 30, 0.94), rgba(11, 22, 46, 0.9)),
+    radial-gradient(circle at 8% 18%, rgba(52, 211, 153, 0.12), transparent 35%),
+    radial-gradient(circle at 92% 12%, rgba(59, 130, 246, 0.16), transparent 32%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px) saturate(1.1);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04);
   display: flex;
   justify-content: center;
-  padding: 24px 24px 12px;
+  padding: 28px 22px 20px;
+  border-radius: 32px;
+  margin: 12px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
 
   @media (min-width: 800px) {
-    padding: 24px 24px;
+    padding: 36px 32px 26px;
   }
 }
+
+.l-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 22% 20%, rgba(34, 211, 238, 0.08), transparent 40%),
+    radial-gradient(circle at 78% 16%, rgba(52, 211, 153, 0.08), transparent 42%),
+    linear-gradient(115deg, rgba(34, 211, 238, 0.12), rgba(52, 211, 153, 0.12));
+  opacity: 0.9;
+  filter: blur(36px);
+  transform: scale(1.08);
+  z-index: 0;
+}
+
 
 .l-header__content {
   display: flex;
   flex: 1;
-  max-width: 600px;
+  max-width: 1080px;
   flex-direction: column;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.l-header__grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: stretch;
+}
+
+.l-header__branding {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
   align-items: center;
-  gap: 10px;
+  padding: 16px 16px 18px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+
+.l-header__titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+
+.l-header__logoWrap {
+  width: 120px;
+  height: 120px;
+  border-radius: 28px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.14), transparent 50%),
+    linear-gradient(145deg, rgba(34, 211, 238, 0.4), rgba(52, 211, 153, 0.35));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 40px rgba(56, 189, 248, 0.2);
+  display: grid;
+  place-items: center;
+  padding: 16px;
 }
 
 .l-header__logo {
-  max-width: 450px;
-  fill: url(#logo-gradient);
-  filter: drop-shadow(1px 1px 0px rgb(255, 255, 255))
-    drop-shadow(-1px -1px 0px rgb(255, 255, 255))
-    drop-shadow(1px -1px 0px rgb(255, 255, 255))
-    drop-shadow(-1px 1px 0px rgb(255, 255, 255))
-    drop-shadow(3px 3px 0px rgb(255, 255, 255));
+  width: 100%;
+  height: 100%;
+  fill: none;
 }
 
-.l-header__highlightText {
-  color: #2563eb;
+
+.l-header__eyebrow {
+  color: rgba(226, 232, 240, 0.85);
+  letter-spacing: 0.16em;
   font-weight: 700;
-  filter: drop-shadow(1px 1px 0px rgb(255, 255, 255))
-    drop-shadow(-1px -1px 0px rgb(255, 255, 255))
-    drop-shadow(1px -1px 0px rgb(255, 255, 255))
-    drop-shadow(-1px 1px 0px rgb(255, 255, 255));
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+
+
+.l-header__title {
+  font-size: clamp(2.4rem, 2.6vw + 1.2rem, 3rem);
+  font-weight: 900;
+  color: #f8fafc;
+  letter-spacing: 0.02em;
+  margin: 2px 0;
+}
+
+
+.l-header__subtitle {
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 1.08rem;
+  line-height: 1.65;
+  max-width: 640px;
+}
+
+.l-header__hero {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 10px 50px rgba(0, 0, 0, 0.45);
+}
+
+.l-header__heroMap {
+  position: relative;
+  min-height: 220px;
+  display: grid;
+  align-items: stretch;
+  isolation: isolate;
+}
+
+.l-header__heroImage {
+  background-image: linear-gradient(180deg, rgba(8, 15, 35, 0.55), rgba(8, 15, 35, 0.7)),
+    url("/images/EuropeBackgroundBlurred.webp");
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.05) brightness(1.02);
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.l-header__heroGlow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 35% 40%, rgba(52, 211, 153, 0.18), transparent 38%),
+    radial-gradient(circle at 78% 36%, rgba(59, 130, 246, 0.25), transparent 34%),
+    radial-gradient(circle at 52% 68%, rgba(34, 211, 238, 0.16), transparent 35%);
+  mix-blend-mode: screen;
+  filter: blur(10px);
+  opacity: 0.9;
+  z-index: 2;
+}
+
+.l-header__heroOverlay {
+  position: relative;
+  z-index: 3;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #e2e8f0;
+  backdrop-filter: blur(4px);
+  background: linear-gradient(180deg, rgba(8, 15, 35, 0.4), rgba(8, 15, 35, 0.6));
+}
+
+.l-header__heroTitle {
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #a5f3fc;
+  font-weight: 800;
+}
+
+.l-header__heroDetail {
+  font-size: 1.05rem;
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.l-header__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.l-header__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ecfeff;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.l-header__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px 4px;
+  gap: 12px;
+}
+
+.l-header__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: #e2e8f0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.l-header__statusLight {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #34d399 0%, #16a34a 70%);
+  box-shadow: 0 0 12px #22c55e;
+}
+
+.l-header__statusText {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+
+.l-header__versionPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #34d399;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: rgba(34, 211, 238, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  width: fit-content;
 }

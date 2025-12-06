@@ -20,7 +20,7 @@
     "none": "なし"
   },
   "main": {
-    "title": "OpenFront (ALPHA)",
+    "title": "GlobalWars (ALPHA)",
     "join_discord": "Discordサーバーに参加!",
     "login_discord": "Discordでログイン",
     "checking_login": "ログイン中...",
@@ -502,7 +502,7 @@
     "not_enough_money": "資金不足"
   },
   "win_modal": {
-    "support_openfront": "OpenFront を支援！",
+    "support_globalwars": "GlobalWars を支援！",
     "territory_pattern": "広告を見て領土スキンを手に入れよう！",
     "died": "あなたは死んでしまった",
     "your_team": "あなたのチームの勝利！",

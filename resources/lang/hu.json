@@ -9,7 +9,7 @@
     "close": "Bezár"
   },
   "main": {
-    "title": "OpenFront (ALPHA)",
+    "title": "GlobalWars (ALPHA)",
     "join_discord": "Csatlakozz discord szerverünkhöz!",
     "login_discord": "Bejelentkezés Discord fiókkal",
     "checking_login": "Bejelentkezés ellenőrzése...",
@@ -466,8 +466,8 @@
     "not_enough_money": "Nincs elég pénz"
   },
   "win_modal": {
-    "support_openfront": "Támogasd az OpenFrontot!",
-    "territory_pattern": "Vásárolj egy területi mintát az OpenFront támogatásához!",
+    "support_globalwars": "Támogasd az GlobalWarsot!",
+    "territory_pattern": "Vásárolj egy területi mintát az GlobalWars támogatásához!",
     "died": "Meghaltál",
     "your_team": "A csapatod nyert!",
     "other_team": "A(z) {team} csapat győzött!",
@@ -624,8 +624,8 @@
       "cursor": "Egérmutató",
       "hand": "Kéz",
       "radiation": "Sugárzás",
-      "openfront_qr": "OpenFront.io QR kód",
-      "openfront": "OpenFront",
+      "globalwars_qr": "GlobalWars.io QR kód",
+      "globalwars": "GlobalWars",
       "t_rex": "T-Rex",
       "embelem": "Embléma",
       "contributor": "Közreműködő",
