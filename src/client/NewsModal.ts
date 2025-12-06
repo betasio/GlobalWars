@@ -87,7 +87,7 @@ export class NewsModal extends LitElement {
         <div>
           ${translateText("news.see_all_releases")}
           <a
-            href="https://github.com/openfrontio/OpenFrontIO/releases"
+            href="https://github.com/globalwarsio/GlobalWarsIO/releases"
             target="_blank"
             >${translateText("news.github_link")}</a
           >.
@@ -110,14 +110,14 @@ export class NewsModal extends LitElement {
         .then((markdown) =>
           markdown
             .replace(
-              /(?<!\()\bhttps:\/\/github\.com\/openfrontio\/OpenFrontIO\/pull\/(\d+)\b/g,
+              /(?<!\()\bhttps:\/\/github\.com\/globalwarsio\/GlobalWarsIO\/pull\/(\d+)\b/g,
               (_match, prNumber) =>
-                `[#${prNumber}](https://github.com/openfrontio/OpenFrontIO/pull/${prNumber})`,
+                `[#${prNumber}](https://github.com/globalwarsio/GlobalWarsIO/pull/${prNumber})`,
             )
             .replace(
-              /(?<!\()\bhttps:\/\/github\.com\/openfrontio\/OpenFrontIO\/compare\/([\w.-]+)\b/g,
+              /(?<!\()\bhttps:\/\/github\.com\/globalwarsio\/GlobalWarsIO\/compare\/([\w.-]+)\b/g,
               (_match, comparison) =>
-                `[${comparison}](https://github.com/openfrontio/OpenFrontIO/compare/${comparison})`,
+                `[${comparison}](https://github.com/globalwarsio/GlobalWarsIO/compare/${comparison})`,
             ),
         )
         .then((markdown) => (this.markdown = markdown));
