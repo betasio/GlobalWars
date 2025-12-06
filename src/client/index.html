@@ -58,15 +58,15 @@
         content: "";
         background-image: radial-gradient(
             circle at 8% 18%,
-            rgba(34, 211, 238, 0.14),
+            rgba(168, 85, 247, 0.12),
             transparent 26%
           ),
           radial-gradient(
             circle at 82% 12%,
-            rgba(52, 211, 153, 0.22),
+            rgba(99, 102, 241, 0.2),
             transparent 30%
           ),
-          linear-gradient(120deg, #030712 0%, #081129 36%, #0b1d3f 100%),
+          linear-gradient(120deg, #050712 0%, #0a0820 36%, #0c102e 100%),
           url("../../resources/images/EuropeBackgroundBlurred.webp");
         background-position: center;
         background-attachment: fixed;
@@ -110,7 +110,7 @@
         inset: -40% -20%;
         background: radial-gradient(
           circle at 30% 30%,
-          rgba(34, 211, 238, 0.25),
+          rgba(168, 85, 247, 0.3),
           transparent 40%
         );
         mix-blend-mode: screen;
@@ -233,12 +233,7 @@
               </svg>
             </div>
             <div class="l-header__titleBlock">
-              <div class="l-header__eyebrow">Command from the GlobalWars bridge</div>
-              <div class="l-header__title">GlobalWars</div>
-              <div class="l-header__subtitle">
-                Build coalitions, coordinate strikes, and oversee every front from a cinematic control room built for modern war
-                games.
-              </div>
+              <div class="l-header__title l-header__title--gradient">GlobalWars</div>
             </div>
           </div>
 
@@ -247,9 +242,10 @@
               <div class="l-header__heroGlow"></div>
               <div class="l-header__heroImage"></div>
               <div class="l-header__heroOverlay">
-                <div class="l-header__heroTitle">Ready your command deck</div>
-                <div class="l-header__heroDetail">
-                  Drop into the world map with a polished GlobalWars control surface.
+                <div class="l-header__heroBadgeRow" aria-hidden="true">
+                  <div class="l-header__orb"></div>
+                  <div class="l-header__orb"></div>
+                  <div class="l-header__orb"></div>
                 </div>
               </div>
             </div>
@@ -257,7 +253,6 @@
         </div>
 
         <div class="l-header__footer">
-          <div class="l-header__footerNote">Modern command, zero clutter.</div>
           <div id="game-version" class="l-header__versionPill text-center">Loading version...</div>
         </div>
       </div>
