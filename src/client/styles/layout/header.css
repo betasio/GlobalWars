@@ -1,209 +1,134 @@
+@import url("https://fonts.googleapis.com/css2?family=Oxanium:wght@700;800&display=swap");
 
 .l-header {
-  background: linear-gradient(140deg, rgba(13, 10, 24, 0.94), rgba(14, 18, 40, 0.92)),
-    radial-gradient(circle at 8% 18%, rgba(168, 85, 247, 0.14), transparent 35%),
-    radial-gradient(circle at 92% 12%, rgba(99, 102, 241, 0.18), transparent 32%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px) saturate(1.18);
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
-  display: flex;
-  justify-content: center;
-  padding: 28px 22px 20px;
-  border-radius: 32px;
-  margin: 12px;
   position: relative;
+  margin: 12px;
+  padding: clamp(42px, 12vw, 96px) clamp(18px, 8vw, 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28px;
   overflow: hidden;
   isolation: isolate;
-
-  @media (min-width: 800px) {
-    padding: 36px 32px 26px;
-  }
+  background: linear-gradient(140deg, rgba(12, 10, 24, 0.92), rgba(17, 15, 36, 0.9)),
+    url("../../../../resources/images/EuropeBackgroundBlurred.webp");
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .l-header::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 22% 20%, rgba(192, 132, 252, 0.12), transparent 40%),
-    radial-gradient(circle at 78% 16%, rgba(94, 234, 212, 0.08), transparent 42%),
-    linear-gradient(115deg, rgba(168, 85, 247, 0.22), rgba(139, 92, 246, 0.15));
-  opacity: 0.85;
-  filter: blur(34px);
-  transform: scale(1.05);
+  background: radial-gradient(circle at 18% 32%, rgba(190, 110, 255, 0.16), transparent 36%),
+    radial-gradient(circle at 76% 26%, rgba(92, 225, 230, 0.12), transparent 40%),
+    linear-gradient(120deg, rgba(109, 40, 217, 0.24), rgba(147, 51, 234, 0.18));
+  filter: blur(18px);
+  opacity: 0.9;
   z-index: 0;
 }
 
-
-.l-header__content {
-  display: flex;
-  flex: 1;
-  max-width: 1080px;
-  flex-direction: column;
-  gap: 16px;
-  position: relative;
-  z-index: 1;
+.l-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 120px 120px;
+  opacity: 0.35;
+  mix-blend-mode: soft-light;
+  z-index: 0;
 }
 
-.l-header__grid {
-  display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  align-items: stretch;
+.l-header__halo {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.35), transparent 65%);
+  filter: blur(16px) saturate(1.1);
+  animation: halo-pulse 9s ease-in-out infinite;
+  z-index: 0;
 }
 
-.l-header__branding {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 18px;
-  align-items: center;
-  padding: 16px 16px 18px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 15px 45px rgba(0, 0, 0, 0.3);
+@keyframes halo-pulse {
+  0%,
+  100% {
+    transform: translate(-12%, -10%) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate(8%, 6%) scale(1.08);
+    opacity: 0.6;
+  }
 }
-
-
-.l-header__titleBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-
-.l-header__logoWrap {
-  width: 120px;
-  height: 120px;
-  border-radius: 28px;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), transparent 50%),
-    linear-gradient(145deg, rgba(168, 85, 247, 0.5), rgba(99, 102, 241, 0.4));
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 12px 40px rgba(168, 85, 247, 0.35);
-  display: grid;
-  place-items: center;
-  padding: 16px;
-}
-
-.l-header__logo {
-  width: 100%;
-  height: 100%;
-  fill: none;
-}
-
 
 .l-header__title {
-  font-size: clamp(2.6rem, 2.8vw + 1.4rem, 3.6rem);
-  font-weight: 900;
-  color: #f8fafc;
-  letter-spacing: 0.06em;
-  margin: 4px 0;
+  position: relative;
+  z-index: 1;
+  font-family: "Oxanium", "Inter", system-ui, -apple-system, sans-serif;
+  font-size: clamp(3.2rem, 4vw + 1.6rem, 5.4rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  text-shadow: 0 8px 40px rgba(0, 0, 0, 0.55);
+  text-align: center;
+  padding: 14px 24px;
+  border-radius: 22px;
+  color: #f8fafc;
+  text-shadow: 0 12px 45px rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px) saturate(1.15);
+  background: linear-gradient(130deg, rgba(26, 22, 48, 0.8), rgba(30, 27, 68, 0.78));
 }
 
 .l-header__title--gradient {
-  background: linear-gradient(120deg, #c084fc, #7c3aed 55%, #60a5fa 100%);
+  background: linear-gradient(115deg, #c084fc, #8b5cf6 48%, #60a5fa 96%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 12px 45px rgba(99, 102, 241, 0.35));
+  filter: drop-shadow(0 14px 50px rgba(99, 102, 241, 0.4));
 }
 
-.l-header__hero {
-  position: relative;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 10px 50px rgba(0, 0, 0, 0.5);
-}
-
-.l-header__heroMap {
-  position: relative;
-  min-height: 220px;
-  display: grid;
-  align-items: stretch;
-  isolation: isolate;
-}
-
-.l-header__heroImage {
-  background-image: linear-gradient(180deg, rgba(8, 15, 35, 0.55), rgba(8, 15, 35, 0.7)),
-    url("../../../../resources/images/EuropeBackgroundBlurred.webp");
-  background-size: cover;
-  background-position: center;
-  filter: saturate(1.05) brightness(1.02);
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-
-.l-header__heroGlow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 35% 40%, rgba(192, 132, 252, 0.18), transparent 38%),
-    radial-gradient(circle at 78% 36%, rgba(96, 165, 250, 0.22), transparent 34%),
-    radial-gradient(circle at 52% 68%, rgba(168, 85, 247, 0.2), transparent 35%);
-  mix-blend-mode: screen;
-  filter: blur(10px);
-  opacity: 0.9;
-  z-index: 2;
-}
-
-.l-header__heroOverlay {
-  position: relative;
-  z-index: 3;
-  padding: 20px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  color: #e2e8f0;
-  backdrop-filter: blur(4px);
-  background: linear-gradient(180deg, rgba(8, 10, 24, 0.42), rgba(8, 10, 24, 0.65));
-}
-
-.l-header__heroBadgeRow {
-  display: flex;
-  gap: 10px;
-}
-
-.l-header__orb {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.85), rgba(96, 165, 250, 0.9));
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.12);
-  display: grid;
-  place-items: center;
-}
-
-.l-header__orb::after {
-  content: "";
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.6), transparent 65%);
-  filter: blur(1px);
-}
-
-.l-header__footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 8px 10px 4px;
-  gap: 12px;
-}
-
-.l-header__versionPill {
+.l-versionPill {
+  margin: 10px auto 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #c084fc;
+  color: #cbd5f5;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 10px 14px;
-  border-radius: 18px;
-  background: linear-gradient(120deg, rgba(168, 85, 247, 0.18), rgba(96, 165, 250, 0.2));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 25px rgba(0, 0, 0, 0.35);
-  width: fit-content;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: linear-gradient(120deg, rgba(124, 58, 237, 0.22), rgba(56, 189, 248, 0.18));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 30px rgba(0, 0, 0, 0.32);
+}
+
+.floating-settings {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 50;
+  width: 82px;
+  height: 82px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, #7c3aed, #22d3ee);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.floating-settings:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  filter: brightness(1.06);
+}
+
+.floating-settings__icon {
+  width: 66px;
+  height: 66px;
 }

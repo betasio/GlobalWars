@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
     />
-    <title>GlobalWars</title>
+    <title>GlobalWars (ALPHA)</title>
     <link rel="manifest" href="../../resources/manifest.json" />
     <link
       rel="icon"
@@ -15,22 +15,22 @@
     />
 
     <!-- SEO -->
-    <link rel="canonical" href="https://globalwars.co.uk/" />
+    <link rel="canonical" href="https://globalwars.io/" />
     <meta
       name="description"
       content="Conquer the world in this multiplayer battle royale! Expand your nation, eliminate opponents, and dominate the map in this fast-paced game."
     />
 
     <!-- Open Graph -->
-    <meta property="og:url" content="https://globalwars.co.uk/" />
-    <meta property="og:title" content="GlobalWars - Dominate the World" />
+    <meta property="og:url" content="https://globalwars.io/" />
+    <meta property="og:title" content="GlobalWars - Battle Royale" />
     <meta
       property="og:description"
       content="Conquer the world in this multiplayer battle royale! Expand your nation, eliminate opponents, and dominate the map in this fast-paced game."
     />
     <meta
       property="og:image"
-      content="https://globalwars.co.uk/images/GameplayScreenshot.png"
+      content="https://globalwars.io/images/GameplayScreenshot.png"
     />
     <meta property="og:type" content="game" />
 
@@ -193,66 +193,10 @@
     class="h-full select-none font-sans min-h-screen bg-opacity-0 bg-cover bg-center bg-fixed transition-opacity duration-300 ease-in-out flex flex-col"
   >
     <header class="l-header">
-      <div class="l-header__content">
-        <div class="l-header__grid">
-          <div class="l-header__branding">
-            <div class="l-header__logoWrap">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 160 160"
-                role="img"
-                aria-label="GlobalWars logo"
-                class="l-header__logo"
-              >
-                <defs>
-                  <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#22d3ee" />
-                    <stop offset="100%" stop-color="#34d399" />
-                  </linearGradient>
-                </defs>
-                <circle cx="80" cy="80" r="62" fill="url(#logo-gradient)" opacity="0.2" />
-                <circle cx="80" cy="80" r="54" fill="none" stroke="url(#logo-gradient)" stroke-width="4" />
-                <path
-                  d="M36 76c0-24.3 19.7-44 44-44s44 19.7 44 44v6h-16v-6c0-15.5-12.5-28-28-28s-28 12.5-28 28v26c0 15.5 12.5 28 28 28 10.4 0 19.5-5.6 24.4-14H124c-5.4 16.8-21 30-42 30-24.3 0-44-19.7-44-44V76Z"
-                  fill="url(#logo-gradient)"
-                  opacity="0.95"
-                />
-                <path
-                  d="M46 98 60 58l18 44 16-34 12 30 10-32"
-                  fill="none"
-                  stroke="#f8fafc"
-                  stroke-width="6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M114 56c-2.7-5.4-6.6-10.2-11.2-14.2 6.8 1.3 13.1 4.5 18.4 9.2 5.4 4.8 9.3 10.8 11.6 17.3l-15.4 5.4c-1.6-5.2-5.1-12.7-3.4-17.7Z"
-                  fill="#0b1224"
-                  opacity="0.65"
-                />
-              </svg>
-            </div>
-            <div class="l-header__titleBlock">
-              <div class="l-header__title l-header__title--gradient">GlobalWars</div>
-            </div>
-          </div>
-
-          <div class="l-header__hero">
-            <div class="l-header__heroMap">
-              <div class="l-header__heroGlow"></div>
-              <div class="l-header__heroImage"></div>
-              <div class="l-header__heroOverlay">
-                <div class="l-header__heroBadgeRow" aria-hidden="true">
-                  <div class="l-header__orb"></div>
-                  <div class="l-header__orb"></div>
-                  <div class="l-header__orb"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="l-header__halo"></div>
+      <div class="l-header__title l-header__title--gradient">GlobalWars</div>
     </header>
+    <div id="game-version" class="l-versionPill text-center">Loading version...</div>
     <div class="bg-image"></div>
 
     <gutter-ads></gutter-ads>
@@ -328,13 +272,12 @@
     <button
       id="settings-button"
       title="Settings"
-      class="fixed bottom-4 right-4 z-50 rounded-full p-2 shadow-lg transition-colors duration-300 flex items-center justify-center"
-      style="width: 80px; height: 80px; background-color: #0075ff"
+      class="floating-settings"
     >
       <img
         src="../../resources/images/SettingIconWhite.svg"
         alt="Settings"
-        style="width: 72px; height: 72px"
+        class="floating-settings__icon"
       />
     </button>
 
@@ -379,6 +322,14 @@
         <div
           class="flex flex-col sm:flex-row gap-4 sm:gap-5 text-white/70 justify-center md:justify-start flex-shrink-0"
         >
+          <a
+            href="https://globalwars.wiki/Main_Page"
+            data-i18n="main.wiki"
+            class="text-white/70 hover:text-white transition-colors duration-300 ease-in-out whitespace-nowrap"
+            target="_blank"
+          >
+            Wiki
+          </a>
           <a
             target="_blank"
             href="https://www.reddit.com/r/GlobalWars/"
