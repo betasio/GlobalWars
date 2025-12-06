@@ -210,15 +210,13 @@ export class StatsButton extends LitElement {
     }
 
     return html`
-      <div class="fixed top-20 right-4 z-[9998]">
-        <button
-          @click="${this.open}"
-          class="w-12 h-12 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-200 flex items-center justify-center text-xl focus:outline-none focus:ring-4 focus:ring-[#a855f7]/50 focus:ring-offset-4 border border-white/15 bg-gradient-to-br from-[#1c0f2b] via-[#2b0f45] to-[#4c1d95] text-white hover:scale-105"
-          title="${translateText("stats_modal.title")}" 
-        >
-          <img src="/icons/stats.svg" alt="Stats" class="w-6 h-6" />
-        </button>
-      </div>
+      <button
+        @click="${this.open}"
+        class="ui-controls__button"
+        title="${translateText("stats_modal.title")}" 
+      >
+        <img src="/icons/stats.svg" alt="Stats" class="ui-controls__icon" />
+      </button>
       <stats-modal></stats-modal>
     `;
   }

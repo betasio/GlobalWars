@@ -390,15 +390,13 @@ export class AccountButton extends LitElement {
     }
 
     return html`
-      <div class="fixed top-4 right-4 z-[9998]">
-        <button
-          @click="${this.open}"
-          class="w-12 h-12 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-200 flex items-center justify-center text-xl focus:outline-none focus:ring-4 focus:ring-[#a855f7]/50 focus:ring-offset-4 border border-white/15 bg-gradient-to-br from-[#1c0f2b] via-[#2b0f45] to-[#4c1d95] text-white hover:scale-105"
-          title="${buttonTitle}"
-        >
-          ${this.renderIcon()}
-        </button>
-      </div>
+      <button
+        @click="${this.open}"
+        class="ui-controls__button"
+        title="${buttonTitle}"
+      >
+        ${this.renderIcon()}
+      </button>
       <account-modal></account-modal>
     `;
   }
@@ -408,19 +406,19 @@ export class AccountButton extends LitElement {
       return html`<img
         src="/images/DiscordLogo.svg"
         alt="Discord"
-        class="w-6 h-6"
+        class="ui-controls__icon"
       />`;
     } else if (this.loggedInEmail) {
       return html`<img
         src="/images/EmailIcon.svg"
         alt="Email"
-        class="w-6 h-6"
+        class="ui-controls__icon"
       />`;
     }
     return html`<img
       src="/images/LoggedOutIcon.svg"
       alt="Logged Out"
-      class="w-6 h-6"
+      class="ui-controls__icon"
     />`;
   }
 
