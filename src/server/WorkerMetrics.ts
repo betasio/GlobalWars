@@ -46,21 +46,21 @@ export function initWorkerMetrics(gameManager: GameManager): void {
 
   // Create observable gauges
   const activeGamesGauge = meter.createObservableGauge(
-    "openfront.active_games.gauge",
+    "globalwars.active_games.gauge",
     {
       description: "Number of active games on this worker",
     },
   );
 
   const connectedClientsGauge = meter.createObservableGauge(
-    "openfront.connected_clients.gauge",
+    "globalwars.connected_clients.gauge",
     {
       description: "Number of connected clients on this worker",
     },
   );
 
   const memoryUsageGauge = meter.createObservableGauge(
-    "openfront.memory_usage.bytes",
+    "globalwars.memory_usage.bytes",
     {
       description: "Current memory usage of the worker process in bytes",
     },

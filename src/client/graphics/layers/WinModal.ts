@@ -149,7 +149,7 @@ export class WinModal extends LitElement implements Layer {
     return html`
       <div class="text-center mb-6 bg-black/30 p-2.5 rounded">
         <h3 class="text-xl font-semibold text-white mb-3">
-          ${translateText("win_modal.support_openfront")}
+          ${translateText("win_modal.support_globalwars")}
         </h3>
         <p class="text-white mb-3">
           ${translateText("win_modal.territory_pattern")}
@@ -238,7 +238,7 @@ export class WinModal extends LitElement implements Layer {
         <div class="mb-3">
           <img
             src=${ofmWintersLogo}
-            alt="OpenFront Masters Winter"
+            alt="GlobalWars Masters Winter"
             class="mx-auto max-w-full h-auto max-h-[200px] rounded"
           />
         </div>
@@ -267,7 +267,7 @@ export class WinModal extends LitElement implements Layer {
           ${translateText("win_modal.discord_description")}
         </p>
         <a
-          href="https://discord.com/invite/openfront"
+          href="https://discord.com/invite/globalwars"
           target="_blank"
           rel="noopener noreferrer"
           class="inline-block px-6 py-3 bg-indigo-600 text-white rounded font-semibold transition-all duration-200 hover:bg-indigo-700 hover:-translate-y-px no-underline"
