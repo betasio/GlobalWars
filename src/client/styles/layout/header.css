@@ -181,24 +181,6 @@
   color: rgba(226, 232, 240, 0.9);
 }
 
-.l-header__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.l-header__chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #ecfeff;
-  font-weight: 700;
-  font-size: 0.95rem;
-}
-
 .l-header__footer {
   display: flex;
   align-items: center;
@@ -207,30 +189,10 @@
   gap: 12px;
 }
 
-.l-header__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  color: #e2e8f0;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-}
-
-.l-header__statusLight {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #34d399 0%, #16a34a 70%);
-  box-shadow: 0 0 12px #22c55e;
-}
-
-.l-header__statusText {
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+.l-header__footerNote {
+  color: #cbd5e1;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   font-size: 0.95rem;
 }
 
