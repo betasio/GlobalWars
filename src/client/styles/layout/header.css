@@ -1,39 +1,200 @@
-.l-header {
-  background: var(--boxBackgroundColor);
-  backdrop-filter: blur(var(--blur-md));
-  display: flex;
-  justify-content: center;
-  padding: 24px 24px 12px;
+@import url("https://fonts.googleapis.com/css2?family=Oxanium:wght@700;800&display=swap");
 
-  @media (min-width: 800px) {
-    padding: 24px 24px;
+.l-header {
+  position: relative;
+  margin: 12px;
+  padding: clamp(26px, 7vw, 56px) clamp(18px, 6vw, 72px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28px;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(140deg, rgba(12, 10, 24, 0.8), rgba(17, 15, 36, 0.74));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.l-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 18% 32%, rgba(190, 110, 255, 0.16), transparent 36%),
+    radial-gradient(circle at 76% 26%, rgba(92, 225, 230, 0.12), transparent 40%),
+    linear-gradient(120deg, rgba(109, 40, 217, 0.24), rgba(147, 51, 234, 0.18));
+  filter: blur(18px);
+  opacity: 0.9;
+  z-index: 0;
+}
+
+.l-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 120px 120px;
+  opacity: 0.35;
+  mix-blend-mode: soft-light;
+  z-index: 0;
+}
+
+.l-header__halo {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.35), transparent 65%);
+  filter: blur(16px) saturate(1.1);
+  animation: halo-pulse 9s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes halo-pulse {
+  0%,
+  100% {
+    transform: translate(-12%, -10%) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate(8%, 6%) scale(1.08);
+    opacity: 0.6;
   }
 }
 
-.l-header__content {
-  display: flex;
-  flex: 1;
-  max-width: 600px;
-  flex-direction: column;
+.l-header__title {
+  position: relative;
+  z-index: 1;
+  font-family: "Oxanium", "Inter", system-ui, -apple-system, sans-serif;
+  font-size: clamp(3.2rem, 4vw + 1.6rem, 5.4rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 12px 22px;
+  border-radius: 22px;
+  color: #f8fafc;
+  text-shadow: 0 12px 45px rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px) saturate(1.15);
+  background: linear-gradient(130deg, rgba(26, 22, 48, 0.8), rgba(30, 27, 68, 0.78));
+}
+
+.l-header__title--gradient {
+  background: linear-gradient(115deg, #c084fc, #8b5cf6 48%, #60a5fa 96%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 14px 50px rgba(99, 102, 241, 0.4));
+}
+
+.l-versionPill {
+  margin: 10px auto 0;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  color: #cbd5f5;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: linear-gradient(120deg, rgba(124, 58, 237, 0.22), rgba(56, 189, 248, 0.18));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 30px rgba(0, 0, 0, 0.32);
 }
 
-.l-header__logo {
-  max-width: 450px;
-  fill: url(#logo-gradient);
-  filter: drop-shadow(1px 1px 0px rgb(255, 255, 255))
-    drop-shadow(-1px -1px 0px rgb(255, 255, 255))
-    drop-shadow(1px -1px 0px rgb(255, 255, 255))
-    drop-shadow(-1px 1px 0px rgb(255, 255, 255))
-    drop-shadow(3px 3px 0px rgb(255, 255, 255));
+.ui-controls {
+  position: absolute;
+  top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
 }
 
-.l-header__highlightText {
-  color: #2563eb;
-  font-weight: 700;
-  filter: drop-shadow(1px 1px 0px rgb(255, 255, 255))
-    drop-shadow(-1px -1px 0px rgb(255, 255, 255))
-    drop-shadow(1px -1px 0px rgb(255, 255, 255))
-    drop-shadow(-1px 1px 0px rgb(255, 255, 255));
+.ui-controls--left {
+  left: 18px;
+}
+
+.ui-controls--right {
+  right: 18px;
+}
+
+.ui-controls__button {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, #7c3aed, #22d3ee);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.theme-toggle {
+  width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, rgba(13, 15, 28, 0.9), rgba(20, 18, 36, 0.82));
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  backdrop-filter: blur(12px) saturate(1.1);
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  filter: brightness(1.08);
+}
+
+.theme-toggle__icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.ui-controls__button:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  filter: brightness(1.05);
+}
+
+.ui-controls__icon {
+  width: 22px;
+  height: 22px;
+}
+
+.floating-settings {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 50;
+  width: 82px;
+  height: 82px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, #7c3aed, #22d3ee);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.floating-settings:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  filter: brightness(1.06);
+}
+
+.floating-settings__icon {
+  width: 66px;
+  height: 66px;
 }
