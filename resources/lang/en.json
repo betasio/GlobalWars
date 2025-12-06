@@ -20,7 +20,7 @@
     "none": "None"
   },
   "main": {
-    "title": "OpenFront (ALPHA)",
+    "title": "GlobalWars (ALPHA)",
     "join_discord": "Discord",
     "login_discord": "Login with Discord",
     "checking_login": "Checking login...",
@@ -514,7 +514,7 @@
     "not_enough_money": "Not enough money"
   },
   "win_modal": {
-    "support_openfront": "Support OpenFront!",
+    "support_globalwars": "Support GlobalWars!",
     "territory_pattern": "Purchase a territory skin to go ad-free!",
     "died": "You died",
     "your_team": "Your team won!",
@@ -525,7 +525,7 @@
     "keep": "Keep Playing",
     "spectate": "Spectate",
     "wishlist": "Wishlist on Steam!",
-    "ofm_winter": "OpenFront Masters Winter Tournament!",
+    "ofm_winter": "GlobalWars Masters Winter Tournament!",
     "ofm_winter_description": "Join the competitive tournament and compete against the best players",
     "join_tournament": "Join Tournament",
     "join_discord": "Join Our Discord Community!",
