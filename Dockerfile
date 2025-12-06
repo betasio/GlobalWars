@@ -31,7 +31,7 @@ COPY . .
 # Build the client-side application
 RUN npm run build-prod
 # So we can see which commit was used to build the container
-# https://openfront.io/commit.txt
+# https://globalwars.io/commit.txt
 RUN echo "$GIT_COMMIT" > static/commit.txt
 
 # Remove maps data from final image
