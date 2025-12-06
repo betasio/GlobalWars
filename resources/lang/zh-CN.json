@@ -20,7 +20,7 @@
     "none": "空"
   },
   "main": {
-    "title": "OpenFront (ALPHA)",
+    "title": "GlobalWars (ALPHA)",
     "join_discord": "加入 Discord",
     "login_discord": "用 Discord 登录",
     "checking_login": "正在检查登录...",
@@ -502,7 +502,7 @@
     "not_enough_money": "金钱不足"
   },
   "win_modal": {
-    "support_openfront": "支持 OpenFront！",
+    "support_globalwars": "支持 GlobalWars！",
     "territory_pattern": "购买皮肤即可去除广告！",
     "died": "你已经死了",
     "your_team": "你的队伍获胜了！",

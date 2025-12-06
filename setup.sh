@@ -29,36 +29,36 @@ else
     echo "Docker installed successfully"
 fi
 
-echo "👤 Setting up openfront user..."
-# Create openfront user if it doesn't exist
-if id "openfront" &> /dev/null; then
-    echo "User openfront already exists"
+echo "👤 Setting up globalwars user..."
+# Create globalwars user if it doesn't exist
+if id "globalwars" &> /dev/null; then
+    echo "User globalwars already exists"
 else
-    useradd -m -s /bin/bash openfront
-    echo "User openfront created"
+    useradd -m -s /bin/bash globalwars
+    echo "User globalwars created"
 fi
 
-# Check if openfront is already in docker group
-if groups openfront | grep -q '\bdocker\b'; then
-    echo "User openfront is already in the docker group"
+# Check if globalwars is already in docker group
+if groups globalwars | grep -q '\bdocker\b'; then
+    echo "User globalwars is already in the docker group"
 else
-    # Add openfront to docker group
-    usermod -aG docker openfront
-    echo "Added openfront to docker group"
+    # Add globalwars to docker group
+    usermod -aG docker globalwars
+    echo "Added globalwars to docker group"
 fi
 
-# Create .ssh directory for openfront if it doesn't exist
-if [ ! -d "/home/openfront/.ssh" ]; then
-    mkdir -p /home/openfront/.ssh
-    chmod 700 /home/openfront/.ssh
-    echo "Created .ssh directory for openfront"
+# Create .ssh directory for globalwars if it doesn't exist
+if [ ! -d "/home/globalwars/.ssh" ]; then
+    mkdir -p /home/globalwars/.ssh
+    chmod 700 /home/globalwars/.ssh
+    echo "Created .ssh directory for globalwars"
 fi
 
 # Copy SSH keys from root if they exist and haven't been copied yet
-if [ -f /root/.ssh/authorized_keys ] && [ ! -f /home/openfront/.ssh/authorized_keys ]; then
-    cp /root/.ssh/authorized_keys /home/openfront/.ssh/
-    chmod 600 /home/openfront/.ssh/authorized_keys
-    echo "SSH keys copied from root to openfront"
+if [ -f /root/.ssh/authorized_keys ] && [ ! -f /home/globalwars/.ssh/authorized_keys ]; then
+    cp /root/.ssh/authorized_keys /home/globalwars/.ssh/
+    chmod 600 /home/globalwars/.ssh/authorized_keys
+    echo "SSH keys copied from root to globalwars"
 fi
 
 # Configure UDP buffer sizes for Cloudflare Tunnel
@@ -78,13 +78,13 @@ else
     echo "UDP buffer sizes configured and applied"
 fi
 
-# Set proper ownership for openfront's home directory
-chown -R openfront:openfront /home/openfront
-echo "Set proper ownership for openfront's home directory"
+# Set proper ownership for globalwars's home directory
+chown -R globalwars:globalwars /home/globalwars
+echo "Set proper ownership for globalwars's home directory"
 
 # Create directory for OpenTelemetry configuration
 echo "📊 Setting up Node Exporter and OpenTelemetry Collector..."
-OTEL_CONFIG_DIR="/home/openfront/otel"
+OTEL_CONFIG_DIR="/home/globalwars/otel"
 
 if [ ! -d "$OTEL_CONFIG_DIR" ]; then
     mkdir -p "$OTEL_CONFIG_DIR"
@@ -104,7 +104,7 @@ receivers:
           relabel_configs:
             - source_labels: [__address__]
               regex: '.*'
-              target_label: openfront.host
+              target_label: globalwars.host
               replacement: "\${HOSTNAME}"
 
 processors:
@@ -131,7 +131,7 @@ EOF
 
 # Set ownership of all files
 chmod 600 "$OTEL_CONFIG_DIR/otel-collector-config.yaml"
-chown -R openfront:openfront "$OTEL_CONFIG_DIR"
+chown -R globalwars:globalwars "$OTEL_CONFIG_DIR"
 
 # Run Node Exporter
 echo "🚀 Starting Node Exporter..."
@@ -174,7 +174,7 @@ fi
 echo "====================================================="
 echo "🎉 SETUP COMPLETE!"
 echo "====================================================="
-echo "The openfront user has been set up and has Docker permissions."
+echo "The globalwars user has been set up and has Docker permissions."
 echo "UDP buffer sizes have been configured for optimal QUIC/WebSocket performance."
 echo "Node Exporter is collecting system metrics."
 echo "OpenTelemetry Collector is forwarding metrics to your endpoint."

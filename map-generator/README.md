@@ -1,6 +1,6 @@
 # MapGenerator
 
-This is a tool to generate map files for OpenFront.
+This is a tool to generate map files for GlobalWars.
 
 ## Installation
 
