@@ -2,25 +2,25 @@
   --theme: "light";
   --breakPoint-tablet: 800px;
   --breakPoint-Desktop: 1024px;
-  --blur-md: 12px;
-  --boxBackgroundColor: rgba(6, 10, 24, 0.82);
-  --fontColor: #0a1628;
+  --blur-md: 14px;
+  --boxBackgroundColor: rgba(7, 11, 23, 0.8);
+  --fontColor: #0b1224;
   --fontColorLight: #f8fafc;
-  --primaryColor: #a855f7;
-  --primaryColorHover: #c084fc;
+  --primaryColor: #38bdf8;
+  --primaryColorHover: #22d3ee;
   --primaryColorDisabled: linear-gradient(
     135deg,
-    rgba(168, 85, 247, 0.5),
-    rgba(192, 132, 252, 0.55)
+    rgba(56, 189, 248, 0.35),
+    rgba(129, 140, 248, 0.32)
   );
-  --secondaryColor: #ede9fe;
-  --secondaryColorHover: #ddd6fe;
+  --secondaryColor: #e2e8f0;
+  --secondaryColorHover: #dbeafe;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-  --primaryColorDark: #c084fc;
-  --primaryColorHoverDark: #a855f7;
-  --primaryColorDisabledDark: #0f0a1f;
-  --secondaryColorDark: #0b0f1f;
-  --secondaryColorHoverDark: #0a0c18;
+  --primaryColorDark: #22d3ee;
+  --primaryColorHoverDark: #38bdf8;
+  --primaryColorDisabledDark: #0f172a;
+  --secondaryColorDark: rgba(6, 10, 24, 0.92);
+  --secondaryColorHoverDark: rgba(11, 18, 36, 0.95);
   --fontColorDark: #e2e8f0;
 }
