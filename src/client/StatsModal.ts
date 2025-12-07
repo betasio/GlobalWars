@@ -210,7 +210,7 @@ export class StatsButton extends LitElement {
     }
 
     const buttonClass =
-      "w-14 h-14 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-700 text-slate-900 dark:text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-200 border border-white/20 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-cyan-200/80 focus:ring-offset-2 focus:ring-offset-slate-900";
+      "inline-flex items-center gap-2 px-4 py-2.5 min-w-[130px] justify-center rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-white font-semibold tracking-wide shadow-[0_10px_35px_rgba(59,130,246,0.35)] border border-white/25 hover:shadow-[0_16px_45px_rgba(99,102,241,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition duration-200 backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-cyan-200/80 focus:ring-offset-2 focus:ring-offset-slate-900 dark:focus:ring-offset-slate-950";
 
     return html`
       <button
@@ -219,7 +219,10 @@ export class StatsButton extends LitElement {
         title="${translateText("stats_modal.title")}"
         aria-label="${translateText("stats_modal.title")}"
       >
-        <img src="/icons/stats.svg" alt="Stats" class="w-6 h-6" />
+        <img src="/icons/stats.svg" alt="Stats" class="w-5 h-5 drop-shadow" />
+        <span class="text-sm md:text-base">
+          ${translateText("stats_modal.title")}
+        </span>
       </button>
       <stats-modal></stats-modal>
     `;
