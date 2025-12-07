@@ -3,16 +3,16 @@
 .l-header {
   position: relative;
   margin: 12px;
-  padding: clamp(18px, 5vw, 42px) clamp(16px, 5vw, 56px);
+  padding: clamp(14px, 4vw, 32px) clamp(14px, 4vw, 46px);
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 28px;
   overflow: hidden;
   isolation: isolate;
-  background: linear-gradient(140deg, rgba(12, 10, 24, 0.62), rgba(17, 15, 36, 0.54));
+  background: linear-gradient(140deg, rgba(12, 10, 24, 0.46), rgba(17, 15, 36, 0.4));
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  box-shadow: 0 18px 64px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .l-header::before {
