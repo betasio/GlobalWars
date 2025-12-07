@@ -6,16 +6,16 @@
   gap: 1rem;
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
-  background: linear-gradient(140deg, rgba(12, 10, 22, 0.58), rgba(10, 12, 26, 0.52)),
+  background: linear-gradient(140deg, rgba(12, 10, 22, 0.42), rgba(10, 12, 26, 0.36)),
     radial-gradient(circle at 12% 18%, rgba(168, 85, 247, 0.16), transparent 35%),
-    radial-gradient(circle at 90% 10%, rgba(99, 102, 241, 0.14), transparent 30%);
+    radial-gradient(circle at 90% 10%, rgba(99, 102, 241, 0.12), transparent 30%);
   border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 14px 48px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(18px) saturate(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px) saturate(1.08);
   position: relative;
   isolation: isolate;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .container::before {
