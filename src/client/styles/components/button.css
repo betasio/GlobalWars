@@ -1,19 +1,15 @@
 .c-button {
-  background: linear-gradient(120deg, #a855f7, #6366f1);
+  background: var(--primaryColor);
   color: #fff;
   cursor: pointer;
   outline: none;
   display: inline-block;
   font-size: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid transparent;
   text-align: center;
-  padding: 0.9rem 1rem;
-  border-radius: 14px;
-  letter-spacing: 0.04em;
-  font-weight: 800;
-  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
-  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  text-transform: uppercase;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  transition: var(--transition);
 
   @media (min-width: 1024px) {
     font-size: 18px;
@@ -23,29 +19,26 @@
 .c-button:hover,
 .c-button:active,
 .c-button:focus {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 40px rgba(99, 102, 241, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-  filter: brightness(1.04);
+  background: var(--primaryColorHover);
+  transition: var(--transition);
 }
 
 .c-button:disabled {
   background: var(--primaryColorDisabled);
   opacity: 0.7;
   cursor: not-allowed;
-  filter: grayscale(0.1);
+  transition: var(--transition);
 }
 
 .c-button--secondary {
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.06));
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  background: var(--secondaryColor);
+  color: var(--fontColor);
 }
 
 .c-button--secondary:hover,
 .c-button--secondary:active,
 .c-button--secondary:focus {
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
+  background: var(--secondaryColorHover);
 }
 
 .c-button--block {
@@ -64,15 +57,14 @@
 }
 
 .dark .c-button {
-  background: linear-gradient(120deg, #c084fc, #8b5cf6);
-  color: #0b1020;
-  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  background: var(--primaryColorDark);
+  color: var(--fontColorLight);
 }
 
 .dark .c-button:hover,
 .dark .c-button:active,
 .dark .c-button:focus {
-  background: linear-gradient(120deg, #d8b4fe, #a855f7);
+  background: var(--primaryColorHoverDark);
 }
 
 .dark .c-button:disabled {
@@ -81,13 +73,12 @@
 }
 
 .dark .c-button--secondary {
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.08));
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--secondaryColorDark);
+  color: var(--fontColorDark);
 }
 
 .dark .c-button--secondary:hover,
 .dark .c-button--secondary:active,
 .dark .c-button--secondary:focus {
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.12));
+  background: var(--secondaryColorHoverDark);
 }
