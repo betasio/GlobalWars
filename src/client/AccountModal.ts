@@ -389,11 +389,15 @@ export class AccountButton extends LitElement {
       buttonTitle = translateText("account_modal.logged_in_with_discord");
     }
 
+    const buttonClass =
+      "w-14 h-14 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-700 text-slate-900 dark:text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-200 border border-white/20 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-cyan-200/80 focus:ring-offset-2 focus:ring-offset-slate-900";
+
     return html`
       <button
         @click="${this.open}"
-        class="ui-controls__button"
+        class="${buttonClass}"
         title="${buttonTitle}"
+        aria-label="${buttonTitle || translateText("account_modal.title")}"
       >
         ${this.renderIcon()}
       </button>
@@ -406,19 +410,19 @@ export class AccountButton extends LitElement {
       return html`<img
         src="/images/DiscordLogo.svg"
         alt="Discord"
-        class="ui-controls__icon"
+        class="w-6 h-6"
       />`;
     } else if (this.loggedInEmail) {
       return html`<img
         src="/images/EmailIcon.svg"
         alt="Email"
-        class="ui-controls__icon"
+        class="w-6 h-6"
       />`;
     }
     return html`<img
       src="/images/LoggedOutIcon.svg"
       alt="Logged Out"
-      class="ui-controls__icon"
+      class="w-6 h-6"
     />`;
   }
 
