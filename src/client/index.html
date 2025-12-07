@@ -56,28 +56,29 @@
 
       .bg-image {
         content: "";
-        background-image: radial-gradient(
+        background-image: url("../../resources/images/EuropeBackgroundBlurred.webp"),
+          radial-gradient(
             circle at 8% 18%,
             rgba(168, 85, 247, 0.12),
-            transparent 26%
+            transparent 34%
           ),
           radial-gradient(
             circle at 82% 12%,
-            rgba(99, 102, 241, 0.2),
-            transparent 30%
+            rgba(99, 102, 241, 0.14),
+            transparent 40%
           ),
-          linear-gradient(120deg, #050712 0%, #0a0820 36%, #0c102e 100%),
-          url("../../resources/images/EuropeBackgroundBlurred.webp");
+          linear-gradient(120deg, rgba(5, 7, 18, 0.72), rgba(10, 8, 32, 0.82));
         background-position: center;
         background-attachment: fixed;
         background-size: cover;
+        background-blend-mode: normal, screen, screen, multiply;
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
         z-index: -1;
-        filter: saturate(1.12) contrast(1.05) brightness(0.95) blur(1.4px);
+        filter: saturate(1.08) contrast(1.02) brightness(0.92) blur(1.2px);
         overflow: hidden;
       }
 
@@ -131,7 +132,7 @@
       }
 
       .dark .bg-image {
-        filter: brightness(0.48) saturate(0.72) contrast(1.2) blur(1.4px);
+        filter: brightness(0.72) saturate(0.94) contrast(1.12) blur(1.2px);
       }
 
       /* display:none if child has class parent-hidden since we can't use shadow DOM in Lit due to Tailwind */
