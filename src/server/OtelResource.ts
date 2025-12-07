@@ -9,7 +9,7 @@ const config = getServerConfigFromServer();
 
 export function getOtelResource() {
   return resourceFromAttributes({
-    [ATTR_SERVICE_NAME]: "openfront",
+    [ATTR_SERVICE_NAME]: "globalwars",
     [ATTR_SERVICE_VERSION]: "1.0.0",
     ...getPromLabels(),
   });
@@ -18,11 +18,11 @@ export function getOtelResource() {
 export function getPromLabels() {
   return {
     "service.instance.id": process.env.HOSTNAME,
-    "openfront.environment": config.env(),
-    "openfront.host": process.env.HOST,
-    "openfront.domain": process.env.DOMAIN,
-    "openfront.subdomain": process.env.SUBDOMAIN,
-    "openfront.component": process.env.WORKER_ID
+    "globalwars.environment": config.env(),
+    "globalwars.host": process.env.HOST,
+    "globalwars.domain": process.env.DOMAIN,
+    "globalwars.subdomain": process.env.SUBDOMAIN,
+    "globalwars.component": process.env.WORKER_ID
       ? "Worker " + process.env.WORKER_ID
       : "Master",
   };

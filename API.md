@@ -14,7 +14,7 @@ Get game IDs and basic metadata for games that started within a specified time r
 **Endpoint:**
 
 ```
-GET https://api.openfront.io/public/games
+GET https://api.globalwars.io/public/games
 ```
 
 **Query Parameters:**
@@ -28,7 +28,7 @@ GET https://api.openfront.io/public/games
 **Example Request:**
 
 ```bash
-curl "https://api.openfront.io/public/games?start=2025-10-25T00:00:00Z&end=2025-10-26T23:59:59Z&type=Singleplayer&limit=10&offset=5"
+curl "https://api.globalwars.io/public/games?start=2025-10-25T00:00:00Z&end=2025-10-26T23:59:59Z&type=Singleplayer&limit=10&offset=5"
 ```
 
 **Response:**
@@ -57,7 +57,7 @@ Retrieve detailed information about a specific game.
 **Endpoint:**
 
 ```
-GET https://api.openfront.io/public/game/:gameId
+GET https://api.globalwars.io/public/game/:gameId
 ```
 
 **Query Parameters:**
@@ -68,10 +68,10 @@ GET https://api.openfront.io/public/game/:gameId
 
 ```bash
 # Full game data
-curl "https://api.openfront.io/public/game/ABSgwin6"
+curl "https://api.globalwars.io/public/game/ABSgwin6"
 
 # Without turn data
-curl "https://api.openfront.io/public/game/ABSgwin6?turns=false"
+curl "https://api.globalwars.io/public/game/ABSgwin6?turns=false"
 ```
 
 **Note:** Public player IDs are stripped from game records for privacy.
@@ -85,13 +85,13 @@ Retrieve information and stats for a specific player.
 **Endpoint:**
 
 ```
-GET https://api.openfront.io/public/player/:playerId
+GET https://api.globalwars.io/public/player/:playerId
 ```
 
 **Example:**
 
 ```bash
-curl "https://api.openfront.io/public/player/HabCsQYR"
+curl "https://api.globalwars.io/public/player/HabCsQYR"
 ```
 
 ### Get Player Sessions
@@ -101,13 +101,13 @@ Retrieve a list of games & client ids (session ids) for a specific player.
 **Endpoint:**
 
 ```
-GET https://api.openfront.io/public/player/:playerId/sessions
+GET https://api.globalwars.io/public/player/:playerId/sessions
 ```
 
 **Example:**
 
 ```bash
-curl "https://api.openfront.io/public/player/HabCsQYR/sessions"
+curl "https://api.globalwars.io/public/player/HabCsQYR/sessions"
 ```
 
 ## Clans
@@ -119,7 +119,7 @@ Shows the top 100 clans by `weighted wins`.
 **Endpoint:**
 
 ```
-GET https://api.openfront.io/public/clans/leaderboard
+GET https://api.globalwars.io/public/clans/leaderboard
 ```
 
 Weighted wins have a half-life of 30 days to favor recent wins.
@@ -170,7 +170,7 @@ Key metrics include:
 **Endpoint**
 
 ```
-GET https://openfront.io/public/clan/:clanTag
+GET https://globalwars.io/public/clan/:clanTag
 ```
 
 **Query Parameters:**
@@ -181,7 +181,7 @@ GET https://openfront.io/public/clan/:clanTag
 **Example**
 
 ```bash
-curl https://api.openfront.io/public/clan/UN?start=2025-11-15T00:00:00Z &
+curl https://api.globalwars.io/public/clan/UN?start=2025-11-15T00:00:00Z &
 end=2025-11-18T23:59:59Z
 ```
 
@@ -192,7 +192,7 @@ A clan session is created any time a player with that clan tag is in a public te
 **Endpoint**
 
 ```
-GET https://api.openfront.io/public/clan/:clanTag/sessions
+GET https://api.globalwars.io/public/clan/:clanTag/sessions
 ```
 
 **Query Parameters:**
@@ -203,6 +203,6 @@ GET https://api.openfront.io/public/clan/:clanTag/sessions
 **Example**
 
 ```bash
-curl https://api.openfront.io/public/clan/UN/sessions?start=2025-11-15T00:00:00Z &
+curl https://api.globalwars.io/public/clan/UN/sessions?start=2025-11-15T00:00:00Z &
 end=2025-11-18T23:59:59Z
 ```
