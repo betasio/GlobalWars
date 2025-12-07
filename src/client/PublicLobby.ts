@@ -117,6 +117,10 @@ export class PublicLobby extends LitElement {
     // Format time to show minutes and seconds
     const timeDisplay = renderDuration(timeRemaining);
 
+    const maxPlayers = lobby.gameConfig.maxPlayers ?? 0;
+    const playerCount = lobby.numClients ?? 0;
+    const openSlots = Math.max(0, maxPlayers - playerCount);
+
     const teamCount =
       lobby.gameConfig.gameMode === GameMode.Team
         ? (lobby.gameConfig.playerTeams ?? 0)
@@ -188,7 +192,7 @@ export class PublicLobby extends LitElement {
               class="flex flex-col items-end text-right text-sm font-medium text-slate-100"
             >
               <span class="text-lg font-semibold leading-tight"
-                >${lobby.numClients} / ${lobby.gameConfig.maxPlayers}</span
+                >${playerCount} / ${maxPlayers}</span
               >
               <span class="text-xs text-slate-200/80"
                 >${translateText("host_modal.players")}</span
@@ -223,7 +227,7 @@ export class PublicLobby extends LitElement {
               <span
                 class="rounded-lg bg-white/12 px-3 py-2 shadow-inner shadow-white/10 backdrop-blur"
               >
-                ${lobby.gameConfig.maxPlayers - lobby.numClients} open slots
+                ${openSlots} open slots
               </span>
             </div>
           </div>
