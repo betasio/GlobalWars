@@ -67,11 +67,11 @@
             rgba(99, 102, 241, 0.14),
             transparent 40%
           ),
-          linear-gradient(120deg, rgba(5, 7, 18, 0.72), rgba(10, 8, 32, 0.82));
+          linear-gradient(120deg, rgba(5, 7, 18, 0.48), rgba(10, 8, 32, 0.54));
         background-position: center;
         background-attachment: fixed;
         background-size: cover;
-        background-blend-mode: normal, screen, screen, multiply;
+        background-blend-mode: overlay, screen, screen, luminosity;
         position: fixed;
         top: 0;
         left: 0;
@@ -211,67 +211,93 @@
 
     <!-- Main container with responsive padding -->
     <main class="flex justify-center flex-grow">
-      <div class="container pt-12">
-        <token-login class="w-[20%] md:w-[15%]"></token-login>
+      <div class="container pt-12 game-shell">
+        <div class="game-shell__halo"></div>
 
-        <div class="container__row">
-          <flag-input class="w-[20%] md:w-[20%]"></flag-input>
-          <territory-patterns-modal class="w-[20%] md:w-[15%]">
-            <button
-              id="territory-patterns-input-preview-button"
-              class="w-full border p-[4px] rounded-lg flex cursor-pointer border-black/30 dark:border-gray-300/60 bg-white/70 dark:bg-[rgba(55,65,81,0.7)] justify-center"
-              title="Pick a pattern!"
-            ></button>
-          </territory-patterns-modal>
-          <username-input class="relative w-full"></username-input>
-          <news-button class="w-[20%] component-hideable"></news-button>
-        </div>
-        <div></div>
-        <div>
-          <public-lobby class="block"></public-lobby>
-        </div>
-        <div>
-          <matchmaking-button class="w-[20%] md:w-[15%]"></matchmaking-button>
-        </div>
-        <div class="container__row container__row--equal">
-          <o-button
-            id="host-lobby-button"
-            title="Create Lobby"
-            translationKey="main.create_lobby"
-            block
-            secondary
-          ></o-button>
-          <o-button
-            id="join-private-lobby-button"
-            title="Join Lobby"
-            translationKey="main.join_lobby"
-            block
-            secondary
-          ></o-button>
-          <!-- <o-button
-            id="chat-button"
-            title="Chat Test"
-            block
-            secondary
-          ></o-button> -->
+        <div class="game-shell__intro">
+          <p class="game-shell__eyebrow">Battle ready in seconds</p>
+          <h2 class="game-shell__title">Command Center</h2>
+          <p class="game-shell__subtitle">
+            Shape your empire, customize your identity, and dive straight into the
+            global arena with streamlined controls.
+          </p>
+          <div class="game-shell__tags">
+            <span class="game-shell__tag">Live strategy</span>
+            <span class="game-shell__tag">Global community</span>
+            <span class="game-shell__tag">Instant matchmaking</span>
+          </div>
         </div>
 
-        <o-button
-          id="single-player"
-          title="Single Player"
-          translationKey="main.single_player"
-          block
-        ></o-button>
+        <div class="panel panel--frost">
+          <div class="panel__row panel__row--split">
+            <div class="panel__chip">
+              <token-login></token-login>
+            </div>
+            <div class="panel__chip component-hideable">
+              <news-button></news-button>
+            </div>
+          </div>
 
-        <o-button
-          id="help-button"
-          title="Instructions"
-          translationKey="main.instructions"
-          block
-          secondary
-        ></o-button>
-        <div class="container__row">
-          <lang-selector class="w-full"></lang-selector>
+          <div class="panel__grid">
+            <flag-input class="panel__item"></flag-input>
+            <territory-patterns-modal class="panel__item">
+              <button
+                id="territory-patterns-input-preview-button"
+                class="pattern-button"
+                title="Pick a pattern!"
+              ></button>
+            </territory-patterns-modal>
+            <username-input class="panel__item panel__item--wide"></username-input>
+          </div>
+        </div>
+
+        <div class="panel panel--accent">
+          <div class="panel__header">
+            <div>
+              <p class="panel__eyebrow">Public lobbies</p>
+              <h3 class="panel__title">Choose your next battlefield</h3>
+              <p class="panel__subtitle">
+                Browse active arenas or jump in with a single tap.
+              </p>
+            </div>
+            <matchmaking-button class="panel__cta"></matchmaking-button>
+          </div>
+          <public-lobby class="panel__body"></public-lobby>
+        </div>
+
+        <div class="panel panel--actions">
+          <div class="action-grid">
+            <o-button
+              id="host-lobby-button"
+              title="Create Lobby"
+              translationKey="main.create_lobby"
+              block
+              secondary
+            ></o-button>
+            <o-button
+              id="join-private-lobby-button"
+              title="Join Lobby"
+              translationKey="main.join_lobby"
+              block
+              secondary
+            ></o-button>
+            <o-button
+              id="single-player"
+              title="Single Player"
+              translationKey="main.single_player"
+              block
+            ></o-button>
+          </div>
+          <div class="action-grid action-grid--secondary">
+            <o-button
+              id="help-button"
+              title="Instructions"
+              translationKey="main.instructions"
+              block
+              secondary
+            ></o-button>
+            <lang-selector class="panel__language"></lang-selector>
+          </div>
         </div>
       </div>
     </main>
