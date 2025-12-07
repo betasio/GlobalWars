@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
     />
-    <title>GlobalWars</title>
+    <title>GlobalWars (ALPHA)</title>
     <link rel="manifest" href="../../resources/manifest.json" />
     <link
       rel="icon"
@@ -18,7 +18,7 @@
     <link rel="canonical" href="https://globalwars.co.uk/" />
     <meta
       name="description"
-      content="Conquer the world in this multiplayer battle royale! Expand your nation, eliminate opponents, and dominate the map in this fast-paced game."
+      content="Conquer the world in this multiplayer battle royale! Expand your nation, eliminate opponents, and dominate the map in this fast-paced IO game."
     />
 
     <!-- Open Graph -->
@@ -26,13 +26,20 @@
     <meta property="og:title" content="GlobalWars - Battle Royale" />
     <meta
       property="og:description"
-      content="Conquer the world in this multiplayer battle royale! Expand your nation, eliminate opponents, and dominate the map in this fast-paced game."
+      content="Conquer the world in this multiplayer battle royale! Expand your nation, eliminate opponents, and dominate the map in this fast-paced IO game."
     />
     <meta
       property="og:image"
       content="https://globalwars.co.uk/images/GameplayScreenshot.png"
     />
     <meta property="og:type" content="game" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Critical CSS to prevent FOUC -->
     <style>
@@ -56,83 +63,58 @@
 
       .bg-image {
         content: "";
-        background-image: url("../../resources/images/EuropeBackgroundBlurred.webp"),
-          radial-gradient(
-            circle at 8% 18%,
-            rgba(168, 85, 247, 0.12),
-            transparent 34%
+        background-image:
+          linear-gradient(
+            135deg,
+            rgba(14, 165, 233, 0.35),
+            rgba(99, 102, 241, 0.25)
           ),
           radial-gradient(
-            circle at 82% 12%,
-            rgba(99, 102, 241, 0.14),
-            transparent 40%
+            circle at 15% 25%,
+            rgba(94, 234, 212, 0.22),
+            transparent 32%
           ),
-          linear-gradient(120deg, rgba(5, 7, 18, 0.72), rgba(10, 8, 32, 0.82));
+          radial-gradient(
+            circle at 85% 12%,
+            rgba(129, 140, 248, 0.22),
+            transparent 30%
+          ),
+          url("/images/TerrainMapFrontPage.png");
         background-position: center;
         background-attachment: fixed;
         background-size: cover;
-        background-blend-mode: normal, screen, screen, multiply;
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
         z-index: -1;
-        filter: saturate(1.08) contrast(1.02) brightness(0.92) blur(1.2px);
-        overflow: hidden;
+        filter: blur(8px) saturate(1.1) brightness(0.9);
       }
 
       .bg-image::before {
         content: "";
         position: absolute;
-        inset: 0;
-        background: repeating-linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.03) 0,
-            rgba(255, 255, 255, 0.03) 1px,
-            transparent 1px,
-            transparent 120px
+        width: 100%;
+        height: 100vh;
+        background:
+          linear-gradient(115deg, rgba(15, 23, 42, 0.35), rgba(8, 47, 73, 0.4)),
+          radial-gradient(
+            circle at 28% 18%,
+            rgba(14, 165, 233, 0.28),
+            transparent 28%
           ),
-          repeating-linear-gradient(
-            0deg,
-            rgba(255, 255, 255, 0.03) 0,
-            rgba(255, 255, 255, 0.03) 1px,
-            transparent 1px,
-            transparent 120px
+          radial-gradient(
+            circle at 76% 8%,
+            rgba(99, 102, 241, 0.24),
+            transparent 26%
           );
-        mix-blend-mode: overlay;
-        opacity: 0.8;
-        filter: blur(0.3px);
-      }
-
-      .bg-image::after {
-        content: "";
-        position: absolute;
-        inset: -40% -20%;
-        background: radial-gradient(
-          circle at 30% 30%,
-          rgba(168, 85, 247, 0.3),
-          transparent 40%
-        );
         mix-blend-mode: screen;
-        opacity: 0.7;
-        animation: aurora 16s ease-in-out infinite;
-      }
-
-      @keyframes aurora {
-        0% {
-          transform: translate3d(0, 0, 0) scale(1);
-        }
-        50% {
-          transform: translate3d(-6%, 4%, 0) scale(1.08);
-        }
-        100% {
-          transform: translate3d(4%, -4%, 0) scale(1);
-        }
+        opacity: 0.9;
       }
 
       .dark .bg-image {
-        filter: brightness(0.72) saturate(0.94) contrast(1.12) blur(1.2px);
+        filter: brightness(0.45) saturate(0.65) contrast(1.15);
       }
 
       /* display:none if child has class parent-hidden since we can't use shadow DOM in Lit due to Tailwind */
@@ -155,7 +137,7 @@
     <script>
       window.googletag = window.googletag || { cmd: [] };
       googletag.cmd.push(function () {
-        googletag.pubads().set("page_url", "http://globalwars.io ");
+        googletag.pubads().set("page_url", "https://globalwars.co.uk");
       });
     </script>
 
@@ -193,19 +175,15 @@
   <body
     class="h-full select-none font-sans min-h-screen bg-opacity-0 bg-cover bg-center bg-fixed transition-opacity duration-300 ease-in-out flex flex-col"
   >
-    <div class="bg-image"></div>
     <header class="l-header">
-      <div class="ui-controls ui-controls--left">
-        <dark-mode-button></dark-mode-button>
+      <div class="l-header__content">
+        <div class="l-header__wordmark" aria-label="GlobalWars">
+          <span class="l-header__wordmark--glow">Global</span>
+          <span class="l-header__wordmark--accent">Wars</span>
+        </div>
       </div>
-      <div class="ui-controls ui-controls--right">
-        <account-button></account-button>
-        <stats-button></stats-button>
-      </div>
-      <div class="l-header__halo"></div>
-      <div class="l-header__title l-header__title--gradient">GlobalWars</div>
     </header>
-    <div id="game-version" class="l-versionPill text-center">Loading version...</div>
+    <div class="bg-image"></div>
 
     <gutter-ads></gutter-ads>
 
@@ -280,12 +258,13 @@
     <button
       id="settings-button"
       title="Settings"
-      class="floating-settings"
+      class="fixed bottom-4 right-4 z-50 rounded-full p-2 shadow-lg transition-colors duration-300 flex items-center justify-center"
+      style="width: 80px; height: 80px; background-color: #0075ff"
     >
       <img
         src="../../resources/images/SettingIconWhite.svg"
         alt="Settings"
-        class="floating-settings__icon"
+        style="width: 72px; height: 72px"
       />
     </button>
 
@@ -391,6 +370,12 @@
         </div>
       </div>
     </footer>
+    <div
+      class="fixed top-4 right-4 z-[9998] flex items-center gap-3 flex-wrap justify-end"
+    >
+      <stats-button></stats-button>
+      <account-button></account-button>
+    </div>
     <!-- Game modals and overlays -->
     <single-player-modal></single-player-modal>
     <host-lobby-modal></host-lobby-modal>
@@ -409,6 +394,7 @@
     <player-panel></player-panel>
     <spawn-timer></spawn-timer>
     <help-modal></help-modal>
+    <dark-mode-button></dark-mode-button>
     <alert-frame></alert-frame>
     <chat-modal></chat-modal>
     <user-setting></user-setting>

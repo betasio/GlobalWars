@@ -110,11 +110,10 @@ class Client {
   initialize(): void {
     const gameVersion = document.getElementById(
       "game-version",
-    ) as HTMLDivElement;
-    if (!gameVersion) {
-      console.warn("Game version element not found");
+    ) as HTMLDivElement | null;
+    if (gameVersion) {
+      gameVersion.innerText = version;
     }
-    gameVersion.innerText = version;
 
     const langSelector = document.querySelector(
       "lang-selector",
