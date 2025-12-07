@@ -15,7 +15,7 @@
   backdrop-filter: blur(20px) saturate(1.14);
   position: relative;
   isolation: isolate;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .container::before {
