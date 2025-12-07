@@ -209,16 +209,18 @@ export class StatsButton extends LitElement {
       return html``;
     }
 
+    const buttonClass =
+      "w-14 h-14 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-700 text-slate-900 dark:text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-200 border border-white/20 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-cyan-200/80 focus:ring-offset-2 focus:ring-offset-slate-900";
+
     return html`
-      <div class="fixed top-20 right-4 z-[9998]">
-        <button
-          @click="${this.open}"
-          class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-200 flex items-center justify-center text-xl focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-offset-4"
-          title="${translateText("stats_modal.title")}"
-        >
-          <img src="/icons/stats.svg" alt="Stats" class="w-6 h-6" />
-        </button>
-      </div>
+      <button
+        @click="${this.open}"
+        class="${buttonClass}"
+        title="${translateText("stats_modal.title")}"
+        aria-label="${translateText("stats_modal.title")}"
+      >
+        <img src="/icons/stats.svg" alt="Stats" class="w-6 h-6" />
+      </button>
       <stats-modal></stats-modal>
     `;
   }
