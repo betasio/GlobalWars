@@ -6,31 +6,11 @@
   gap: 1rem;
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
-  background: linear-gradient(140deg, rgba(12, 10, 22, 0.58), rgba(10, 12, 26, 0.52)),
-    radial-gradient(circle at 12% 18%, rgba(168, 85, 247, 0.16), transparent 35%),
-    radial-gradient(circle at 90% 10%, rgba(99, 102, 241, 0.14), transparent 30%);
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 14px 48px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(18px) saturate(1.1);
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-}
-
-.container::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
+  background: linear-gradient(145deg, rgba(17, 24, 39, 0.65), rgba(15, 23, 42, 0.58));
   border-radius: 28px;
-  background: linear-gradient(120deg, rgba(168, 85, 247, 0.18), rgba(96, 165, 250, 0.14));
-  filter: blur(24px);
-  z-index: 0;
-}
-
-.container > * {
-  position: relative;
-  z-index: 1;
+  border: 1px solid rgba(226, 232, 240, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(var(--blur-md));
 }
 
 .container__row {
