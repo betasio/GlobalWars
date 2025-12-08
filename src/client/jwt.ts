@@ -34,7 +34,7 @@ export function getApiBase() {
     return localStorage.getItem("apiHost") ?? "http://localhost:8787";
   }
 
-  return `https://api.${domainname}`;
+  return `${window.location.origin}/api`;
 }
 
 function getToken(): string | null {
