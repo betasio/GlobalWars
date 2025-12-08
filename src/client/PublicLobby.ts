@@ -120,6 +120,10 @@ export class PublicLobby extends LitElement {
     const maxPlayers = lobby.gameConfig.maxPlayers ?? 0;
     const playerCount = lobby.numClients ?? 0;
 
+    const maxPlayers = lobby.gameConfig.maxPlayers ?? 0;
+    const playerCount = lobby.numClients ?? 0;
+    const openSlots = Math.max(0, maxPlayers - playerCount);
+
     const teamCount =
       lobby.gameConfig.gameMode === GameMode.Team
         ? (lobby.gameConfig.playerTeams ?? 0)
