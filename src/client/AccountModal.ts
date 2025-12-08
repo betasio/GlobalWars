@@ -389,13 +389,20 @@ export class AccountButton extends LitElement {
       buttonTitle = translateText("account_modal.logged_in_with_discord");
     }
 
+    const buttonClass =
+      "inline-flex items-center gap-2 px-4 py-2.5 min-w-[130px] justify-center rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-white font-semibold tracking-wide shadow-[0_10px_35px_rgba(59,130,246,0.35)] border border-white/25 hover:shadow-[0_16px_45px_rgba(99,102,241,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition duration-200 backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-cyan-200/80 focus:ring-offset-2 focus:ring-offset-slate-900 dark:focus:ring-offset-slate-950";
+
     return html`
       <button
         @click="${this.open}"
-        class="ui-controls__button"
+        class="${buttonClass}"
         title="${buttonTitle}"
+        aria-label="${buttonTitle || translateText("account_modal.title")}"
       >
         ${this.renderIcon()}
+        <span class="text-sm md:text-base">
+          ${translateText("account_modal.title") || "Account"}
+        </span>
       </button>
       <account-modal></account-modal>
     `;
@@ -406,19 +413,19 @@ export class AccountButton extends LitElement {
       return html`<img
         src="/images/DiscordLogo.svg"
         alt="Discord"
-        class="ui-controls__icon"
+        class="w-6 h-6"
       />`;
     } else if (this.loggedInEmail) {
       return html`<img
         src="/images/EmailIcon.svg"
         alt="Email"
-        class="ui-controls__icon"
+        class="w-6 h-6"
       />`;
     }
     return html`<img
       src="/images/LoggedOutIcon.svg"
       alt="Logged Out"
-      class="ui-controls__icon"
+      class="w-6 h-6"
     />`;
   }
 
