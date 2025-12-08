@@ -13,8 +13,14 @@ import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 
 function getAudience() {
   const { hostname } = new URL(window.location.href);
-  const domainname = hostname.split(".").slice(-2).join(".");
-  return domainname;
+  const parts = hostname.split(".");
+
+  // Handle multi-part public suffixes such as co.uk so we keep the branded domain.
+  if (parts.length >= 3 && parts.slice(-2).join(".") === "co.uk") {
+    return parts.slice(-3).join(".");
+  }
+
+  return parts.slice(-2).join(".");
 }
 
 export function getApiBase() {
