@@ -1,6 +1,6 @@
 import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { renderDuration, translateText } from "../client/Utils";
+import { translateText } from "../client/Utils";
 import { GameMapType, GameMode, HumansVsNations } from "../core/game/Game";
 import { GameID, GameInfo } from "../core/Schemas";
 import { generateID } from "../core/Util";
@@ -114,8 +114,11 @@ export class PublicLobby extends LitElement {
     const start = this.lobbyIDToStart.get(lobby.gameID) ?? 0;
     const timeRemaining = Math.max(0, Math.floor((start - Date.now()) / 1000));
 
-    // Format time to show minutes and seconds
-    const timeDisplay = renderDuration(timeRemaining);
+    // Display a simple seconds countdown
+    const timeDisplay = `${timeRemaining}s`;
+
+    const maxPlayers = lobby.gameConfig.maxPlayers ?? 0;
+    const playerCount = lobby.numClients ?? 0;
 
     const maxPlayers = lobby.gameConfig.maxPlayers ?? 0;
     const playerCount = lobby.numClients ?? 0;
@@ -219,15 +222,17 @@ export class PublicLobby extends LitElement {
               class="flex items-center justify-end gap-3 text-right text-sm font-semibold text-slate-100"
             >
               <span
-                class="rounded-lg bg-white/12 px-3 py-2 shadow-inner shadow-white/10 backdrop-blur"
+                class="flex items-center gap-2 rounded-lg bg-white/12 px-3 py-2 shadow-inner shadow-white/10 backdrop-blur"
+                title="${translateText("matchmaking_modal.waiting_for_game")}"
               >
-                ${translateText("matchmaking_modal.waiting_for_game")}:
-                ${timeDisplay}
-              </span>
-              <span
-                class="rounded-lg bg-white/12 px-3 py-2 shadow-inner shadow-white/10 backdrop-blur"
-              >
-                ${openSlots} open slots
+                <span aria-hidden="true" class="text-base">⏱</span>
+                <span
+                  aria-label="${translateText(
+                    "matchmaking_modal.waiting_for_game",
+                  )}"
+                >
+                  ${timeDisplay}
+                </span>
               </span>
             </div>
           </div>
