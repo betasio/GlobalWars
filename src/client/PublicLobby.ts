@@ -1,6 +1,6 @@
 import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { renderDuration, translateText } from "../client/Utils";
+import { translateText } from "../client/Utils";
 import { GameMapType, GameMode, HumansVsNations } from "../core/game/Game";
 import { GameID, GameInfo } from "../core/Schemas";
 import { generateID } from "../core/Util";
@@ -114,8 +114,11 @@ export class PublicLobby extends LitElement {
     const start = this.lobbyIDToStart.get(lobby.gameID) ?? 0;
     const timeRemaining = Math.max(0, Math.floor((start - Date.now()) / 1000));
 
-    // Format time to show minutes and seconds
-    const timeDisplay = renderDuration(timeRemaining);
+    // Display a simple seconds countdown
+    const timeDisplay = `${timeRemaining}s`;
+
+    const maxPlayers = lobby.gameConfig.maxPlayers ?? 0;
+    const playerCount = lobby.numClients ?? 0;
 
     const teamCount =
       lobby.gameConfig.gameMode === GameMode.Team
@@ -128,10 +131,10 @@ export class PublicLobby extends LitElement {
       <button
         @click=${() => this.lobbyClicked(lobby)}
         ?disabled=${this.isButtonDebounced}
-        class="isolate grid h-40 grid-cols-[100%] grid-rows-[100%] place-content-stretch w-full overflow-hidden ${this
+        class="relative isolate w-full overflow-hidden rounded-2xl border ${this
           .isLobbyHighlighted
-          ? "bg-gradient-to-r from-green-600 to-green-500"
-          : "bg-gradient-to-r from-blue-600 to-blue-500"} text-white font-medium rounded-xl transition-opacity duration-200 hover:opacity-90 ${this
+          ? "border-green-400/70"
+          : "border-cyan-300/60"} bg-slate-900/70 backdrop-blur-xl text-white shadow-xl transition duration-200 hover:scale-[1.01] min-h-[14rem] md:min-h-[16rem] ${this
           .isButtonDebounced
           ? "opacity-70 cursor-not-allowed"
           : ""}"
@@ -140,24 +143,30 @@ export class PublicLobby extends LitElement {
           ? html`<img
               src="${mapImageSrc}"
               alt="${lobby.gameConfig.gameMap}"
-              class="place-self-start col-span-full row-span-full h-full -z-10"
-              style="mask-image: linear-gradient(to left, transparent, #fff)"
+              class="absolute inset-0 h-full w-full object-cover"
             />`
           : html`<div
-              class="place-self-start col-span-full row-span-full h-full -z-10 bg-gray-300"
+              class="absolute inset-0 h-full w-full bg-gray-300"
             ></div>`}
         <div
-          class="flex flex-col justify-between h-full col-span-full row-span-full p-4 md:p-6 text-right z-0"
+          class="absolute inset-0 bg-gradient-to-r from-slate-900/85 via-slate-900/65 to-slate-900/35"
+        ></div>
+
+        <div
+          class="relative z-10 flex h-full flex-col justify-between gap-6 p-5 md:p-7"
         >
-          <div>
-            <div class="text-lg md:text-2xl font-semibold">
-              ${translateText("public_lobby.join")}
-            </div>
-            <div class="text-md font-medium text-blue-100">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2">
               <span
-                class="text-sm ${this.isLobbyHighlighted
-                  ? "text-green-600"
-                  : "text-blue-600"} bg-white rounded-sm px-1"
+                class="rounded-full bg-white/15 px-3 py-1 text-xs uppercase tracking-[0.08em]"
+              >
+                ${translateText("public_lobby.join")}
+              </span>
+              <span
+                class="rounded-full px-3 py-1 text-xs font-semibold ${this
+                  .isLobbyHighlighted
+                  ? "bg-green-400/20 text-green-100"
+                  : "bg-cyan-300/20 text-cyan-100"}"
               >
                 ${lobby.gameConfig.gameMode === GameMode.Team
                   ? typeof teamCount === "string"
@@ -167,21 +176,61 @@ export class PublicLobby extends LitElement {
                     : translateText("public_lobby.teams", {
                         num: teamCount ?? 0,
                       })
-                  : translateText("game_mode.ffa")}</span
-              >
+                  : translateText("game_mode.ffa")}
+              </span>
               <span
-                >${translateText(
+                class="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold"
+              >
+                ${translateText(
                   `map.${lobby.gameConfig.gameMap.toLowerCase().replace(/\s+/g, "")}`,
-                )}</span
+                )}
+              </span>
+            </div>
+
+            <div
+              class="flex flex-col items-end text-right text-sm font-medium text-slate-100"
+            >
+              <span class="text-lg font-semibold leading-tight"
+                >${playerCount} / ${maxPlayers}</span
+              >
+              <span class="text-xs text-slate-200/80"
+                >${translateText("host_modal.players")}</span
               >
             </div>
           </div>
 
-          <div>
-            <div class="text-md font-medium text-blue-100">
-              ${lobby.numClients} / ${lobby.gameConfig.maxPlayers}
+          <div
+            class="grid grid-cols-1 gap-4 md:grid-cols-[1.2fr,1fr] md:items-end"
+          >
+            <div class="space-y-2 text-left">
+              <div
+                class="text-2xl font-semibold leading-tight text-white drop-shadow-md"
+              >
+                ${translateText("public_lobby.join")}
+                ${translateText("game_mode.ffa")}
+              </div>
+              <p class="text-sm text-slate-100/80">
+                ${translateText("public_lobby.waiting")}
+              </p>
             </div>
-            <div class="text-md font-medium text-blue-100">${timeDisplay}</div>
+
+            <div
+              class="flex items-center justify-end gap-3 text-right text-sm font-semibold text-slate-100"
+            >
+              <span
+                class="flex items-center gap-2 rounded-lg bg-white/12 px-3 py-2 shadow-inner shadow-white/10 backdrop-blur"
+                title="${translateText("matchmaking_modal.waiting_for_game")}"
+              >
+                <span aria-hidden="true" class="text-base">⏱</span>
+                <span
+                  aria-label="${translateText(
+                    "matchmaking_modal.waiting_for_game",
+                  )}"
+                >
+                  ${timeDisplay}
+                </span>
+              </span>
+            </div>
           </div>
         </div>
       </button>
