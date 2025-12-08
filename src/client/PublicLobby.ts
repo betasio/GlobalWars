@@ -108,7 +108,8 @@ export class PublicLobby extends LitElement {
     if (this.lobbies.length === 0) return html``;
 
     const lobby = this.lobbies[0];
-    if (!lobby?.gameConfig) {
+    const gameConfig = lobby?.gameConfig;
+    if (!gameConfig) {
       return;
     }
     const start = this.lobbyIDToStart.get(lobby.gameID) ?? 0;
@@ -117,16 +118,12 @@ export class PublicLobby extends LitElement {
     // Display a simple seconds countdown
     const timeDisplay = `${timeRemaining}s`;
 
-    const maxPlayers = lobby.gameConfig.maxPlayers ?? 0;
+    const maxPlayers = gameConfig.maxPlayers ?? 0;
     const playerCount = lobby.numClients ?? 0;
-
-    const maxPlayers = lobby.gameConfig.maxPlayers ?? 0;
-    const playerCount = lobby.numClients ?? 0;
-    const openSlots = Math.max(0, maxPlayers - playerCount);
 
     const teamCount =
-      lobby.gameConfig.gameMode === GameMode.Team
-        ? (lobby.gameConfig.playerTeams ?? 0)
+      gameConfig.gameMode === GameMode.Team
+        ? (gameConfig.playerTeams ?? 0)
         : null;
 
     const mapImageSrc = this.mapImages.get(lobby.gameID);
@@ -146,7 +143,7 @@ export class PublicLobby extends LitElement {
         ${mapImageSrc
           ? html`<img
               src="${mapImageSrc}"
-              alt="${lobby.gameConfig.gameMap}"
+              alt="${gameConfig.gameMap}"
               class="absolute inset-0 h-full w-full object-cover"
             />`
           : html`<div
@@ -172,7 +169,7 @@ export class PublicLobby extends LitElement {
                   ? "bg-green-400/20 text-green-100"
                   : "bg-cyan-300/20 text-cyan-100"}"
               >
-                ${lobby.gameConfig.gameMode === GameMode.Team
+                ${gameConfig.gameMode === GameMode.Team
                   ? typeof teamCount === "string"
                     ? teamCount === HumansVsNations
                       ? translateText("public_lobby.teams_hvn")
@@ -186,7 +183,7 @@ export class PublicLobby extends LitElement {
                 class="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold"
               >
                 ${translateText(
-                  `map.${lobby.gameConfig.gameMap.toLowerCase().replace(/\s+/g, "")}`,
+                  `map.${gameConfig.gameMap.toLowerCase().replace(/\s+/g, "")}`,
                 )}
               </span>
             </div>
