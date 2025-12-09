@@ -61,45 +61,12 @@ export async function fetchCosmetics(): Promise<Cosmetics | null> {
       console.error(`HTTP error! status: ${response.status}`);
       return null;
     }
-    const raw = await response.json();
-
-    // Normalize legacy cosmetics data into the current schema shape so the
-    // client can still render patterns provided as bare metadata entries.
-    const patterns: Record<string, Pattern> = {};
-    for (const [patternData, meta] of Object.entries(raw.patterns ?? {})) {
-      const rawName =
-        typeof meta === "object" && meta !== null && "name" in meta
-          ? (meta as { name?: unknown }).name
-          : null;
-      const safeName =
-        typeof rawName === "string"
-          ? rawName
-              .replace(/[^a-z0-9_]/gi, "_")
-              .toLowerCase()
-              .slice(0, 32)
-          : "pattern";
-
-      patterns[patternData] = {
-        name: safeName,
-        pattern: patternData,
-        colorPalettes: [],
-        affiliateCode: null,
-        product: null,
-      } as Pattern;
-    }
-
-    const normalized = CosmeticsSchema.safeParse({
-      colorPalettes: raw.colorPalettes,
-      patterns,
-      flag: raw.flag,
-    });
-
-    if (!normalized.success) {
-      console.error(`Invalid cosmetics: ${normalized.error.message}`);
+    const result = CosmeticsSchema.safeParse(await response.json());
+    if (!result.success) {
+      console.error(`Invalid cosmetics: ${result.error.message}`);
       return null;
     }
-
-    return normalized.data;
+    return result.data;
   } catch (error) {
     console.error("Error getting cosmetics:", error);
     return null;
