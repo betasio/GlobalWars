@@ -1,5 +1,5 @@
 # Use an official Node runtime as the base image
-FROM node:20-slim AS base
+FROM node:24-slim AS base
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
@@ -31,7 +31,7 @@ COPY . .
 # Build the client-side application
 RUN npm run build-prod
 # So we can see which commit was used to build the container
-# https://globalwars.io/commit.txt
+# https://openfront.io/commit.txt
 RUN echo "$GIT_COMMIT" > static/commit.txt
 
 # Remove maps data from final image
