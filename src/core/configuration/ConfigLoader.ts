@@ -25,6 +25,8 @@ export async function getConfig(
       throw Error(`unsupported server configuration: ${process.env.GAME_ENV}`);
   }
 }
+export let websocketBaseUrl: string | null = null;
+
 export async function getServerConfigFromClient(): Promise<ServerConfig> {
   if (cachedSC) {
     return cachedSC;
@@ -39,6 +41,12 @@ export async function getServerConfigFromClient(): Promise<ServerConfig> {
   const config = await response.json();
   // Log the retrieved configuration
   console.log("Server config loaded:", config);
+
+  websocketBaseUrl =
+    typeof config.ws_base_url === "string" ? config.ws_base_url : null;
+  if (typeof window !== "undefined") {
+    window.websocketBaseUrl = websocketBaseUrl ?? undefined;
+  }
 
   cachedSC = getServerConfig(config.game_env);
   return cachedSC;

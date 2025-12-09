@@ -307,12 +307,21 @@ export class Transport {
   ) {
     this.startPing();
     this.killExistingSocket();
-    const wsHost = window.location.host;
-    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const workerPath = this.lobbyConfig.serverConfig.workerPath(
       this.lobbyConfig.gameID,
     );
-    this.socket = new WebSocket(`${wsProtocol}//${wsHost}/${workerPath}`);
+    const socketUrl = (() => {
+      if (
+        window.websocketBaseUrl &&
+        typeof window.websocketBaseUrl === "string"
+      ) {
+        return `${window.websocketBaseUrl.replace(/\/$/, "")}/${workerPath}`;
+      }
+      const wsHost = window.location.host;
+      const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      return `${wsProtocol}//${wsHost}/${workerPath}`;
+    })();
+    this.socket = new WebSocket(socketUrl);
     this.onconnect = onconnect;
     this.onmessage = onmessage;
     this.socket.onopen = () => {
