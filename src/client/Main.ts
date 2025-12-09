@@ -69,6 +69,7 @@ declare global {
       };
       spaNewPage: (url: string) => void;
     };
+    websocketBaseUrl?: string;
   }
 
   // Extend the global interfaces to include your custom events
