@@ -6,6 +6,12 @@ import { DevConfig, DevServerConfig } from "./DevConfig";
 import { preprodConfig } from "./PreprodConfig";
 import { prodConfig } from "./ProdConfig";
 
+declare global {
+  interface Window {
+    websocketBaseUrl?: string;
+  }
+}
+
 export let cachedSC: ServerConfig | null = null;
 
 export async function getConfig(
