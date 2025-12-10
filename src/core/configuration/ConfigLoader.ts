@@ -6,6 +6,12 @@ import { DevConfig, DevServerConfig } from "./DevConfig";
 import { preprodConfig } from "./PreprodConfig";
 import { prodConfig } from "./ProdConfig";
 
+declare global {
+  interface Window {
+    websocketBaseUrl?: string;
+  }
+}
+
 export let cachedSC: ServerConfig | null = null;
 
 export async function getConfig(
@@ -52,7 +58,10 @@ export async function getServerConfigFromClient(): Promise<ServerConfig> {
   return cachedSC;
 }
 export function getServerConfigFromServer(): ServerConfig {
-  const gameEnv = process.env.GAME_ENV ?? "dev";
+  // Default to production when GAME_ENV is not explicitly set so deployed
+  // environments don't silently fall back to the dev configuration (which
+  // disables matchmaking and points at localhost endpoints).
+  const gameEnv = process.env.GAME_ENV ?? "prod";
   return getServerConfig(gameEnv);
 }
 export function getServerConfig(gameEnv: string) {
