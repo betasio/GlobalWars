@@ -474,6 +474,9 @@ class Client {
         document
           .getElementById("username-validation-error")
           ?.classList.add("hidden");
+        if (this.darkModeButton) {
+          this.darkModeButton.style.display = "none";
+        }
         [
           "single-player-modal",
           "host-lobby-modal",
@@ -540,6 +543,9 @@ class Client {
     console.log("leaving lobby, cancelling game");
     this.gameStop();
     this.gameStop = null;
+    if (this.darkModeButton) {
+      this.darkModeButton.style.display = "";
+    }
     this.gutterAds.hide();
     this.publicLobby.leaveLobby();
   }
