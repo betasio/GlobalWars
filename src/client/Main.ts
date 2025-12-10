@@ -211,7 +211,11 @@ class Client {
       !this.patternsModal ||
       !(this.patternsModal instanceof TerritoryPatternsModal)
     ) {
-      console.warn("Territory patterns modal element not found");
+      const createdPatternsModal = document.createElement(
+        "territory-patterns-modal",
+      ) as TerritoryPatternsModal;
+      document.body.appendChild(createdPatternsModal);
+      this.patternsModal = createdPatternsModal;
     }
     const patternButton = document.getElementById(
       "territory-patterns-input-preview-button",
@@ -251,7 +255,11 @@ class Client {
       !this.matchmakingModal ||
       !(this.matchmakingModal instanceof MatchmakingModal)
     ) {
-      console.warn("Matchmaking modal element not found");
+      const createdMatchmakingModal = document.createElement(
+        "matchmaking-modal",
+      ) as MatchmakingModal;
+      document.body.appendChild(createdMatchmakingModal);
+      this.matchmakingModal = createdMatchmakingModal;
     }
 
     const onUserMe = async (userMeResponse: UserMeResponse | false) => {
