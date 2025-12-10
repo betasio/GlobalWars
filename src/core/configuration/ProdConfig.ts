@@ -3,7 +3,7 @@ import { DefaultServerConfig } from "./DefaultConfig";
 
 export const prodConfig = new (class extends DefaultServerConfig {
   numWorkers(): number {
-    return 20;
+    return 3;
   }
   env(): GameEnv {
     return GameEnv.Prod;
