@@ -88,6 +88,14 @@ export class UsernameInput extends LitElement {
             ${this.validationError}
           </div>`
         : null}
+      ${this.isGuest
+        ? html`<p
+            class="mt-2 text-sm text-gray-500 dark:text-gray-300 text-center"
+          >
+            ${translateText("username.guest_autogen") ||
+            "Guest names are assigned automatically and reset each session."}
+          </p>`
+        : null}
     `;
   }
 
