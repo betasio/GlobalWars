@@ -12,7 +12,8 @@
     "single_player": "main.single_player",
     "instructions": "main.instructions",
     "how_to_play": "main.how_to_play",
-    "wiki": "main.wiki"
+    "wiki": "main.wiki",
+    "login_google": "Login with Google"
   },
   "help_modal": {
     "hotkeys": "help_modal.hotkeys",
@@ -170,5 +171,11 @@
   "heads_up_message": {
     "choose_spawn": "heads_up_message.choose_spawn",
     "random_spawn": "heads_up_message.random_spawn"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }

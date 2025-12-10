@@ -23,7 +23,8 @@
     "advertise": "Reklamuj",
     "wiki": "Wiki",
     "privacy_policy": "Polityka prywatności",
-    "terms_of_service": "Regulamin"
+    "terms_of_service": "Regulamin",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Wyświetl wszystkie wersje",
@@ -146,7 +147,11 @@
     "title": "Konto",
     "logged_in_as": "Zalogowany jako {email}",
     "logged_in_with_discord": "Zalogowany przez Discord'a",
-    "recovery_email_sent": "Wysłano e-mail odzyskiwania na adres {email}"
+    "recovery_email_sent": "Wysłano e-mail odzyskiwania na adres {email}",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Mapa",

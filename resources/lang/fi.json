@@ -23,7 +23,8 @@
     "advertise": "Mainosta",
     "wiki": "Wiki",
     "privacy_policy": "Tietosuojaseloste",
-    "terms_of_service": "Käyttöehdot"
+    "terms_of_service": "Käyttöehdot",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Katso kaikki julkaisut",
@@ -146,7 +147,11 @@
     "title": "Tili",
     "logged_in_as": "Kirjauduttu käyttäjällä {email}",
     "logged_in_with_discord": "Kirjauduttu sisään Discordilla",
-    "recovery_email_sent": "Palautussähköposti lähetetty kohteeseen {email}"
+    "recovery_email_sent": "Palautussähköposti lähetetty kohteeseen {email}",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Kartta",

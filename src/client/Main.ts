@@ -27,7 +27,6 @@ import { PublicLobby } from "./PublicLobby";
 import { SinglePlayerModal } from "./SinglePlayerModal";
 import "./StatsModal";
 import { TerritoryPatternsModal } from "./TerritoryPatternsModal";
-import { TokenLoginModal } from "./TokenLoginModal";
 import { SendKickPlayerIntentEvent } from "./Transport";
 import { UserSettingModal } from "./UserSettingModal";
 import "./UsernameInput";
@@ -39,7 +38,8 @@ import {
 } from "./Utils";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
-import { getUserMe, isLoggedIn } from "./jwt";
+import { getCachedFirebaseUser } from "./firebaseAuth";
+import { getUserMe } from "./jwt";
 import "./styles.css";
 
 declare global {
@@ -99,7 +99,6 @@ class Client {
   private publicLobby: PublicLobby;
   private userSettings: UserSettings = new UserSettings();
   private patternsModal: TerritoryPatternsModal | null = null;
-  private tokenLoginModal: TokenLoginModal;
 
   private gutterAds: GutterAds;
 
@@ -222,16 +221,6 @@ class Client {
       }
     }
 
-    this.tokenLoginModal = document.querySelector(
-      "token-login",
-    ) as TokenLoginModal;
-    if (
-      !this.tokenLoginModal ||
-      !(this.tokenLoginModal instanceof TokenLoginModal)
-    ) {
-      console.warn("Token login modal element not found");
-    }
-
     const onUserMe = async (userMeResponse: UserMeResponse | false) => {
       document.dispatchEvent(
         new CustomEvent("userMeResponse", {
@@ -250,14 +239,12 @@ class Client {
       }
     };
 
-    if (isLoggedIn() === false) {
-      // Not logged in
-      onUserMe(false);
-    } else {
-      // JWT appears to be valid
-      // TODO: Add caching
-      getUserMe().then(onUserMe);
-    }
+    getUserMe()
+      .then(onUserMe)
+      .catch((err) => {
+        console.warn("Failed to fetch user info", err);
+        onUserMe(false);
+      });
 
     const settingsModal = document.querySelector(
       "user-setting",
@@ -384,35 +371,8 @@ class Client {
       }
 
       this.userSettings.setSelectedPatternName(patternName);
-      const token = params.get("login-token");
-
-      if (token) {
-        strip();
-        window.addEventListener("beforeunload", () => {
-          // The page reloads after token login, so we need to save the pattern name
-          // in case it is unset during reload.
-          this.userSettings.setSelectedPatternName(patternName);
-        });
-        this.tokenLoginModal.open(token);
-      } else {
-        alertAndStrip(`purchase succeeded: ${patternName}`);
-        this.patternsModal?.refresh();
-      }
-      return;
-    }
-
-    if (decodedHash.startsWith("#token-login")) {
-      const token = params.get("token-login");
-
-      if (!token) {
-        alertAndStrip(
-          `login failed! Please try again later or contact support.`,
-        );
-        return;
-      }
-
-      strip();
-      this.tokenLoginModal.open(token);
+      alertAndStrip(`purchase succeeded: ${patternName}`);
+      this.patternsModal?.refresh();
       return;
     }
 
@@ -491,7 +451,6 @@ class Client {
           "flag-input-modal",
           "account-button",
           "stats-button",
-          "token-login",
           "matchmaking-modal",
         ].forEach((tag) => {
           const modal = document.querySelector(tag) as HTMLElement & {
@@ -589,15 +548,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // WARNING: DO NOT EXPOSE THIS ID
 export function getPlayToken(): string {
-  const result = isLoggedIn();
-  if (result !== false) return result.token;
+  const firebaseUser = getCachedFirebaseUser();
+  if (firebaseUser) return firebaseUser.uid;
   return getPersistentIDFromCookie();
 }
 
 // WARNING: DO NOT EXPOSE THIS ID
 export function getPersistentID(): string {
-  const result = isLoggedIn();
-  if (result !== false) return result.claims.sub;
+  const firebaseUser = getCachedFirebaseUser();
+  if (firebaseUser) return firebaseUser.uid;
   return getPersistentIDFromCookie();
 }
 

@@ -6,6 +6,21 @@ import { DevConfig, DevServerConfig } from "./DevConfig";
 import { preprodConfig } from "./PreprodConfig";
 import { prodConfig } from "./ProdConfig";
 
+export type FirebaseClientConfig = {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  appId: string;
+  messagingSenderId?: string;
+  measurementId?: string;
+};
+
+export type ClientEnvConfig = {
+  game_env: string;
+  ws_base_url?: string;
+  firebase?: FirebaseClientConfig;
+};
+
 declare global {
   interface Window {
     websocketBaseUrl?: string;
@@ -13,6 +28,23 @@ declare global {
 }
 
 export let cachedSC: ServerConfig | null = null;
+export let cachedEnvConfig: ClientEnvConfig | null = null;
+
+export async function getClientEnv(): Promise<ClientEnvConfig> {
+  if (cachedEnvConfig) {
+    return cachedEnvConfig;
+  }
+
+  const response = await fetch("/api/env");
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch server config: ${response.status} ${response.statusText}`,
+    );
+  }
+  cachedEnvConfig = (await response.json()) as ClientEnvConfig;
+  return cachedEnvConfig;
+}
 
 export async function getConfig(
   gameConfig: GameConfig,
@@ -37,14 +69,8 @@ export async function getServerConfigFromClient(): Promise<ServerConfig> {
   if (cachedSC) {
     return cachedSC;
   }
-  const response = await fetch("/api/env");
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch server config: ${response.status} ${response.statusText}`,
-    );
-  }
-  const config = await response.json();
+  const config = await getClientEnv();
+  cachedEnvConfig = config;
   // Log the retrieved configuration
   console.log("Server config loaded:", config);
 

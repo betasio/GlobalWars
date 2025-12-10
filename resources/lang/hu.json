@@ -23,7 +23,8 @@
     "advertise": "Hirdetés",
     "wiki": "Wiki",
     "privacy_policy": "Adatvédelmi irányelvek",
-    "terms_of_service": "Felhasználási feltételek"
+    "terms_of_service": "Felhasználási feltételek",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Összes verzió megtekintése",
@@ -145,7 +146,11 @@
     "title": "Felhasználói fiók",
     "logged_in_as": "Bejelentkezve, mint {email}",
     "logged_in_with_discord": "Bejelentkezve Discord fiókkal",
-    "recovery_email_sent": "Helyreállítási e-mail elküldve a(z) {email} címre"
+    "recovery_email_sent": "Helyreállítási e-mail elküldve a(z) {email} címre",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Térkép",

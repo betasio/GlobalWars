@@ -23,7 +23,8 @@
     "advertise": "Annonsera",
     "wiki": "Wiki",
     "privacy_policy": "Sekretesspolicy",
-    "terms_of_service": "Användarvillkor"
+    "terms_of_service": "Användarvillkor",
+    "login_google": "Login with Google"
   },
   "news": {
     "full_changelog": "Se fullständig ändringslogg",
@@ -585,5 +586,11 @@
     "redirecting": "Du blir omdirigerad...",
     "not_authorized": "Du har inte behörighet att komma åt den här webbplatsen.",
     "contact_admin": "Om du tror att du ser detta meddelande felaktigt, kontakta webbplatsens administratör."
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }

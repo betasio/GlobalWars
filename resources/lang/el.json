@@ -35,7 +35,8 @@
     "wiki": "Wiki",
     "privacy_policy": "Πολιτική Απορρήτου",
     "terms_of_service": "Όροι Χρήσης",
-    "reddit": "Reddit"
+    "reddit": "Reddit",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Δες όλες τις εκδόσεις",
@@ -161,7 +162,11 @@
     "logged_in_as": "Συνδέθηκε ως {email}",
     "fetching_account": "Λήψη πληροφοριών λογαριασμού...",
     "logged_in_with_discord": "Συνδέθηκε με Discord",
-    "recovery_email_sent": "Το email ανάκτησης στάλθηκε στο {email}"
+    "recovery_email_sent": "Το email ανάκτησης στάλθηκε στο {email}",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Χάρτης",
