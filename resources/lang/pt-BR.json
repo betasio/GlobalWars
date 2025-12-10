@@ -6,7 +6,8 @@
     "single_player": "Um Jogador",
     "instructions": "Instruções",
     "how_to_play": "Como Jogar",
-    "wiki": "Wiki"
+    "wiki": "Wiki",
+    "login_google": "Login with Google"
   },
   "help_modal": {
     "hotkeys": "Atalhos",
@@ -175,5 +176,11 @@
   },
   "select_lang": {
     "title": "Selecionar idioma"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }

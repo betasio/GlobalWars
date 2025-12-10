@@ -35,7 +35,8 @@
     "wiki": "Вікі",
     "privacy_policy": "Політика конфіденційності",
     "terms_of_service": "Умови користування",
-    "reddit": "Reddit"
+    "reddit": "Reddit",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Переглянути всі випуски",
@@ -161,7 +162,11 @@
     "logged_in_as": "Ви увійшли як {email}",
     "fetching_account": "Отримання інформації про акаунт...",
     "logged_in_with_discord": "Ви увійшли через Discord",
-    "recovery_email_sent": "Лист для відновлення надіслано на {email}"
+    "recovery_email_sent": "Лист для відновлення надіслано на {email}",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Мапа",

@@ -6,14 +6,15 @@
     "lang_code": "bn"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "ডিসকর্ডে যোগ দিন!",
     "create_lobby": "লবি তৈরি করুন",
     "join_lobby": "লবিতে যোগ দিন",
     "single_player": "কম্পিউটার মোড",
     "instructions": "নির্দেশনা",
     "how_to_play": "খেলার নিয়ম",
-    "wiki": "উইকি"
+    "wiki": "উইকি",
+    "login_google": "Login with Google"
   },
   "help_modal": {
     "hotkeys": "হট-কী",
@@ -223,5 +224,11 @@
     "continental": "মহাদেশীয়",
     "regional": "আঞ্চলিক",
     "fantasy": "অন্য"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }

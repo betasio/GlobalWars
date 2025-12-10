@@ -35,7 +35,8 @@
     "wiki": "Вики",
     "privacy_policy": "Политика конфиденциальности",
     "terms_of_service": "Пользовательское соглашение",
-    "reddit": "Reddit"
+    "reddit": "Reddit",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Посмотреть все выпуски",
@@ -161,7 +162,11 @@
     "logged_in_as": "Вы вошли как {email}",
     "fetching_account": "Получение информации об аккаунте...",
     "logged_in_with_discord": "Вы вошли через Discord",
-    "recovery_email_sent": "Письмо для восстановления отправлено на {email}"
+    "recovery_email_sent": "Письмо для восстановления отправлено на {email}",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Карта",
