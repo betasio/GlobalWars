@@ -23,7 +23,8 @@
     "advertise": "Reklam Ver",
     "wiki": "Wiki",
     "privacy_policy": "Gizlilik Politikası",
-    "terms_of_service": "Hizmet Şartları"
+    "terms_of_service": "Hizmet Şartları",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Tüm sürümleri gör",
@@ -146,7 +147,11 @@
     "title": "Hesap",
     "logged_in_as": "{email} olarak oturum açıldı",
     "logged_in_with_discord": "Discord'la giriş yapıldı",
-    "recovery_email_sent": "Kurtarma e-postası {email}'a gönderildi"
+    "recovery_email_sent": "Kurtarma e-postası {email}'a gönderildi",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Harita",

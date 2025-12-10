@@ -1,23 +1,11 @@
 import { html, LitElement, TemplateResult } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
+import { UserMeResponse } from "../core/ApiSchemas";
 import {
-  PlayerGame,
-  PlayerStatsTree,
-  UserMeResponse,
-} from "../core/ApiSchemas";
-import "./components/baseComponents/stats/DiscordUserHeader";
-import "./components/baseComponents/stats/GameList";
-import "./components/baseComponents/stats/PlayerStatsTable";
-import "./components/baseComponents/stats/PlayerStatsTree";
-import "./components/Difficulties";
-import "./components/PatternButton";
-import {
-  discordLogin,
-  fetchPlayerById,
-  getApiBase,
-  getUserMe,
-  logOut,
-} from "./jwt";
+  ensureFirebaseReady,
+  loginWithGoogle,
+  logoutFirebase,
+} from "./firebaseAuth";
 import { isInIframe, translateText } from "./Utils";
 
 @customElement("account-modal")
@@ -27,15 +15,11 @@ export class AccountModal extends LitElement {
     close: () => void;
   };
 
-  @state() private email: string = "";
   @state() private isLoadingUser: boolean = false;
+  @state() private firebaseConfigured = true;
+  @state() private authError: string | null = null;
 
   private loggedInEmail: string | null = null;
-  private loggedInDiscord: string | null = null;
-  private userMeResponse: UserMeResponse | null = null;
-  private playerId: string | null = null;
-  private statsTree: PlayerStatsTree | null = null;
-  private recentGames: PlayerGame[] = [];
 
   constructor() {
     super();
@@ -43,15 +27,10 @@ export class AccountModal extends LitElement {
     document.addEventListener("userMeResponse", (event: Event) => {
       const customEvent = event as CustomEvent;
       if (customEvent.detail) {
-        this.userMeResponse = customEvent.detail as UserMeResponse;
-        this.playerId = this.userMeResponse?.player?.publicId;
-        if (this.playerId === undefined) {
-          this.statsTree = null;
-          this.recentGames = [];
-        }
+        const userMeResponse = customEvent.detail as UserMeResponse;
+        this.loggedInEmail = userMeResponse?.user?.email ?? null;
       } else {
-        this.statsTree = null;
-        this.recentGames = [];
+        this.loggedInEmail = null;
         this.requestUpdate();
       }
     });
@@ -83,50 +62,11 @@ export class AccountModal extends LitElement {
         </div>
       `;
     }
-    if (this.loggedInDiscord) {
-      return this.renderLoggedInDiscord();
-    } else if (this.loggedInEmail) {
+    if (this.loggedInEmail) {
       return this.renderLoggedInEmail();
     } else {
       return this.renderLoginOptions();
     }
-  }
-
-  private viewGame(gameId: string): void {
-    this.close();
-    const path = location.pathname;
-    const { search } = location;
-    const hash = `#join=${encodeURIComponent(gameId)}`;
-    const newUrl = `${path}${search}${hash}`;
-
-    history.pushState({ join: gameId }, "", newUrl);
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
-  }
-
-  private renderLoggedInDiscord() {
-    return html`
-      <div class="p-6">
-        <div class="mb-4 text-center">
-          <p class="text-white mb-4">
-            Logged in with Discord as ${this.loggedInDiscord}
-          </p>
-          ${this.logoutButton()}
-        </div>
-        <div class="flex flex-col items-center mt-2 mb-4">
-          <discord-user-header
-            .data=${this.userMeResponse?.user?.discord ?? null}
-          ></discord-user-header>
-          <player-stats-tree-view
-            .statsTree=${this.statsTree}
-          ></player-stats-tree-view>
-          <hr class="w-2/3 border-gray-600 my-2" />
-          <game-list
-            .games=${this.recentGames}
-            .onViewGame=${(id: string) => this.viewGame(id)}
-          ></game-list>
-        </div>
-      </div>
-    `;
   }
 
   private renderLoggedInEmail(): TemplateResult {
@@ -154,154 +94,81 @@ export class AccountModal extends LitElement {
   }
 
   private renderLoginOptions() {
+    if (!this.firebaseConfigured) {
+      return html`<div class="p-6 text-center text-white">
+        <p class="mb-2">${translateText("account_modal.no_auth")}</p>
+        <p class="text-sm text-gray-300">
+          ${translateText("account_modal.no_auth_detail")}
+        </p>
+      </div>`;
+    }
     return html`
       <div class="p-6">
         <div class="mb-6">
           <h3 class="text-lg font-medium text-white mb-4 text-center">
-            Choose your login method
+            ${translateText("account_modal.google_only") || "Login with Google"}
           </h3>
-
-          <!-- Discord Login Button -->
-          <div class="mb-6">
+          <div class="mb-4 flex flex-col items-center gap-3">
             <button
-              @click="${this.handleDiscordLogin}"
-              class="w-full px-6 py-3 text-sm font-medium text-white bg-[#5865F2] border border-transparent rounded-md hover:bg-[#4752C4] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5865F2] transition-colors duration-200 flex items-center justify-center space-x-2"
+              @click="${this.handleGoogleLogin}"
+              class="w-full px-6 py-3 text-sm font-medium text-gray-800 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 flex items-center justify-center space-x-2 disabled:opacity-60"
+              ?disabled=${!this.firebaseConfigured}
             >
-              <img
-                src="/images/DiscordLogo.svg"
-                alt="Discord"
-                class="w-5 h-5"
-              />
+              <img src="/images/GoogleLogo.svg" alt="Google" class="w-5 h-5" />
               <span
-                >${translateText("main.login_discord") ||
-                "Login with Discord"}</span
+                >${translateText("main.login_google") ||
+                "Login with Google"}</span
               >
             </button>
+            ${this.authError
+              ? html`<p class="text-sm text-red-400 text-center">
+                  ${this.authError}
+                </p>`
+              : null}
           </div>
-
-          <!-- Divider -->
-          <div class="relative mb-6">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-gray-300"></div>
-            </div>
-            <div class="relative flex justify-center text-sm">
-              <span class="px-2 bg-gray-800 text-gray-300">or</span>
-            </div>
-          </div>
-
-          <!-- Email Recovery -->
-          <div class="mb-4">
-            <label
-              for="email"
-              class="block text-sm font-medium text-white mb-2"
-            >
-              Recover account by email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              .value="${this.email}"
-              @input="${this.handleEmailInput}"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-              placeholder="Enter your email address"
-              required
-            />
-          </div>
-        </div>
-
-        <div class="flex justify-end space-x-3">
-          <button
-            @click="${this.close}"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Cancel
-          </button>
-          <button
-            @click="${this.handleSubmit}"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Submit
-          </button>
         </div>
       </div>
     `;
   }
 
-  private handleEmailInput(e: Event) {
-    const target = e.target as HTMLInputElement;
-    this.email = target.value;
-  }
-
-  private async handleSubmit() {
-    if (!this.email) {
-      alert("Please enter an email address");
-      return;
-    }
-
+  private async handleGoogleLogin() {
+    this.authError = null;
     try {
-      const apiBase = getApiBase();
-      const response = await fetch(`${apiBase}/magic-link`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          redirectDomain: window.location.origin,
-          email: this.email,
-        }),
-      });
-
-      if (response.ok) {
-        alert(
-          translateText("account_modal.recovery_email_sent", {
-            email: this.email,
-          }),
-        );
-        this.close();
+      const user = await loginWithGoogle();
+      if (user?.email) {
+        this.loggedInEmail = user.email;
+        this.authError = null;
       } else {
-        console.error(
-          "Failed to send recovery email:",
-          response.status,
-          response.statusText,
-        );
-        alert("Failed to send recovery email. Please try again.");
+        this.authError =
+          translateText("account_modal.no_auth") || "Google login unavailable.";
       }
-    } catch (error) {
-      console.error("Error sending recovery email:", error);
-      alert("Error sending recovery email. Please try again.");
+      this.requestUpdate();
+    } catch (err) {
+      console.error("Google login failed", err);
+      this.authError =
+        translateText("account_modal.google_error") ||
+        "Unable to login with Google.";
     }
-  }
-
-  private handleDiscordLogin() {
-    discordLogin();
   }
 
   public open() {
     this.modalEl?.open();
     this.isLoadingUser = true;
 
-    void getUserMe()
-      .then((userMe) => {
-        if (userMe) {
-          this.loggedInEmail = userMe.user.email ?? null;
-          this.loggedInDiscord = userMe.user.discord?.global_name ?? null;
-          if (this.playerId) {
-            this.loadFromApi(this.playerId);
-          }
-        } else {
-          this.loggedInEmail = null;
-          this.loggedInDiscord = null;
-        }
-        this.isLoadingUser = false;
-        this.requestUpdate();
+    void ensureFirebaseReady()
+      .then(({ configured, user }) => {
+        this.firebaseConfigured = configured;
+        this.loggedInEmail = user?.email ?? null;
       })
       .catch((err) => {
-        console.warn("Failed to fetch user info in AccountModal.open():", err);
+        console.warn("Failed to initialize Firebase auth", err);
+        this.firebaseConfigured = false;
+        this.loggedInEmail = null;
+      })
+      .finally(() => {
         this.isLoadingUser = false;
         this.requestUpdate();
       });
-    this.requestUpdate();
   }
 
   public close() {
@@ -309,35 +176,16 @@ export class AccountModal extends LitElement {
   }
 
   private async handleLogout() {
-    await logOut();
+    await logoutFirebase();
     this.close();
     // Refresh the page after logout to update the UI state
     window.location.reload();
-  }
-
-  private async loadFromApi(playerId: string): Promise<void> {
-    try {
-      const data = await fetchPlayerById(playerId);
-      if (!data) {
-        this.requestUpdate();
-        return;
-      }
-
-      this.recentGames = data.games;
-      this.statsTree = data.stats;
-
-      this.requestUpdate();
-    } catch (err) {
-      console.warn("Failed to load player data:", err);
-      this.requestUpdate();
-    }
   }
 }
 
 @customElement("account-button")
 export class AccountButton extends LitElement {
   @state() private loggedInEmail: string | null = null;
-  @state() private loggedInDiscord: string | null = null;
 
   private isVisible = true;
 
@@ -354,14 +202,10 @@ export class AccountButton extends LitElement {
         if (userMeResponse.user.email) {
           this.loggedInEmail = userMeResponse.user.email;
           this.requestUpdate();
-        } else if (userMeResponse.user.discord) {
-          this.loggedInDiscord = userMeResponse.user.discord.id;
-          this.requestUpdate();
         }
       } else {
         // Clear the logged in states when user logs out
         this.loggedInEmail = null;
-        this.loggedInDiscord = null;
         this.requestUpdate();
       }
     });
@@ -385,8 +229,6 @@ export class AccountButton extends LitElement {
       buttonTitle = translateText("account_modal.logged_in_as", {
         email: this.loggedInEmail,
       });
-    } else if (this.loggedInDiscord) {
-      buttonTitle = translateText("account_modal.logged_in_with_discord");
     }
 
     const buttonClass =
@@ -409,13 +251,7 @@ export class AccountButton extends LitElement {
   }
 
   private renderIcon() {
-    if (this.loggedInDiscord) {
-      return html`<img
-        src="/images/DiscordLogo.svg"
-        alt="Discord"
-        class="w-6 h-6"
-      />`;
-    } else if (this.loggedInEmail) {
+    if (this.loggedInEmail) {
       return html`<img
         src="/images/EmailIcon.svg"
         alt="Email"

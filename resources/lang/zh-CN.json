@@ -20,7 +20,7 @@
     "none": "空"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "加入 Discord",
     "login_discord": "用 Discord 登录",
     "checking_login": "正在检查登录...",
@@ -35,7 +35,8 @@
     "wiki": "游戏百科",
     "privacy_policy": "隐私政策",
     "terms_of_service": "服务条款",
-    "reddit": "Reddit"
+    "reddit": "Reddit",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "查看所有版本信息",
@@ -161,7 +162,11 @@
     "logged_in_as": "以 {email} 身份登录成功",
     "fetching_account": "正在获取帐户信息......",
     "logged_in_with_discord": "使用 Discord 登录",
-    "recovery_email_sent": "账号找回邮件已发送至 {email}"
+    "recovery_email_sent": "账号找回邮件已发送至 {email}",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "地图",

@@ -20,7 +20,7 @@
     "none": "なし"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Discordサーバーに参加!",
     "login_discord": "Discordでログイン",
     "checking_login": "ログイン中...",
@@ -35,7 +35,8 @@
     "wiki": "ウィキ",
     "privacy_policy": "プライバシーポリシー",
     "terms_of_service": "利用規約",
-    "reddit": "Reddit"
+    "reddit": "Reddit",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "すべてのリリースを見る",
@@ -161,7 +162,11 @@
     "logged_in_as": "{email} としてログインしました",
     "fetching_account": "アカウント情報を取得中...",
     "logged_in_with_discord": "Discordでログインしました",
-    "recovery_email_sent": "{email} に回復用のメールを送信しました"
+    "recovery_email_sent": "{email} に回復用のメールを送信しました",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "地図",

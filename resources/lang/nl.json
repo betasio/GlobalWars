@@ -23,7 +23,8 @@
     "advertise": "Adverteren",
     "wiki": "Wiki",
     "privacy_policy": "Privacybeleid",
-    "terms_of_service": "Servicevoorwaarden"
+    "terms_of_service": "Servicevoorwaarden",
+    "login_google": "Login with Google"
   },
   "news": {
     "full_changelog": "Bekijk het volledige changelog",
@@ -585,5 +586,11 @@
     "redirecting": "Je wordt omgeleid...",
     "not_authorized": "Je bent niet gemachtigd voor toegang tot deze website.",
     "contact_admin": "Als je denkt dat dit bericht niet klopt, neem dan contact op met de websitebeheerder."
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }

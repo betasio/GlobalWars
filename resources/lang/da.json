@@ -9,7 +9,7 @@
     "close": "Luk"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Deltag i vores Discord!",
     "login_discord": "Log ind med Discord",
     "checking_login": "Tjekker login...",
@@ -23,7 +23,8 @@
     "advertise": "Annoncér",
     "wiki": "Wiki",
     "privacy_policy": "Privatlivspolitik",
-    "terms_of_service": "Servicevilkår"
+    "terms_of_service": "Servicevilkår",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Se alle udgivelser",
@@ -601,5 +602,11 @@
   "radial_menu": {
     "delete_unit_title": "Slet Enhed",
     "delete_unit_description": "Tryk for at slette den nærmeste enhed"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }
