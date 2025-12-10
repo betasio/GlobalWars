@@ -21,8 +21,6 @@ import { JoinPrivateLobbyModal } from "./JoinPrivateLobbyModal";
 import "./LangSelector";
 import { LangSelector } from "./LangSelector";
 import { LanguageModal } from "./LanguageModal";
-import "./Matchmaking";
-import { MatchmakingModal } from "./Matchmaking";
 import "./NewsModal";
 import "./PublicLobby";
 import { PublicLobby } from "./PublicLobby";
@@ -100,9 +98,8 @@ class Client {
   private joinModal: JoinPrivateLobbyModal;
   private publicLobby: PublicLobby;
   private userSettings: UserSettings = new UserSettings();
-  private patternsModal: TerritoryPatternsModal;
+  private patternsModal: TerritoryPatternsModal | null = null;
   private tokenLoginModal: TokenLoginModal;
-  private matchmakingModal: MatchmakingModal;
 
   private gutterAds: GutterAds;
 
@@ -206,37 +203,24 @@ class Client {
 
     this.patternsModal = document.querySelector(
       "territory-patterns-modal",
-    ) as TerritoryPatternsModal;
-    if (
-      !this.patternsModal ||
-      !(this.patternsModal instanceof TerritoryPatternsModal)
-    ) {
-      const createdPatternsModal = document.createElement(
-        "territory-patterns-modal",
-      ) as TerritoryPatternsModal;
-      document.body.appendChild(createdPatternsModal);
-      this.patternsModal = createdPatternsModal;
-    }
+    ) as TerritoryPatternsModal | null;
     const patternButton = document.getElementById(
       "territory-patterns-input-preview-button",
     );
-    if (isInIframe() && patternButton) {
-      patternButton.style.display = "none";
+    if (!this.patternsModal) {
+      if (patternButton) {
+        patternButton.style.display = "none";
+      }
+    } else {
+      this.patternsModal.previewButton = patternButton ?? null;
+      this.patternsModal.refresh();
+      patternButton?.addEventListener("click", () => {
+        this.patternsModal?.open();
+      });
+      if (isInIframe() && patternButton) {
+        patternButton.style.display = "none";
+      }
     }
-
-    if (
-      !this.patternsModal ||
-      !(this.patternsModal instanceof TerritoryPatternsModal)
-    ) {
-      console.warn("Territory patterns modal element not found");
-    }
-    if (patternButton === null)
-      throw new Error("territory-patterns-input-preview-button");
-    this.patternsModal.previewButton = patternButton;
-    this.patternsModal.refresh();
-    patternButton.addEventListener("click", () => {
-      this.patternsModal.open();
-    });
 
     this.tokenLoginModal = document.querySelector(
       "token-login",
@@ -246,20 +230,6 @@ class Client {
       !(this.tokenLoginModal instanceof TokenLoginModal)
     ) {
       console.warn("Token login modal element not found");
-    }
-
-    this.matchmakingModal = document.querySelector(
-      "matchmaking-modal",
-    ) as MatchmakingModal;
-    if (
-      !this.matchmakingModal ||
-      !(this.matchmakingModal instanceof MatchmakingModal)
-    ) {
-      const createdMatchmakingModal = document.createElement(
-        "matchmaking-modal",
-      ) as MatchmakingModal;
-      document.body.appendChild(createdMatchmakingModal);
-      this.matchmakingModal = createdMatchmakingModal;
     }
 
     const onUserMe = async (userMeResponse: UserMeResponse | false) => {
@@ -426,7 +396,7 @@ class Client {
         this.tokenLoginModal.open(token);
       } else {
         alertAndStrip(`purchase succeeded: ${patternName}`);
-        this.patternsModal.refresh();
+        this.patternsModal?.refresh();
       }
       return;
     }
@@ -457,7 +427,7 @@ class Client {
       const affiliateCode = decodedHash.replace("#affiliate=", "");
       strip();
       if (affiliateCode) {
-        this.patternsModal.open(affiliateCode);
+        this.patternsModal?.open(affiliateCode);
       }
     }
     if (decodedHash.startsWith("#refresh")) {
