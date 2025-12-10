@@ -9,7 +9,7 @@
     "close": "Schließen"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Tritt dem Discord bei!",
     "login_discord": "Anmelden mit Discord",
     "checking_login": "Überprüfe Login...",
@@ -21,7 +21,8 @@
     "instructions": "Anleitung",
     "how_to_play": "Wie man Spielt",
     "advertise": "Werbung",
-    "wiki": "Wiki"
+    "wiki": "Wiki",
+    "login_google": "Login with Google"
   },
   "news": {
     "full_changelog": "Gesamtes Änderungsprotokoll ansehen",
@@ -190,7 +191,9 @@
     "not_string": "Benutzername muss ein Text sein.",
     "too_short": "Benutzername muss mindestens {min} Zeichen lang sein.",
     "too_long": "Benutzername darf {max} Zeichen nicht überschreiten.",
-    "invalid_chars": "Benutzername darf nur Buchstaben, Zahlen, Leerzeichen, Unterstriche und [eckige Klammer] enthalten."
+    "invalid_chars": "Benutzername darf nur Buchstaben, Zahlen, Leerzeichen, Unterstriche und [eckige Klammer] enthalten.",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Private Lobby",
@@ -538,5 +541,11 @@
       "grogu_head": "Grogu Kopf",
       "grogu": "Grogu"
     }
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }
