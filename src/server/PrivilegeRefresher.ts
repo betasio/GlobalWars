@@ -1,6 +1,6 @@
 import { base64url } from "jose";
 import { Logger } from "winston";
-import { CosmeticsSchema } from "../core/CosmeticSchemas";
+import { parseCosmetics } from "../core/CosmeticsNormalizer";
 import {
   FailOpenPrivilegeChecker,
   PrivilegeChecker,
@@ -56,14 +56,10 @@ export class PrivilegeRefresher {
       }
 
       const cosmeticsData = await response.json();
-      const result = CosmeticsSchema.safeParse(cosmeticsData);
-
-      if (!result.success) {
-        throw new Error(`Invalid cosmetics data: ${result.error.message}`);
-      }
+      const parsed = parseCosmetics(cosmeticsData);
 
       this.privilegeChecker = new PrivilegeCheckerImpl(
-        result.data,
+        parsed,
         base64url.decode,
       );
       this.log.info(`Privilege checker loaded successfully`);
