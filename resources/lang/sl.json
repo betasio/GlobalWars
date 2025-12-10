@@ -219,7 +219,9 @@
     "not_string": "Uporabniško ime mora biti niz.",
     "too_short": "Uporabniško ime mora biti dolgo vsaj {min} znakov.",
     "too_long": "Uporabniško ime ne sme presegati {max} znakov.",
-    "invalid_chars": "Uporabniško ime lahko vsebuje samo črke, številke, presledke, podčrtaje in [oglate oklepaje]."
+    "invalid_chars": "Uporabniško ime lahko vsebuje samo črke, številke, presledke, podčrtaje in [oglate oklepaje].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Zasebna soba",

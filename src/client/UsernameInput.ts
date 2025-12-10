@@ -8,9 +8,11 @@ import {
   sanitizeUsername,
   validateUsername,
 } from "../core/validations/username";
-import { ensureFirebaseReady } from "./firebaseAuth";
-
-const usernameKeyPrefix: string = "username";
+import {
+  claimUsername,
+  ensureFirebaseReady,
+  fetchStoredUsername,
+} from "./firebaseAuth";
 
 @customElement("username-input")
 export class UsernameInput extends LitElement {
@@ -37,7 +39,7 @@ export class UsernameInput extends LitElement {
     super.connectedCallback();
     this.authListener = (event: Event) => {
       const detail = (event as CustomEvent).detail;
-      this.applyAuthUser(detail ?? null, true);
+      void this.applyAuthUser(detail ?? null, true);
     };
     document.addEventListener(
       "firebase-auth-changed",
@@ -46,10 +48,10 @@ export class UsernameInput extends LitElement {
 
     void ensureFirebaseReady()
       .then(({ user, configured }) => {
-        this.applyAuthUser(configured ? user : null, configured);
+        void this.applyAuthUser(configured ? user : null, configured);
       })
       .catch(() => {
-        this.applyAuthUser(null, false);
+        void this.applyAuthUser(null, false);
       });
   }
 
@@ -107,49 +109,35 @@ export class UsernameInput extends LitElement {
     this._isValid = result.isValid;
     if (result.isValid) {
       if (this.currentUserId) {
-        this.storeUsername(this.currentUserId, this.username);
+        void this.commitUsername(this.currentUserId, this.username, false);
       }
-      this.validationError = "";
-      this.dispatchUsernameEvent();
     } else {
       this.validationError = result.error ?? "";
     }
   }
 
-  private applyAuthUser(user: any | null, configured: boolean) {
+  private async applyAuthUser(user: any | null, configured: boolean) {
     const loggedIn = configured && !!user;
     this.isGuest = !loggedIn;
     this.currentUserId = loggedIn ? (user?.uid ?? null) : null;
 
     if (loggedIn && this.currentUserId) {
-      const stored = this.getStoredUsername(this.currentUserId);
-      const newName = stored ?? this.generateRegisteredUsername(user);
-      this.username = newName;
+      const stored = await fetchStoredUsername(this.currentUserId);
+      const proposed = stored ?? this.generateRegisteredUsername(user);
+      const claimed = await this.commitUsername(
+        this.currentUserId,
+        proposed,
+        true,
+      );
+      this.username = claimed;
       this._isValid = true;
       this.validationError = "";
-      this.storeUsername(this.currentUserId, newName);
     } else {
       this.username = this.generateGuestUsername();
       this._isValid = true;
       this.validationError = "";
+      this.dispatchUsernameEvent();
     }
-
-    this.dispatchUsernameEvent();
-  }
-
-  private getStoredUsername(uid: string): string | null {
-    const storedUsername = localStorage.getItem(this.getStorageKeyForUser(uid));
-    return storedUsername ?? null;
-  }
-
-  private storeUsername(uid: string, username: string) {
-    if (username && uid) {
-      localStorage.setItem(this.getStorageKeyForUser(uid), username);
-    }
-  }
-
-  private getStorageKeyForUser(uid: string) {
-    return `${usernameKeyPrefix}:${uid}`;
   }
 
   private generateRegisteredUsername(user: any): string {
@@ -166,6 +154,68 @@ export class UsernameInput extends LitElement {
   private generateGuestUsername(): string {
     const random = Math.floor(Math.random() * 900) + 100;
     return `Guest${random}`;
+  }
+
+  private async commitUsername(
+    uid: string,
+    username: string,
+    allowAutoFallback: boolean,
+  ): Promise<string> {
+    const validated = validateUsername(username);
+    if (!validated.isValid) {
+      this.validationError = validated.error ?? "";
+      this._isValid = false;
+      return username;
+    }
+
+    const attemptClaim = async (
+      name: string,
+      attempts: number = 0,
+    ): Promise<string> => {
+      try {
+        await claimUsername(uid, name);
+        this.validationError = "";
+        this._isValid = true;
+        this.username = name;
+        this.dispatchUsernameEvent();
+        return name;
+      } catch (err: any) {
+        if (err?.code === "username_taken") {
+          if (allowAutoFallback) {
+            if (attempts >= 5) {
+              this.validationError =
+                translateText("username.taken") ||
+                "That username is already taken.";
+              this._isValid = false;
+              return name;
+            }
+            return attemptClaim(
+              this.generateFallbackUsername(uid),
+              attempts + 1,
+            );
+          }
+          this.validationError =
+            translateText("username.taken") ||
+            "That username is already taken.";
+          this._isValid = false;
+          return name;
+        }
+
+        this.validationError =
+          translateText("username.save_failed") || "Failed to save username.";
+        this._isValid = false;
+        console.error("Failed to save username", err);
+        return name;
+      }
+    };
+
+    return attemptClaim(username);
+  }
+
+  private generateFallbackUsername(uid: string): string {
+    const suffix = uid.slice(0, 4);
+    const random = Math.floor(Math.random() * 900) + 100;
+    return `Player-${suffix}-${random}`;
   }
 
   private dispatchUsernameEvent() {

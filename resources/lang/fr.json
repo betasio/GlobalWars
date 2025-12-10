@@ -219,7 +219,9 @@
     "not_string": "Le nom d'utilisateur doit être une chaîne de caractères.",
     "too_short": "Le nom d'utilisateur doit comporter au moins {min} caractères.",
     "too_long": "Le nom d'utilisateur ne doit pas dépasser {max} caractères.",
-    "invalid_chars": "Le nom d'utilisateur ne peut contenir que des lettres, des chiffres, des espaces, des tirets bas et des [crochets]."
+    "invalid_chars": "Le nom d'utilisateur ne peut contenir que des lettres, des chiffres, des espaces, des tirets bas et des [crochets].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Salon privé",

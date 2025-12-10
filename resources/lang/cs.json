@@ -171,7 +171,9 @@
     "not_string": "Uživatelské jméno musí být string.",
     "too_short": "Uživatelské jméno musí mít alespoň {min} charakterů.",
     "too_long": "Uživatelské jméno nesmí mít více než {max} charakterů.",
-    "invalid_chars": "Uživatelské jméno může obsahovat pouze písmena, číslice, mezery, podtržítka a [hranaté závorky]."
+    "invalid_chars": "Uživatelské jméno může obsahovat pouze písmena, číslice, mezery, podtržítka a [hranaté závorky].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Soukromé Lobby",

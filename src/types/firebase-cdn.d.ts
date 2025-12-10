@@ -16,3 +16,15 @@ declare module "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js" {
   ) => Promise<{ user: any }>;
   export const signOut: (auth: any) => Promise<void>;
 }
+
+declare module "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js" {
+  export const getFirestore: (app?: any) => any;
+  export const doc: (db: any, collection: string, id: string) => any;
+  export const getDoc: (ref: any) => Promise<any>;
+  export const setDoc: (ref: any, data: any, options?: any) => Promise<void>;
+  export const runTransaction: (
+    db: any,
+    updateFn: (transaction: any) => Promise<any>,
+  ) => Promise<void>;
+  export const serverTimestamp: () => any;
+}

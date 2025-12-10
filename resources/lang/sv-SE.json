@@ -197,7 +197,9 @@
     "not_string": "Användarnamnet måste vara en sträng.",
     "too_short": "Användarnamnet måste innehålla minst {min} tecken.",
     "too_long": "Användarnamnet får inte vara längre än {max} tecken.",
-    "invalid_chars": "Användarnamnet får enbart innehålla bokstäver, siffror, mellanslag, understreck och [hakparenteser]."
+    "invalid_chars": "Användarnamnet får enbart innehålla bokstäver, siffror, mellanslag, understreck och [hakparenteser].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Privat lobby",

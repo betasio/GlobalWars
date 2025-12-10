@@ -191,7 +191,9 @@
     "not_string": "שם המשתמש חייב",
     "too_short": "שם המשתמש חייב להכיל לפחות {min} תווים.",
     "too_long": "שם המשתמש לא יכול להכיל יותר מ-{max} תווים.",
-    "invalid_chars": "שם המשתמש יכול להכיל רק אותיות, מספרים, רווחים, קו תחתון ו-[סוגריים מרובעים]."
+    "invalid_chars": "שם המשתמש יכול להכיל רק אותיות, מספרים, רווחים, קו תחתון ו-[סוגריים מרובעים].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "לובי פרטי",

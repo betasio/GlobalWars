@@ -201,7 +201,9 @@
     "not_string": "O nome de utilizador deve ser uma “string”",
     "too_short": "O nome de utilizador deve ter pelo menos {min} caracteres.",
     "too_long": "O nome de utilizador não deve exceder {max} caracteres.",
-    "invalid_chars": "O nome de utilizador pode conter apenas letras, números, espaços, sublinhados e [pressentis retos]."
+    "invalid_chars": "O nome de utilizador pode conter apenas letras, números, espaços, sublinhados e [pressentis retos].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Sala Privada",

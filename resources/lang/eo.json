@@ -219,7 +219,9 @@
     "not_string": "La uzantnomo devas esti ĉeno de signoj.",
     "too_short": "La uzantnomo devas havi almenaŭ {min} signojn.",
     "too_long": "La uzantnomo ne rajtas superi {max} signojn.",
-    "invalid_chars": "La uzantnomo povas enhavi nur literojn, ciferojn, spacojn, substrekojn kaj [krampojn]."
+    "invalid_chars": "La uzantnomo povas enhavi nur literojn, ciferojn, spacojn, substrekojn kaj [krampojn].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Privata Ludejo",

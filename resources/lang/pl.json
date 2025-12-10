@@ -217,7 +217,9 @@
     "not_string": "Nazwa użytkownika musi być ciągiem znaków.",
     "too_short": "Nazwa użytkownika musi mieć co najmniej {min} znaków.",
     "too_long": "Nazwa użytkownika nie może przekraczać {max} znaków.",
-    "invalid_chars": "Nazwa użytkownika może zawierać tylko litery, cyfry, spacje, podkreślenia i [nawiasy kwadratowe]."
+    "invalid_chars": "Nazwa użytkownika może zawierać tylko litery, cyfry, spacje, podkreślenia i [nawiasy kwadratowe].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Prywatne lobby",

@@ -219,7 +219,9 @@
     "not_string": "A felhasználónévnek szövegnek kell lennie.",
     "too_short": "A felhasználónévnek legalább {min} karakter hosszúnak kell lennie.",
     "too_long": "A felhasználónév nem lehet hosszabb {max} karakternél.",
-    "invalid_chars": "A felhasználónév csak betűket, számokat, szóközt, alulvonást és [szögletes zárójelet] tartalmazhat."
+    "invalid_chars": "A felhasználónév csak betűket, számokat, szóközt, alulvonást és [szögletes zárójelet] tartalmazhat.",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Privát lobby",

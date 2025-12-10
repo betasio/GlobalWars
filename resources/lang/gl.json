@@ -201,7 +201,9 @@
     "not_string": "O nome de usuario debe ser unha cadea de texto.",
     "too_short": "O nome de usuario debe ter polo menos {min} caracteres.",
     "too_long": "O nome de usuario non debe superar os {max} caracteres.",
-    "invalid_chars": "O nome de usuario só pode ter letras, números, espazos, subliñados e [corchetes]."
+    "invalid_chars": "O nome de usuario só pode ter letras, números, espazos, subliñados e [corchetes].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Sala privada",

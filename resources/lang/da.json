@@ -201,7 +201,9 @@
     "not_string": "Brugernavn skal være en streng.",
     "too_short": "Brugernavn skal bestå af mindst {min} tegn.",
     "too_long": "Brugernavn må ikke overskride {max} tegn.",
-    "invalid_chars": "Brugernavn kan kun indeholde bogstaver, tal, mellemrum, understregninger og [firkantede parenteser]."
+    "invalid_chars": "Brugernavn kan kun indeholde bogstaver, tal, mellemrum, understregninger og [firkantede parenteser].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Privat Lobby",

@@ -217,7 +217,9 @@
     "not_string": "Käyttäjänimen on oltava merkkijono.",
     "too_short": "Käyttäjänimen on oltava vähintään {min} merkkiä pitkä.",
     "too_long": "Käyttäjänimi ei saa ylittää {max} merkkiä.",
-    "invalid_chars": "Käyttäjänimi voi sisältää vain kirjaimia, numeroita, välilyöntejä, alaviivoja ja [hakasulkeita]."
+    "invalid_chars": "Käyttäjänimi voi sisältää vain kirjaimia, numeroita, välilyöntejä, alaviivoja ja [hakasulkeita].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Yksityinen aula",

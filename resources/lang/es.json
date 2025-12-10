@@ -171,7 +171,9 @@
     "not_string": "El nombre de usuario debe ser una cadena de texto.",
     "too_short": "El nombre de usuario tiene que tener al menos {min} carácteres.",
     "too_long": "El nombre de usuario no puede superar los {max} carácteres.",
-    "invalid_chars": "El nombre de usuario solamente puede contener letras, números, espacios, barras bajas y [corchetes]."
+    "invalid_chars": "El nombre de usuario solamente puede contener letras, números, espacios, barras bajas y [corchetes].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Partida Privada",

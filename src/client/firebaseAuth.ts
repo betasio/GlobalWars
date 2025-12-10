@@ -21,15 +21,29 @@ type FirebaseAuthModule = {
   signOut: (auth: any) => Promise<void>;
 };
 
+type FirebaseFirestoreModule = {
+  getFirestore: (app?: any) => any;
+  doc: (db: any, collection: string, id: string) => any;
+  getDoc: (ref: any) => Promise<any>;
+  setDoc: (ref: any, data: any, options?: any) => Promise<void>;
+  runTransaction: (
+    db: any,
+    updater: (transaction: any) => Promise<any>,
+  ) => Promise<void>;
+  serverTimestamp: () => any;
+};
+
 type FirebaseModules = {
   app: FirebaseAppModule;
   auth: FirebaseAuthModule;
+  firestore?: FirebaseFirestoreModule;
 };
 
 let firebaseModulesPromise: Promise<FirebaseModules | null> | null = null;
 let cachedUser: any = null;
 let cachedIdToken: string | null = null;
 let authInstance: any = null;
+let firestoreInstance: any = null;
 
 function hasFirebaseConfig(
   config: FirebaseClientConfig | undefined,
@@ -51,18 +65,22 @@ async function loadFirebaseModules(): Promise<FirebaseModules | null> {
       return null;
     }
 
-    const [appModule, authModule] = await Promise.all([
+    const [appModule, authModule, firestoreModule] = await Promise.all([
       import(
         /* webpackIgnore: true */ "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js"
       ),
       import(
         /* webpackIgnore: true */ "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js"
       ),
+      import(
+        /* webpackIgnore: true */ "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js"
+      ),
     ]);
 
     return {
       app: appModule as unknown as FirebaseAppModule,
       auth: authModule as unknown as FirebaseAuthModule,
+      firestore: firestoreModule as unknown as FirebaseFirestoreModule,
     };
   })();
 
@@ -104,6 +122,27 @@ async function ensureAuth(): Promise<{ auth: any; configured: boolean }> {
   return { auth: authInstance, configured: true };
 }
 
+async function ensureFirestore(): Promise<{
+  db: any;
+  firestore: FirebaseFirestoreModule | null;
+  configured: boolean;
+}> {
+  const modules = await loadFirebaseModules();
+  const firestore = modules?.firestore ?? null;
+  if (!modules || !firestore) return { db: null, firestore, configured: false };
+
+  if (!firestoreInstance) {
+    const app = modules.app.getApps().length
+      ? modules.app.getApps()[0]
+      : modules.app.initializeApp(
+          (cachedEnvConfig ?? (await getClientEnv())).firebase!,
+        );
+    firestoreInstance = firestore.getFirestore(app);
+  }
+
+  return { db: firestoreInstance, firestore, configured: true };
+}
+
 export async function loginWithGoogle(): Promise<any | null> {
   const { auth, configured } = await ensureAuth();
   if (!configured || !auth) return null;
@@ -141,4 +180,60 @@ export function getCachedFirebaseUser(): any | null {
 
 export function getCachedFirebaseIdToken(): string | null {
   return cachedIdToken;
+}
+
+const USER_COLLECTION = "users";
+const USERNAME_CLAIMS_COLLECTION = "usernameClaims";
+
+export async function fetchStoredUsername(uid: string): Promise<string | null> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) return null;
+
+  const userRef = firestore.doc(db, USER_COLLECTION, uid);
+  const snap = await firestore.getDoc(userRef);
+  if (snap?.exists && snap.exists()) {
+    return snap.data()?.username ?? null;
+  }
+  return null;
+}
+
+export async function claimUsername(
+  uid: string,
+  username: string,
+): Promise<void> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  const normalized = encodeURIComponent(username.trim().toLowerCase());
+  await firestore.runTransaction(db, async (tx: any) => {
+    const claimRef = firestore.doc(db, USERNAME_CLAIMS_COLLECTION, normalized);
+    const userRef = firestore.doc(db, USER_COLLECTION, uid);
+
+    const claimSnap = await tx.get(claimRef);
+    if (claimSnap?.exists && claimSnap.exists()) {
+      const currentUid = claimSnap.data()?.uid;
+      if (currentUid && currentUid !== uid) {
+        const err: any = new Error("username_taken");
+        err.code = "username_taken";
+        throw err;
+      }
+    }
+
+    tx.set(claimRef, {
+      uid,
+      username,
+      updatedAt: firestore.serverTimestamp(),
+    });
+
+    tx.set(
+      userRef,
+      {
+        username,
+        updatedAt: firestore.serverTimestamp(),
+      },
+      { merge: true },
+    );
+  });
 }

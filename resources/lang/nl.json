@@ -197,7 +197,9 @@
     "not_string": "Gebruikersnaam moet een tekenreeks zijn.",
     "too_short": "Gebruikersnaam moet minstens {min} tekens lang zijn.",
     "too_long": "Gebruikersnaam mag niet langer zijn dan {max} tekens.",
-    "invalid_chars": "Gebruikersnaam mag alleen letters, cijfers, spaties, underscores en [vierkante haakjes] bevatten."
+    "invalid_chars": "Gebruikersnaam mag alleen letters, cijfers, spaties, underscores en [vierkante haakjes] bevatten.",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Privélobby",
