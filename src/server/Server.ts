@@ -33,30 +33,47 @@ main().catch((error) => {
 });
 
 async function setupTunnels() {
-  const cloudflare = new Cloudflare(
-    config.cloudflareAccountId(),
-    config.cloudflareApiToken(),
-    config.cloudflareConfigPath(),
-    config.cloudflareCredsPath(),
-  );
+  const accountId = config.cloudflareAccountId();
+  const apiToken = config.cloudflareApiToken();
+  const configPath = config.cloudflareConfigPath();
+  const credsPath = config.cloudflareCredsPath();
+  const subdomain = config.subdomain();
+  const domain = config.domain();
+
+  if (
+    !accountId ||
+    !apiToken ||
+    !configPath ||
+    !credsPath ||
+    !subdomain ||
+    !domain ||
+    process.env.CF_TUNNEL_DISABLED === "true"
+  ) {
+    console.log(
+      "Skipping Cloudflare tunnel setup (missing credentials/config or CF_TUNNEL_DISABLED=true)",
+    );
+    return;
+  }
+
+  const cloudflare = new Cloudflare(accountId, apiToken, configPath, credsPath);
 
   const domainToService = new Map<string, string>().set(
-    config.subdomain(),
+    subdomain,
     // TODO: change to 3000 when we have a proper tunnel setup.
     `http://localhost:80`,
   );
 
   for (let i = 0; i < config.numWorkers(); i++) {
     domainToService.set(
-      `w${i}-${config.subdomain()}`,
+      `w${i}-${subdomain}`,
       `http://localhost:${3000 + i + 1}`,
     );
   }
 
   if (!(await cloudflare.configAlreadyExists())) {
     await cloudflare.createTunnel({
-      subdomain: config.subdomain(),
-      domain: config.domain(),
+      subdomain,
+      domain,
       subdomainToService: domainToService,
     } as TunnelConfig);
   } else {

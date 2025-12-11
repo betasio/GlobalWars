@@ -21,15 +21,12 @@ import { JoinPrivateLobbyModal } from "./JoinPrivateLobbyModal";
 import "./LangSelector";
 import { LangSelector } from "./LangSelector";
 import { LanguageModal } from "./LanguageModal";
-import "./Matchmaking";
-import { MatchmakingModal } from "./Matchmaking";
 import "./NewsModal";
 import "./PublicLobby";
 import { PublicLobby } from "./PublicLobby";
 import { SinglePlayerModal } from "./SinglePlayerModal";
 import "./StatsModal";
 import { TerritoryPatternsModal } from "./TerritoryPatternsModal";
-import { TokenLoginModal } from "./TokenLoginModal";
 import { SendKickPlayerIntentEvent } from "./Transport";
 import { UserSettingModal } from "./UserSettingModal";
 import "./UsernameInput";
@@ -41,7 +38,8 @@ import {
 } from "./Utils";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
-import { getUserMe, isLoggedIn } from "./jwt";
+import { getCachedFirebaseUser } from "./firebaseAuth";
+import { getUserMe } from "./jwt";
 import "./styles.css";
 
 declare global {
@@ -100,9 +98,7 @@ class Client {
   private joinModal: JoinPrivateLobbyModal;
   private publicLobby: PublicLobby;
   private userSettings: UserSettings = new UserSettings();
-  private patternsModal: TerritoryPatternsModal;
-  private tokenLoginModal: TokenLoginModal;
-  private matchmakingModal: MatchmakingModal;
+  private patternsModal: TerritoryPatternsModal | null = null;
 
   private gutterAds: GutterAds;
 
@@ -206,52 +202,23 @@ class Client {
 
     this.patternsModal = document.querySelector(
       "territory-patterns-modal",
-    ) as TerritoryPatternsModal;
-    if (
-      !this.patternsModal ||
-      !(this.patternsModal instanceof TerritoryPatternsModal)
-    ) {
-      console.warn("Territory patterns modal element not found");
-    }
+    ) as TerritoryPatternsModal | null;
     const patternButton = document.getElementById(
       "territory-patterns-input-preview-button",
     );
-    if (isInIframe() && patternButton) {
-      patternButton.style.display = "none";
-    }
-
-    if (
-      !this.patternsModal ||
-      !(this.patternsModal instanceof TerritoryPatternsModal)
-    ) {
-      console.warn("Territory patterns modal element not found");
-    }
-    if (patternButton === null)
-      throw new Error("territory-patterns-input-preview-button");
-    this.patternsModal.previewButton = patternButton;
-    this.patternsModal.refresh();
-    patternButton.addEventListener("click", () => {
-      this.patternsModal.open();
-    });
-
-    this.tokenLoginModal = document.querySelector(
-      "token-login",
-    ) as TokenLoginModal;
-    if (
-      !this.tokenLoginModal ||
-      !(this.tokenLoginModal instanceof TokenLoginModal)
-    ) {
-      console.warn("Token login modal element not found");
-    }
-
-    this.matchmakingModal = document.querySelector(
-      "matchmaking-modal",
-    ) as MatchmakingModal;
-    if (
-      !this.matchmakingModal ||
-      !(this.matchmakingModal instanceof MatchmakingModal)
-    ) {
-      console.warn("Matchmaking modal element not found");
+    if (!this.patternsModal) {
+      if (patternButton) {
+        patternButton.style.display = "none";
+      }
+    } else {
+      this.patternsModal.previewButton = patternButton ?? null;
+      this.patternsModal.refresh();
+      patternButton?.addEventListener("click", () => {
+        this.patternsModal?.open();
+      });
+      if (isInIframe() && patternButton) {
+        patternButton.style.display = "none";
+      }
     }
 
     const onUserMe = async (userMeResponse: UserMeResponse | false) => {
@@ -272,14 +239,12 @@ class Client {
       }
     };
 
-    if (isLoggedIn() === false) {
-      // Not logged in
-      onUserMe(false);
-    } else {
-      // JWT appears to be valid
-      // TODO: Add caching
-      getUserMe().then(onUserMe);
-    }
+    getUserMe()
+      .then(onUserMe)
+      .catch((err) => {
+        console.warn("Failed to fetch user info", err);
+        onUserMe(false);
+      });
 
     const settingsModal = document.querySelector(
       "user-setting",
@@ -406,35 +371,8 @@ class Client {
       }
 
       this.userSettings.setSelectedPatternName(patternName);
-      const token = params.get("login-token");
-
-      if (token) {
-        strip();
-        window.addEventListener("beforeunload", () => {
-          // The page reloads after token login, so we need to save the pattern name
-          // in case it is unset during reload.
-          this.userSettings.setSelectedPatternName(patternName);
-        });
-        this.tokenLoginModal.open(token);
-      } else {
-        alertAndStrip(`purchase succeeded: ${patternName}`);
-        this.patternsModal.refresh();
-      }
-      return;
-    }
-
-    if (decodedHash.startsWith("#token-login")) {
-      const token = params.get("token-login");
-
-      if (!token) {
-        alertAndStrip(
-          `login failed! Please try again later or contact support.`,
-        );
-        return;
-      }
-
-      strip();
-      this.tokenLoginModal.open(token);
+      alertAndStrip(`purchase succeeded: ${patternName}`);
+      this.patternsModal?.refresh();
       return;
     }
 
@@ -449,7 +387,7 @@ class Client {
       const affiliateCode = decodedHash.replace("#affiliate=", "");
       strip();
       if (affiliateCode) {
-        this.patternsModal.open(affiliateCode);
+        this.patternsModal?.open(affiliateCode);
       }
     }
     if (decodedHash.startsWith("#refresh")) {
@@ -496,6 +434,9 @@ class Client {
         document
           .getElementById("username-validation-error")
           ?.classList.add("hidden");
+        if (this.darkModeButton) {
+          this.darkModeButton.style.display = "none";
+        }
         [
           "single-player-modal",
           "host-lobby-modal",
@@ -510,7 +451,6 @@ class Client {
           "flag-input-modal",
           "account-button",
           "stats-button",
-          "token-login",
           "matchmaking-modal",
         ].forEach((tag) => {
           const modal = document.querySelector(tag) as HTMLElement & {
@@ -562,6 +502,9 @@ class Client {
     console.log("leaving lobby, cancelling game");
     this.gameStop();
     this.gameStop = null;
+    if (this.darkModeButton) {
+      this.darkModeButton.style.display = "";
+    }
     this.gutterAds.hide();
     this.publicLobby.leaveLobby();
   }
@@ -605,15 +548,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // WARNING: DO NOT EXPOSE THIS ID
 export function getPlayToken(): string {
-  const result = isLoggedIn();
-  if (result !== false) return result.token;
+  const firebaseUser = getCachedFirebaseUser();
+  if (firebaseUser) return firebaseUser.uid;
   return getPersistentIDFromCookie();
 }
 
 // WARNING: DO NOT EXPOSE THIS ID
 export function getPersistentID(): string {
-  const result = isLoggedIn();
-  if (result !== false) return result.claims.sub;
+  const firebaseUser = getCachedFirebaseUser();
+  if (firebaseUser) return firebaseUser.uid;
   return getPersistentIDFromCookie();
 }
 
