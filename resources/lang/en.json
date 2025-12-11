@@ -255,9 +255,12 @@
     "not_string": "Username must be a string.",
     "too_short": "Username must be at least {min} characters long.",
     "too_long": "Username must not exceed {max} characters.",
-    "invalid_chars": "Username can only contain letters, numbers, spaces, underscores, and [square brackets].",
+    "invalid_chars": "Username can only contain letters, numbers, underscores, hyphens, [square brackets], 🍀, or 🐈.",
+    "no_spaces": "Usernames cannot contain spaces.",
     "taken": "That username is already taken.",
-    "save_failed": "Failed to save username. Please try again."
+    "save": "Save username",
+    "save_failed": "Failed to save username. Please try again.",
+    "guest_autogen": ""
   },
   "host_modal": {
     "title": "Private Lobby",

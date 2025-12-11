@@ -20,6 +20,7 @@ export class UsernameInput extends LitElement {
   @property({ type: String }) validationError: string = "";
   private _isValid: boolean = true;
   @state() private isGuest: boolean = true;
+  private lastSavedUsername: string | null = null;
   private currentUserId: string | null = null;
   private userSettings: UserSettings = new UserSettings();
   private authListener: ((event: Event) => void) | null = null;
@@ -70,8 +71,8 @@ export class UsernameInput extends LitElement {
       <input
         type="text"
         .value=${this.username}
-        @input=${this.handleChange}
-        @change=${this.handleChange}
+        @input=${this.handleInput}
+        @keydown=${this.handleKeydown}
         placeholder="${translateText("username.enter_username")}"
         maxlength="${MAX_USERNAME_LENGTH}"
         ?disabled=${this.isGuest}
@@ -88,32 +89,62 @@ export class UsernameInput extends LitElement {
             ${this.validationError}
           </div>`
         : null}
-      ${this.isGuest
-        ? html`<p
-            class="mt-2 text-sm text-gray-500 dark:text-gray-300 text-center"
-          >
-            ${translateText("username.guest_autogen") ||
-            "Guest names are assigned automatically and reset each session."}
-          </p>`
+      ${!this.isGuest
+        ? html`<div class="mt-3 flex justify-center">
+            <button
+              class="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white shadow disabled:opacity-60 disabled:cursor-not-allowed"
+              @click=${this.saveUsername}
+              ?disabled=${!this._isValid ||
+              this.lastSavedUsername === this.username.trim()}
+            >
+              ${translateText("username.save") || "Save username"}
+            </button>
+          </div>`
         : null}
     `;
   }
 
-  private handleChange(e: Event) {
+  private handleInput(e: Event) {
     if (this.isGuest) {
       return;
     }
     const input = e.target as HTMLInputElement;
-    this.username = input.value.trim();
-    const result = validateUsername(this.username);
-    this._isValid = result.isValid;
-    if (result.isValid) {
-      if (this.currentUserId) {
-        void this.commitUsername(this.currentUserId, this.username, false);
-      }
-    } else {
-      this.validationError = result.error ?? "";
+    const sanitizedInput = input.value.replace(/\s+/g, "");
+    this.username = sanitizedInput;
+    if (input.value !== sanitizedInput) {
+      input.value = sanitizedInput;
     }
+    const result = validateUsername(this.username.trim());
+    this._isValid = result.isValid;
+    this.validationError = result.error ?? "";
+  }
+
+  private handleKeydown(e: KeyboardEvent) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void this.saveUsername();
+    }
+  }
+
+  private async saveUsername() {
+    if (this.isGuest || !this.currentUserId) {
+      return;
+    }
+
+    const trimmed = this.username.trim();
+    const result = validateUsername(trimmed);
+    this._isValid = result.isValid;
+    this.validationError = result.error ?? "";
+
+    if (!result.isValid) {
+      return;
+    }
+
+    if (this.lastSavedUsername === trimmed) {
+      return;
+    }
+
+    await this.commitUsername(this.currentUserId, trimmed, false);
   }
 
   private async applyAuthUser(user: any | null, configured: boolean) {
@@ -130,10 +161,12 @@ export class UsernameInput extends LitElement {
         true,
       );
       this.username = claimed;
+      this.lastSavedUsername = claimed;
       this._isValid = true;
       this.validationError = "";
     } else {
       this.username = this.generateGuestUsername();
+      this.lastSavedUsername = null;
       this._isValid = true;
       this.validationError = "";
       this.dispatchUsernameEvent();
@@ -161,7 +194,7 @@ export class UsernameInput extends LitElement {
     username: string,
     allowAutoFallback: boolean,
   ): Promise<string> {
-    const validated = validateUsername(username);
+    const validated = validateUsername(username.trim());
     if (!validated.isValid) {
       this.validationError = validated.error ?? "";
       this._isValid = false;
@@ -173,12 +206,13 @@ export class UsernameInput extends LitElement {
       attempts: number = 0,
     ): Promise<string> => {
       try {
-        await claimUsername(uid, name);
+        await claimUsername(uid, name.trim());
         this.validationError = "";
         this._isValid = true;
-        this.username = name;
+        this.username = name.trim();
+        this.lastSavedUsername = this.username;
         this.dispatchUsernameEvent();
-        return name;
+        return this.username;
       } catch (err: any) {
         if (err?.code === "username_taken") {
           if (allowAutoFallback) {

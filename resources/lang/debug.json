@@ -140,8 +140,11 @@
     "too_short": "username.too_short",
     "too_long": "username.too_long",
     "invalid_chars": "username.invalid_chars",
+    "no_spaces": "username.no_spaces",
     "taken": "That username is already taken.",
-    "save_failed": "Failed to save username. Please try again."
+    "save": "username.save",
+    "save_failed": "Failed to save username. Please try again.",
+    "guest_autogen": ""
   },
   "host_modal": {
     "title": "host_modal.title",
