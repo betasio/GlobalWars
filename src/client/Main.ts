@@ -5,6 +5,8 @@ import { GameRecord, GameStartInfo, ID } from "../core/Schemas";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import { UserSettings } from "../core/game/UserSettings";
 import "./AccountModal";
+import "./ClanModal";
+import { ClanModal } from "./ClanModal";
 import { joinLobby } from "./ClientGameRunner";
 import { fetchCosmetics } from "./Cosmetics";
 import "./DarkModeButton";
@@ -288,6 +290,16 @@ class Client {
         this.joinModal.open();
       }
     });
+
+    const clanModal = document.querySelector("clan-modal") as ClanModal | null;
+    const clanButton = document.getElementById("clan-button");
+    if (clanButton) {
+      clanButton.addEventListener("click", () => {
+        clanModal?.open();
+      });
+    } else {
+      console.warn("Clan button element not found");
+    }
 
     if (this.userSettings.darkMode()) {
       document.documentElement.classList.add("dark");
