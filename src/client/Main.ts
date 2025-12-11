@@ -38,7 +38,6 @@ import {
 } from "./Utils";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
-import { getCachedFirebaseUser } from "./firebaseAuth";
 import { getUserMe } from "./jwt";
 import "./styles.css";
 
@@ -548,15 +547,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // WARNING: DO NOT EXPOSE THIS ID
 export function getPlayToken(): string {
-  const firebaseUser = getCachedFirebaseUser();
-  if (firebaseUser) return firebaseUser.uid;
   return getPersistentIDFromCookie();
 }
 
 // WARNING: DO NOT EXPOSE THIS ID
 export function getPersistentID(): string {
-  const firebaseUser = getCachedFirebaseUser();
-  if (firebaseUser) return firebaseUser.uid;
   return getPersistentIDFromCookie();
 }
 
