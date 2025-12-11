@@ -210,6 +210,13 @@ export async function claimUsername(
   await firestore.runTransaction(db, async (tx: any) => {
     const claimRef = firestore.doc(db, USERNAME_CLAIMS_COLLECTION, normalized);
     const userRef = firestore.doc(db, USER_COLLECTION, uid);
+    const userSnap = await tx.get(userRef);
+    const previousUsername = userSnap?.exists
+      ? userSnap.data()?.username
+      : null;
+    const previousClaimId = previousUsername
+      ? encodeURIComponent(previousUsername.trim().toLowerCase())
+      : null;
 
     const claimSnap = await tx.get(claimRef);
     if (claimSnap?.exists && claimSnap.exists()) {
@@ -235,5 +242,14 @@ export async function claimUsername(
       },
       { merge: true },
     );
+
+    if (previousClaimId && previousClaimId !== normalized) {
+      const previousClaimRef = firestore.doc(
+        db,
+        USERNAME_CLAIMS_COLLECTION,
+        previousClaimId,
+      );
+      tx.delete(previousClaimRef);
+    }
   });
 }

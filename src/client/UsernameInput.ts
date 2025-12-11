@@ -20,10 +20,12 @@ export class UsernameInput extends LitElement {
   @property({ type: String }) validationError: string = "";
   private _isValid: boolean = true;
   @state() private isGuest: boolean = true;
+  @state() private successMessage: string = "";
   private lastSavedUsername: string | null = null;
   private currentUserId: string | null = null;
   private userSettings: UserSettings = new UserSettings();
   private authListener: ((event: Event) => void) | null = null;
+  private successTimeout: number | null = null;
 
   // Remove static styles since we're using Tailwind
 
@@ -67,6 +69,10 @@ export class UsernameInput extends LitElement {
   }
 
   render() {
+    const trimmed = this.username.trim();
+    const showSaveButton =
+      !this.isGuest && trimmed !== (this.lastSavedUsername ?? "");
+
     return html`
       <input
         type="text"
@@ -89,16 +95,20 @@ export class UsernameInput extends LitElement {
             ${this.validationError}
           </div>`
         : null}
-      ${!this.isGuest
+      ${showSaveButton
         ? html`<div class="mt-3 flex justify-center">
             <button
               class="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white shadow disabled:opacity-60 disabled:cursor-not-allowed"
               @click=${this.saveUsername}
-              ?disabled=${!this._isValid ||
-              this.lastSavedUsername === this.username.trim()}
+              ?disabled=${!this._isValid}
             >
               ${translateText("username.save") || "Save username"}
             </button>
+          </div>`
+        : null}
+      ${this.successMessage
+        ? html`<div class="mt-2 text-center text-sm text-green-600">
+            ${this.successMessage}
           </div>`
         : null}
     `;
@@ -108,6 +118,7 @@ export class UsernameInput extends LitElement {
     if (this.isGuest) {
       return;
     }
+    this.successMessage = "";
     const input = e.target as HTMLInputElement;
     const sanitizedInput = input.value.replace(/\s+/g, "");
     this.username = sanitizedInput;
@@ -164,11 +175,13 @@ export class UsernameInput extends LitElement {
       this.lastSavedUsername = claimed;
       this._isValid = true;
       this.validationError = "";
+      this.successMessage = "";
     } else {
       this.username = this.generateGuestUsername();
       this.lastSavedUsername = null;
       this._isValid = true;
       this.validationError = "";
+      this.successMessage = "";
       this.dispatchUsernameEvent();
     }
   }
@@ -198,6 +211,7 @@ export class UsernameInput extends LitElement {
     if (!validated.isValid) {
       this.validationError = validated.error ?? "";
       this._isValid = false;
+      this.successMessage = "";
       return username;
     }
 
@@ -211,6 +225,17 @@ export class UsernameInput extends LitElement {
         this._isValid = true;
         this.username = name.trim();
         this.lastSavedUsername = this.username;
+        const successText = translateText("username.save_success");
+        this.successMessage =
+          successText && successText !== "username.save_success"
+            ? successText
+            : "Username has been saved!";
+        if (this.successTimeout) {
+          window.clearTimeout(this.successTimeout);
+        }
+        this.successTimeout = window.setTimeout(() => {
+          this.successMessage = "";
+        }, 2000);
         this.dispatchUsernameEvent();
         return this.username;
       } catch (err: any) {
@@ -221,6 +246,7 @@ export class UsernameInput extends LitElement {
                 translateText("username.taken") ||
                 "That username is already taken.";
               this._isValid = false;
+              this.successMessage = "";
               return name;
             }
             return attemptClaim(
@@ -232,12 +258,14 @@ export class UsernameInput extends LitElement {
             translateText("username.taken") ||
             "That username is already taken.";
           this._isValid = false;
+          this.successMessage = "";
           return name;
         }
 
         this.validationError =
           translateText("username.save_failed") || "Failed to save username.";
         this._isValid = false;
+        this.successMessage = "";
         console.error("Failed to save username", err);
         return name;
       }
