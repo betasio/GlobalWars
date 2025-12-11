@@ -554,16 +554,12 @@ export async function leaveClan(uid: string): Promise<void> {
 
     const members = clanData.members ?? {};
     delete members[uid];
-    tx.set(
-      clanRef,
-      {
-        ...clanData,
-        members,
-        membersCount: Math.max(0, Object.keys(members).length),
-        updatedAt: firestore.serverTimestamp(),
-      },
-      { merge: true },
-    );
+    tx.set(clanRef, {
+      ...clanData,
+      members,
+      membersCount: Math.max(0, Object.keys(members).length),
+      updatedAt: firestore.serverTimestamp(),
+    });
 
     tx.set(
       userRef,
@@ -742,16 +738,12 @@ export async function kickMember(
     const members = clanData.members ?? {};
     delete members[memberUid];
 
-    tx.set(
-      clanRef,
-      {
-        ...clanData,
-        members,
-        membersCount: Math.max(0, Object.keys(members).length),
-        updatedAt: firestore.serverTimestamp(),
-      },
-      { merge: true },
-    );
+    tx.set(clanRef, {
+      ...clanData,
+      members,
+      membersCount: Math.max(0, Object.keys(members).length),
+      updatedAt: firestore.serverTimestamp(),
+    });
 
     const userRef = firestore.doc(db, USER_COLLECTION, memberUid);
     tx.set(
