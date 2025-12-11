@@ -1,6 +1,6 @@
 import { base64url } from "jose";
 import { Logger } from "winston";
-import { CosmeticsSchema } from "../core/CosmeticSchemas";
+import { parseCosmetics } from "../core/CosmeticsNormalizer";
 import {
   FailOpenPrivilegeChecker,
   PrivilegeChecker,
@@ -43,26 +43,29 @@ export class PrivilegeRefresher {
   private async loadPrivilegeChecker(): Promise<void> {
     this.log.info(`Loading privilege checker from ${this.endpoint}`);
     try {
+      if (!this.endpoint) {
+        this.log.warn(
+          "Cosmetics endpoint not configured; continuing with fail-open checker",
+        );
+        return;
+      }
+
       const response = await fetch(this.endpoint);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const cosmeticsData = await response.json();
-      const result = CosmeticsSchema.safeParse(cosmeticsData);
-
-      if (!result.success) {
-        throw new Error(`Invalid cosmetics data: ${result.error.message}`);
-      }
+      const parsed = parseCosmetics(cosmeticsData);
 
       this.privilegeChecker = new PrivilegeCheckerImpl(
-        result.data,
+        parsed,
         base64url.decode,
       );
       this.log.info(`Privilege checker loaded successfully`);
     } catch (error) {
       this.log.error(`Failed to fetch cosmetics from ${this.endpoint}:`, error);
-      throw error;
+      this.log.warn("Continuing with fail-open privilege checker");
     }
   }
 }

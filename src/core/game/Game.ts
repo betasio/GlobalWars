@@ -403,6 +403,8 @@ export interface MutableAlliance extends Alliance {
 
 export class PlayerInfo {
   public readonly clan: string | null;
+  public readonly clanTag: string | null;
+  public readonly clanName: string | null;
 
   constructor(
     public readonly name: string,
@@ -411,9 +413,13 @@ export class PlayerInfo {
     public readonly clientID: ClientID | null,
     // TODO: make player id the small id
     public readonly id: PlayerID,
+    clanTag?: string | null,
+    clanName?: string | null,
     public readonly nation?: Nation | null,
   ) {
-    this.clan = getClanTag(name);
+    this.clanTag = clanTag ?? getClanTag(name);
+    this.clanName = clanName ?? null;
+    this.clan = this.clanTag;
   }
 }
 
