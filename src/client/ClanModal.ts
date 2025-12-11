@@ -1,6 +1,11 @@
 import { html, LitElement } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
-import { sanitizeClanName, validateClanName } from "../core/validations/clan";
+import {
+  sanitizeClanName,
+  sanitizeClanNickname,
+  validateClanName,
+  validateClanNickname,
+} from "../core/validations/clan";
 import {
   ClanProfile,
   createClan,
@@ -34,6 +39,7 @@ export class ClanModal extends LitElement {
   @state() private authUser: any | null = null;
   @state() private isLoading = false;
   @state() private status: StatusMessage | null = null;
+  @state() private createNickname = "";
   @state() private createName = "";
   @state() private joinName = "";
   @state() private renameName = "";
@@ -122,6 +128,15 @@ export class ClanModal extends LitElement {
         <p class="text-lg font-semibold">
           ${translateText("clan.create_title") ?? "Create a clan"}
         </p>
+        <input
+          class="w-full px-3 py-2 rounded bg-gray-800 border border-gray-600 focus:outline-none"
+          placeholder="${translateText("clan.nickname_placeholder") ??
+          "Clan nickname (3 chars)"}"
+          maxlength="3"
+          .value=${this.createNickname}
+          @input=${(e: Event) =>
+            (this.createNickname = (e.target as HTMLInputElement).value)}
+        />
         <input
           class="w-full px-3 py-2 rounded bg-gray-800 border border-gray-600 focus:outline-none"
           placeholder="${translateText("clan.name_placeholder") ?? "Clan name"}"
@@ -308,8 +323,18 @@ export class ClanModal extends LitElement {
 
   private async handleCreate() {
     if (!this.authUser) return;
+    const nickname = sanitizeClanNickname(this.createNickname);
     const name = sanitizeClanName(this.createName);
+    const nicknameValidation = validateClanNickname(nickname);
     const validation = validateClanName(name);
+    if (!nicknameValidation.isValid) {
+      this.setStatus(
+        translateText(nicknameValidation.error ?? "clan.invalid_nickname") ??
+          "Clan nickname is invalid.",
+        "error",
+      );
+      return;
+    }
     if (!validation.isValid) {
       this.setStatus(
         translateText(validation.error ?? "clan.invalid_name") ??
@@ -321,11 +346,12 @@ export class ClanModal extends LitElement {
     this.isProcessing = true;
     try {
       const username = await this.ensureUsername();
-      this.clan = await createClan(this.authUser.uid, username, name);
+      this.clan = await createClan(this.authUser.uid, username, name, nickname);
       this.setStatus(
         translateText("clan.created_success") ?? "Clan created!",
         "success",
       );
+      this.createNickname = "";
       this.createName = "";
       this.renameName = this.clan.name;
       await this.subscribeToClanUpdates(this.clan.id);

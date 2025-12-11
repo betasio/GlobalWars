@@ -190,7 +190,11 @@ export class LocalServer {
         clientID: this.lobbyConfig.clientID,
         stats: this.allPlayersStats[this.lobbyConfig.clientID],
         cosmetics: this.lobbyConfig.gameStartInfo?.players[0].cosmetics,
-        clanTag: getClanTag(this.lobbyConfig.playerName) ?? undefined,
+        clanTag:
+          this.lobbyConfig.clanTag ??
+          getClanTag(this.lobbyConfig.playerName) ??
+          undefined,
+        clanName: this.lobbyConfig.clanName,
       },
     ];
     if (this.lobbyConfig.gameStartInfo === undefined) {

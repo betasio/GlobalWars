@@ -192,6 +192,7 @@ const USER_COLLECTION = "users";
 const USERNAME_CLAIMS_COLLECTION = "usernameClaims";
 const CLAN_COLLECTION = "clans";
 const CLAN_CLAIMS_COLLECTION = "clanClaims";
+const CLAN_TAG_CLAIMS_COLLECTION = "clanTagClaims";
 
 export type ClanMemberRole = "leader" | "member";
 
@@ -205,6 +206,7 @@ export interface ClanMember {
 export interface ClanProfile {
   id: string;
   name: string;
+  nickname: string;
   leaderUid: string;
   members: Record<string, ClanMember>;
   membersCount: number;
@@ -283,6 +285,10 @@ function normalizeClanName(name: string): string {
   return encodeURIComponent(name.trim().toLowerCase());
 }
 
+function normalizeClanNickname(nickname: string): string {
+  return encodeURIComponent(nickname.trim().toLowerCase());
+}
+
 async function fetchClanById(clanId: string): Promise<ClanProfile | null> {
   const { db, firestore, configured } = await ensureFirestore();
   if (!configured || !db || !firestore) return null;
@@ -294,6 +300,7 @@ async function fetchClanById(clanId: string): Promise<ClanProfile | null> {
   return {
     id: clanId,
     name: data.name ?? clanId,
+    nickname: data.nickname ?? "",
     leaderUid: data.leaderUid ?? "",
     members: data.members ?? {},
     membersCount: data.membersCount ?? Object.keys(data.members ?? {}).length,
@@ -314,6 +321,22 @@ export async function fetchClanForUser(
   const clanId = snap.data()?.clanId;
   if (!clanId) return null;
   return fetchClanById(clanId);
+}
+
+let cachedClanProfile: ClanProfile | null = null;
+let cachedClanUserId: string | null = null;
+
+export async function getCachedClanForUser(
+  uid: string,
+): Promise<ClanProfile | null> {
+  if (!uid) return null;
+  if (cachedClanProfile && cachedClanUserId === uid) {
+    return cachedClanProfile;
+  }
+  const clan = await fetchClanForUser(uid);
+  cachedClanProfile = clan;
+  cachedClanUserId = uid;
+  return clan;
 }
 
 export async function subscribeToClan(
@@ -337,6 +360,7 @@ export async function subscribeToClan(
         onChange({
           id: clanId,
           name: data.name ?? clanId,
+          nickname: data.nickname ?? "",
           leaderUid: data.leaderUid ?? "",
           members: data.members ?? {},
           membersCount:
@@ -376,6 +400,7 @@ export async function createClan(
   uid: string,
   username: string,
   clanName: string,
+  clanNickname: string,
 ): Promise<ClanProfile> {
   const { db, firestore, configured } = await ensureFirestore();
   if (!configured || !db || !firestore) {
@@ -383,6 +408,7 @@ export async function createClan(
   }
 
   const normalized = normalizeClanName(clanName);
+  const normalizedNickname = normalizeClanNickname(clanNickname);
   const now = firestore.serverTimestamp();
 
   await firestore.runTransaction(db, async (tx: any) => {
@@ -396,10 +422,24 @@ export async function createClan(
       throw err;
     }
 
+    const tagRef = firestore.doc(
+      db,
+      CLAN_TAG_CLAIMS_COLLECTION,
+      normalizedNickname,
+    );
+    const tagSnap = await tx.get(tagRef);
+    if (tagSnap?.exists && tagSnap.exists()) {
+      const err: any = new Error("clan_name_taken");
+      err.code = "clan_name_taken";
+      throw err;
+    }
+
     const clanRef = firestore.doc(db, CLAN_COLLECTION, normalized);
     tx.set(clanRef, {
       name: clanName,
+      nickname: clanNickname,
       normalizedName: normalized,
+      normalizedNickname,
       leaderUid: uid,
       members: {
         [uid]: {
@@ -425,6 +465,12 @@ export async function createClan(
       { merge: true },
     );
 
+    tx.set(
+      tagRef,
+      { uid, clanId: normalized, nickname: clanNickname, createdAt: now },
+      { merge: true },
+    );
+
     const userRef = firestore.doc(db, USER_COLLECTION, uid);
     tx.set(
       userRef,
@@ -432,6 +478,7 @@ export async function createClan(
         clanId: normalized,
         clanRole: "leader",
         clanName,
+        clanNickname,
         updatedAt: now,
       },
       { merge: true },
@@ -442,6 +489,8 @@ export async function createClan(
   if (!created) {
     throw new Error("clan_create_failed");
   }
+  cachedClanProfile = created;
+  cachedClanUserId = uid;
   return created;
 }
 
@@ -511,6 +560,7 @@ export async function joinClan(
         clanId: normalized,
         clanRole: uid === clanData.leaderUid ? "leader" : "member",
         clanName: clanData.name ?? clanName,
+        clanNickname: clanData.nickname ?? "",
         updatedAt: now,
       },
       { merge: true },
@@ -521,6 +571,8 @@ export async function joinClan(
   if (!joined) {
     throw new Error("clan_join_failed");
   }
+  cachedClanProfile = joined;
+  cachedClanUserId = uid;
   return joined;
 }
 
@@ -563,10 +615,14 @@ export async function leaveClan(uid: string): Promise<void> {
 
     tx.set(
       userRef,
-      { clanId: null, clanRole: null, clanName: null },
+      { clanId: null, clanRole: null, clanName: null, clanNickname: null },
       { merge: true },
     );
   });
+  if (cachedClanUserId === uid) {
+    cachedClanProfile = null;
+    cachedClanUserId = null;
+  }
 }
 
 export async function renameClan(
@@ -651,6 +707,7 @@ export async function renameClan(
           clanId: clanId,
           clanRole: members[memberUid]?.role,
           clanName: newName,
+          clanNickname: clanData.nickname ?? "",
         },
         { merge: true },
       );
@@ -660,6 +717,9 @@ export async function renameClan(
   const renamed = await fetchClanById(clanId);
   if (!renamed) {
     throw new Error("clan_rename_failed");
+  }
+  if (cachedClanUserId === uid) {
+    cachedClanProfile = renamed;
   }
   return renamed;
 }
@@ -688,7 +748,7 @@ export async function disbandClan(uid: string, clanId: string): Promise<void> {
       const userRef = firestore.doc(db, USER_COLLECTION, memberUid);
       tx.set(
         userRef,
-        { clanId: null, clanRole: null, clanName: null },
+        { clanId: null, clanRole: null, clanName: null, clanNickname: null },
         { merge: true },
       );
     });
@@ -699,10 +759,21 @@ export async function disbandClan(uid: string, clanId: string): Promise<void> {
       clanData.normalizedName ?? clanId,
     );
     const legacyClaimRef = firestore.doc(db, CLAN_CLAIMS_COLLECTION, clanId);
+    const tagClaimRef = firestore.doc(
+      db,
+      CLAN_TAG_CLAIMS_COLLECTION,
+      clanData.normalizedNickname ??
+        normalizeClanNickname(clanData.nickname ?? ""),
+    );
     tx.delete(clanRef);
     tx.delete(claimRef);
     tx.delete(legacyClaimRef);
+    tx.delete(tagClaimRef);
   });
+  if (cachedClanUserId === uid) {
+    cachedClanProfile = null;
+    cachedClanUserId = null;
+  }
 }
 
 export async function kickMember(
@@ -748,7 +819,7 @@ export async function kickMember(
     const userRef = firestore.doc(db, USER_COLLECTION, memberUid);
     tx.set(
       userRef,
-      { clanId: null, clanRole: null, clanName: null },
+      { clanId: null, clanRole: null, clanName: null, clanNickname: null },
       { merge: true },
     );
   });
@@ -756,6 +827,10 @@ export async function kickMember(
   const clan = await fetchClanById(clanId);
   if (!clan) {
     throw new Error("clan_not_found");
+  }
+  if (cachedClanUserId === memberUid) {
+    cachedClanProfile = null;
+    cachedClanUserId = null;
   }
   return clan;
 }

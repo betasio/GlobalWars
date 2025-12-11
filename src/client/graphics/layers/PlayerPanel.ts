@@ -437,6 +437,11 @@ export class PlayerPanel extends LitElement implements Layer {
           >
             ${other.name()}
           </h2>
+          ${other.clanFullName()
+            ? html`<div class="text-sm text-gray-300 truncate">
+                ${other.clanFullName()}
+              </div>`
+            : null}
         </div>
         ${chip
           ? html`<span

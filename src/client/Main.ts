@@ -40,6 +40,7 @@ import {
 } from "./Utils";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
+import { ensureFirebaseReady, getCachedClanForUser } from "./firebaseAuth";
 import { getUserMe } from "./jwt";
 import "./styles.css";
 
@@ -414,6 +415,14 @@ class Client {
       this.gameStop();
     }
     const config = await getServerConfigFromClient();
+    const { user } = await ensureFirebaseReady();
+    let clanTag: string | undefined;
+    let clanName: string | undefined;
+    if (user) {
+      const clan = await getCachedClanForUser(user.uid);
+      clanTag = clan?.nickname ?? undefined;
+      clanName = clan?.name ?? undefined;
+    }
 
     const pattern = this.userSettings.getSelectedPatternName(
       await fetchCosmetics(),
@@ -434,6 +443,8 @@ class Client {
               : this.flagInput.getCurrentFlag(),
         },
         playerName: this.usernameInput?.getCurrentUsername() ?? "",
+        clanTag,
+        clanName,
         token: getPlayToken(),
         clientID: lobby.clientID,
         gameStartInfo: lobby.gameStartInfo ?? lobby.gameRecord?.info,
