@@ -6,7 +6,7 @@
     "lang_code": "cs"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Připoj se na Discord!",
     "login_discord": "Přihlásit se Discordem",
     "logged_in": "Přihlášen*a!",
@@ -16,7 +16,8 @@
     "single_player": "Jeden hráč",
     "instructions": "Instrukce",
     "how_to_play": "Jak Hrát",
-    "wiki": "Wiki"
+    "wiki": "Wiki",
+    "login_google": "Login with Google"
   },
   "help_modal": {
     "hotkeys": "Klávesové zkratky",
@@ -170,7 +171,9 @@
     "not_string": "Uživatelské jméno musí být string.",
     "too_short": "Uživatelské jméno musí mít alespoň {min} charakterů.",
     "too_long": "Uživatelské jméno nesmí mít více než {max} charakterů.",
-    "invalid_chars": "Uživatelské jméno může obsahovat pouze písmena, číslice, mezery, podtržítka a [hranaté závorky]."
+    "invalid_chars": "Uživatelské jméno může obsahovat pouze písmena, číslice, mezery, podtržítka a [hranaté závorky].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Soukromé Lobby",
@@ -409,5 +412,11 @@
     "stop_trade": "Přestat obchodovat",
     "yes": "Ano",
     "no": "Ne"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }

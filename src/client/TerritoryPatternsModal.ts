@@ -17,7 +17,7 @@ import { translateText } from "./Utils";
 
 @customElement("territory-patterns-modal")
 export class TerritoryPatternsModal extends LitElement {
-  @query("o-modal") private modalEl!: HTMLElement & {
+  @query("o-modal") private modalEl?: HTMLElement & {
     open: () => void;
     close: () => void;
   };
@@ -266,11 +266,9 @@ export class TerritoryPatternsModal extends LitElement {
     // Wait for the DOM to be updated and the o-modal element to be available
     await this.updateComplete;
 
-    // Now modalEl should be available
-    if (this.modalEl) {
+    // Only try to open the modal when it is actually active and rendered
+    if (this.isActive && this.modalEl) {
       this.modalEl.open();
-    } else {
-      console.warn("modalEl is still null after updateComplete");
     }
     if (this.previewButton === null) return;
     render(preview, this.previewButton);

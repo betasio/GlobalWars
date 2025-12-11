@@ -20,7 +20,7 @@
     "none": "None"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Discord",
     "login_discord": "Login with Discord",
     "checking_login": "Checking login...",
@@ -33,7 +33,8 @@
     "wiki": "Wiki",
     "privacy_policy": "Privacy Policy",
     "terms_of_service": "Terms of Service",
-    "reddit": "Reddit"
+    "reddit": "Reddit",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "See all releases",
@@ -160,7 +161,11 @@
     "logged_in_as": "Logged in as {email}",
     "fetching_account": "Fetching account information...",
     "logged_in_with_discord": "Logged in with Discord",
-    "recovery_email_sent": "Recovery email sent to {email}"
+    "recovery_email_sent": "Recovery email sent to {email}",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "stats_modal": {
     "title": "Stats",
@@ -250,7 +255,12 @@
     "not_string": "Username must be a string.",
     "too_short": "Username must be at least {min} characters long.",
     "too_long": "Username must not exceed {max} characters.",
-    "invalid_chars": "Username can only contain letters, numbers, spaces, underscores, and [square brackets]."
+    "invalid_chars": "Username can only contain letters, numbers, underscores, hyphens, [square brackets], 🍀, or 🐈.",
+    "no_spaces": "Usernames cannot contain spaces.",
+    "taken": "That username is already taken.",
+    "save": "Save username",
+    "save_failed": "Failed to save username. Please try again.",
+    "guest_autogen": ""
   },
   "host_modal": {
     "title": "Private Lobby",

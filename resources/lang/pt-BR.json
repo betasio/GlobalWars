@@ -6,7 +6,8 @@
     "single_player": "Um Jogador",
     "instructions": "Instruções",
     "how_to_play": "Como Jogar",
-    "wiki": "Wiki"
+    "wiki": "Wiki",
+    "login_google": "Login with Google"
   },
   "help_modal": {
     "hotkeys": "Atalhos",
@@ -134,7 +135,9 @@
     "not_string": "Apelido deve ser uma string.",
     "too_short": "O apelido deve ter pelo menos {min} caracteres.",
     "too_long": "O apelido não deve exceder {max} caracteres.",
-    "invalid_chars": "O apelido só pode conter letras, números, espaços, sublinhados e [colchetes quadrados]."
+    "invalid_chars": "O apelido só pode conter letras, números, espaços, sublinhados e [colchetes quadrados].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Sala Privada",
@@ -175,5 +178,11 @@
   },
   "select_lang": {
     "title": "Selecionar idioma"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }
