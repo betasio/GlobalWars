@@ -11,7 +11,7 @@ export function sanitizeClanName(name: string): string {
 }
 
 export function sanitizeClanNickname(nickname: string): string {
-  return nickname.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  return nickname.replace(/[^A-Za-z0-9]/g, "");
 }
 
 export function validateClanName(name: string): ClanNameValidationResult {
