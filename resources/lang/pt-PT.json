@@ -9,7 +9,7 @@
     "close": "Fechar"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Junte-se no Discord!",
     "login_discord": "Inicie a sessão com Discord",
     "checking_login": "A verificar a sessão...",
@@ -23,7 +23,8 @@
     "advertise": "Anuncie",
     "wiki": "Documentação (Wiki)",
     "privacy_policy": "Política de Privacidade",
-    "terms_of_service": "Termos de Serviço"
+    "terms_of_service": "Termos de Serviço",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Ver todas as versões",
@@ -200,7 +201,9 @@
     "not_string": "O nome de utilizador deve ser uma “string”",
     "too_short": "O nome de utilizador deve ter pelo menos {min} caracteres.",
     "too_long": "O nome de utilizador não deve exceder {max} caracteres.",
-    "invalid_chars": "O nome de utilizador pode conter apenas letras, números, espaços, sublinhados e [pressentis retos]."
+    "invalid_chars": "O nome de utilizador pode conter apenas letras, números, espaços, sublinhados e [pressentis retos].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Sala Privada",
@@ -601,5 +604,11 @@
   "radial_menu": {
     "delete_unit_title": "Eliminar unidade",
     "delete_unit_description": "Clique para eliminar a unidade mais próxima"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }

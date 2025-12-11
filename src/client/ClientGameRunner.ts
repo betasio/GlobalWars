@@ -55,6 +55,8 @@ export interface LobbyConfig {
   serverConfig: ServerConfig;
   cosmetics: PlayerCosmeticRefs;
   playerName: string;
+  clanTag?: string;
+  clanName?: string;
   clientID: ClientID;
   gameID: GameID;
   token: string;

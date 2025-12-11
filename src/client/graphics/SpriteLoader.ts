@@ -120,7 +120,7 @@ export const colorizeCanvas = (
   canvas.width = source.width;
   canvas.height = source.height;
 
-  const ctx = canvas.getContext("2d")!;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
   ctx.drawImage(source, 0, 0);
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);

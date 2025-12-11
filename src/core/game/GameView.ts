@@ -180,6 +180,8 @@ export class UnitView {
 
 export class PlayerView {
   public anonymousName: string | null = null;
+  private clanTag?: string | null;
+  private clanName?: string | null;
   private decoder?: PatternDecoder;
 
   private _territoryColor: Colord;
@@ -202,6 +204,9 @@ export class PlayerView {
         this.data.playerType,
       );
     }
+
+    this.clanTag = data.clanTag ?? null;
+    this.clanName = data.clanName ?? null;
 
     const defaultTerritoryColor = this.game
       .config()
@@ -337,6 +342,13 @@ export class PlayerView {
     return this.anonymousName !== null && userSettings.anonymousNames()
       ? this.anonymousName
       : this.data.name;
+  }
+  clanTagLabel(): string | null {
+    return this.clanTag ?? null;
+  }
+  clanFullName(): string | null {
+    if (!this.clanTag || !this.clanName) return null;
+    return `[${this.clanTag}] ${this.clanName}`;
   }
 
   clientID(): ClientID | null {

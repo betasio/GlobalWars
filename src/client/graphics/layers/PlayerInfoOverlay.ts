@@ -338,6 +338,12 @@ export class PlayerInfoOverlay extends LitElement implements Layer {
           ${this.renderPlayerNameIcons(player)}
         </button>
 
+        ${player.clanFullName()
+          ? html`<div class="text-sm text-gray-300 leading-tight">
+              ${player.clanFullName()}
+            </div>`
+          : null}
+
         <!-- Collapsible section -->
         ${this.showDetails
           ? html`

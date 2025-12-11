@@ -35,7 +35,8 @@
     "wiki": "Уики",
     "privacy_policy": "Поверителност",
     "terms_of_service": "Условия за ползване",
-    "reddit": "Reddit"
+    "reddit": "Reddit",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Виждане на всички издания",
@@ -161,7 +162,11 @@
     "logged_in_as": "Успешно се вписахте като {email}",
     "fetching_account": "Взима се информацията за профила...",
     "logged_in_with_discord": "Вписали сте се с Discord",
-    "recovery_email_sent": "Имейл за възстановяване бе изпратен на {email}"
+    "recovery_email_sent": "Имейл за възстановяване бе изпратен на {email}",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Карта",
@@ -239,7 +244,9 @@
     "not_string": "Потребителското име трябва да е символен низ.",
     "too_short": "Потребителското име трябва да е дълго поне {min} символа.",
     "too_long": "Потребителското име не трябва да надвишава {max} символа.",
-    "invalid_chars": "Потребителското име може да съдържа само букви, цифри, интервали, долни черти и [квадратни скоби]."
+    "invalid_chars": "Потребителското име може да съдържа само букви, цифри, интервали, долни черти и [квадратни скоби].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Частна игра",
