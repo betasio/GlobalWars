@@ -16,7 +16,8 @@
     "single_player": "musi pi jan wan",
     "instructions": "lawa musi",
     "how_to_play": "nasin musi",
-    "wiki": "lipu sona"
+    "wiki": "lipu sona",
+    "login_google": "Login with Google"
   },
   "help_modal": {
     "hotkeys": "ilo luka",
@@ -156,7 +157,9 @@
     "not_string": "nimi o nimi.",
     "too_short": "nimi o suli {min}.",
     "too_long": "nimi o suli ala tan {max}.",
-    "invalid_chars": "nimi o jo taso e ijo nimi e nanpa e ala e linja e [poki nimi leko]."
+    "invalid_chars": "nimi o jo taso e ijo nimi e nanpa e ala e linja e [poki nimi leko].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "tomo len",
@@ -318,5 +321,11 @@
       "saving_for_mirv": "[P1] li awen tawa ilo pi pakala wawa mute.",
       "mirv_ready": "[P1] li jo e mani tawa ilo pi pakala wawa mute a!"
     }
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }

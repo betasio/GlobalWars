@@ -6,7 +6,45 @@ import { DevConfig, DevServerConfig } from "./DevConfig";
 import { preprodConfig } from "./PreprodConfig";
 import { prodConfig } from "./ProdConfig";
 
+export type FirebaseClientConfig = {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  appId: string;
+  messagingSenderId?: string;
+  measurementId?: string;
+};
+
+export type ClientEnvConfig = {
+  game_env: string;
+  ws_base_url?: string;
+  firebase?: FirebaseClientConfig;
+};
+
+declare global {
+  interface Window {
+    websocketBaseUrl?: string;
+  }
+}
+
 export let cachedSC: ServerConfig | null = null;
+export let cachedEnvConfig: ClientEnvConfig | null = null;
+
+export async function getClientEnv(): Promise<ClientEnvConfig> {
+  if (cachedEnvConfig) {
+    return cachedEnvConfig;
+  }
+
+  const response = await fetch("/api/env");
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch server config: ${response.status} ${response.statusText}`,
+    );
+  }
+  cachedEnvConfig = (await response.json()) as ClientEnvConfig;
+  return cachedEnvConfig;
+}
 
 export async function getConfig(
   gameConfig: GameConfig,
@@ -31,14 +69,8 @@ export async function getServerConfigFromClient(): Promise<ServerConfig> {
   if (cachedSC) {
     return cachedSC;
   }
-  const response = await fetch("/api/env");
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch server config: ${response.status} ${response.statusText}`,
-    );
-  }
-  const config = await response.json();
+  const config = await getClientEnv();
+  cachedEnvConfig = config;
   // Log the retrieved configuration
   console.log("Server config loaded:", config);
 
@@ -52,7 +84,10 @@ export async function getServerConfigFromClient(): Promise<ServerConfig> {
   return cachedSC;
 }
 export function getServerConfigFromServer(): ServerConfig {
-  const gameEnv = process.env.GAME_ENV ?? "dev";
+  // Default to production when GAME_ENV is not explicitly set so deployed
+  // environments don't silently fall back to the dev configuration (which
+  // disables matchmaking and points at localhost endpoints).
+  const gameEnv = process.env.GAME_ENV ?? "prod";
   return getServerConfig(gameEnv);
 }
 export function getServerConfig(gameEnv: string) {

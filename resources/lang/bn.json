@@ -6,14 +6,15 @@
     "lang_code": "bn"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "ডিসকর্ডে যোগ দিন!",
     "create_lobby": "লবি তৈরি করুন",
     "join_lobby": "লবিতে যোগ দিন",
     "single_player": "কম্পিউটার মোড",
     "instructions": "নির্দেশনা",
     "how_to_play": "খেলার নিয়ম",
-    "wiki": "উইকি"
+    "wiki": "উইকি",
+    "login_google": "Login with Google"
   },
   "help_modal": {
     "hotkeys": "হট-কী",
@@ -142,7 +143,9 @@
     "not_string": "ব্যবহারকারী নাম অবশ্যই একটি অক্ষর হতে হবে।",
     "too_short": "ব্যবহারকারী নাম অবশ্যই কমপক্ষে {min} অক্ষর দীর্ঘ হতে হবে।",
     "too_long": "ব্যবহারকারী নাম {max} অক্ষরের বেশি হতে পারবে না।",
-    "invalid_chars": "ব্যবহারকারী নামে শুধুমাত্র অক্ষর, সংখ্যা, স্পেস, আন্ডারস্কোর এবং [বর্গাকার ব্র্যাকেট] থাকতে পারে।"
+    "invalid_chars": "ব্যবহারকারী নামে শুধুমাত্র অক্ষর, সংখ্যা, স্পেস, আন্ডারস্কোর এবং [বর্গাকার ব্র্যাকেট] থাকতে পারে।",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "ব্যক্তিগত লবি",
@@ -223,5 +226,11 @@
     "continental": "মহাদেশীয়",
     "regional": "আঞ্চলিক",
     "fantasy": "অন্য"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }
