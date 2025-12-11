@@ -13,7 +13,8 @@
     "single_player": "Igraj sam",
     "instructions": "Instrukcije",
     "how_to_play": "Kako igrati",
-    "wiki": "Wiki"
+    "wiki": "Wiki",
+    "login_google": "Login with Google"
   },
   "help_modal": {
     "hotkeys": "Prečice",
@@ -143,7 +144,9 @@
     "not_string": "Korisničko ime mora biti string.",
     "too_short": "Korisničko ime mora imati minimum {min} karaktera.",
     "too_long": "Korisničko ime ne sme imati više od {max} karaktera.",
-    "invalid_chars": "Korisničko ime može sadržati isključivo slova, cifre, prazne prostore, donje crte i [kockaste zagrade]."
+    "invalid_chars": "Korisničko ime može sadržati isključivo slova, cifre, prazne prostore, donje crte i [kockaste zagrade].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Privatna čekaonica",
@@ -224,5 +227,11 @@
     "continental": "Kontinentalne",
     "regional": "Regionalne",
     "fantasy": "Druge"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }

@@ -150,6 +150,8 @@ export interface PlayerUpdate {
   clientID: ClientID | null;
   name: string;
   displayName: string;
+  clanTag?: string;
+  clanName?: string;
   id: PlayerID;
   team?: Team;
   smallID: number;
