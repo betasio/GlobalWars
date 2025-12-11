@@ -724,6 +724,95 @@ export async function renameClan(
   return renamed;
 }
 
+export async function renameClanNickname(
+  uid: string,
+  clanId: string,
+  newNickname: string,
+): Promise<ClanProfile> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  const normalizedNickname = normalizeClanNickname(newNickname);
+  const now = firestore.serverTimestamp();
+
+  await firestore.runTransaction(db, async (tx: any) => {
+    const clanRef = firestore.doc(db, CLAN_COLLECTION, clanId);
+    const clanSnap = await tx.get(clanRef);
+    if (!clanSnap?.exists || !clanSnap.exists()) {
+      const err: any = new Error("clan_not_found");
+      err.code = "clan_not_found";
+      throw err;
+    }
+    const clanData = clanSnap.data() ?? {};
+    if (clanData.leaderUid !== uid) {
+      const err: any = new Error("not_leader");
+      err.code = "not_leader";
+      throw err;
+    }
+
+    const newClaimRef = firestore.doc(
+      db,
+      CLAN_TAG_CLAIMS_COLLECTION,
+      normalizedNickname,
+    );
+    const newClaimSnap = await tx.get(newClaimRef);
+    if (newClaimSnap?.exists && newClaimSnap.exists()) {
+      const err: any = new Error("clan_tag_taken");
+      err.code = "clan_tag_taken";
+      throw err;
+    }
+
+    const oldClaimRef = firestore.doc(
+      db,
+      CLAN_TAG_CLAIMS_COLLECTION,
+      clanData.normalizedNickname ??
+        normalizeClanNickname(clanData.nickname ?? ""),
+    );
+
+    const members: Record<string, ClanMember> = clanData.members ?? {};
+    Object.keys(members).forEach((memberUid) => {
+      const userRef = firestore.doc(db, USER_COLLECTION, memberUid);
+      tx.set(
+        userRef,
+        {
+          clanNickname: newNickname,
+        },
+        { merge: true },
+      );
+    });
+
+    tx.set(
+      newClaimRef,
+      { uid, clanId, nickname: newNickname, updatedAt: now },
+      { merge: true },
+    );
+
+    tx.set(
+      clanRef,
+      {
+        ...clanData,
+        nickname: newNickname,
+        normalizedNickname,
+        updatedAt: now,
+      },
+      { merge: true },
+    );
+
+    tx.delete(oldClaimRef);
+  });
+
+  const renamed = await fetchClanById(clanId);
+  if (!renamed) {
+    throw new Error("clan_rename_failed");
+  }
+  if (cachedClanUserId === uid) {
+    cachedClanProfile = renamed;
+  }
+  return renamed;
+}
+
 export async function disbandClan(uid: string, clanId: string): Promise<void> {
   const { db, firestore, configured } = await ensureFirestore();
   if (!configured || !db || !firestore) {

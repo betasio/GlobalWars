@@ -339,7 +339,7 @@ export class PlayerInfoOverlay extends LitElement implements Layer {
         </button>
 
         ${player.clanFullName()
-          ? html`<div class="text-sm text-gray-300 ml-10">
+          ? html`<div class="text-sm text-gray-300 leading-tight">
               ${player.clanFullName()}
             </div>`
           : null}

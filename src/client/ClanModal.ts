@@ -17,6 +17,7 @@ import {
   kickMember,
   leaveClan,
   renameClan,
+  renameClanNickname,
   subscribeToClan,
 } from "./firebaseAuth";
 import { translateText } from "./Utils";
@@ -43,6 +44,7 @@ export class ClanModal extends LitElement {
   @state() private createName = "";
   @state() private joinName = "";
   @state() private renameName = "";
+  @state() private renameNickname = "";
   @state() private isProcessing = false;
 
   private authListener: ((event: Event) => void) | null = null;
@@ -234,6 +236,31 @@ export class ClanModal extends LitElement {
                   ${translateText("clan.save_name") ?? "Save name"}
                 </button>
               </div>
+              <p class="font-semibold pt-2">
+                ${translateText("clan.rename_nickname_label") ??
+                "Change clan tag"}
+              </p>
+              <div class="flex gap-2">
+                <input
+                  class="flex-1 px-3 py-2 rounded bg-gray-800 border border-gray-600 focus:outline-none"
+                  .value=${this.renameNickname}
+                  placeholder="${translateText("clan.nickname_placeholder") ??
+                  "Clan nickname (3 chars)"}"
+                  maxlength="3"
+                  @input=${(e: Event) =>
+                    (this.renameNickname = (
+                      e.target as HTMLInputElement
+                    ).value)}
+                />
+                <button
+                  class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-60"
+                  @click=${this.handleRenameNickname}
+                  ?disabled=${this.isProcessing ||
+                  !this.renameNickname.trim().length}
+                >
+                  ${translateText("clan.save_nickname") ?? "Save tag"}
+                </button>
+              </div>
             </div>`
           : null}
 
@@ -300,6 +327,7 @@ export class ClanModal extends LitElement {
     try {
       this.clan = await fetchClanForUser(this.authUser.uid);
       this.renameName = this.clan?.name ?? "";
+      this.renameNickname = this.clan?.nickname ?? "";
       if (this.clan?.id) {
         await this.subscribeToClanUpdates(this.clan.id);
       } else {
@@ -439,6 +467,38 @@ export class ClanModal extends LitElement {
     }
   }
 
+  private async handleRenameNickname() {
+    if (!this.authUser || !this.clan) return;
+    const nickname = sanitizeClanNickname(this.renameNickname);
+    const validation = validateClanNickname(nickname);
+    if (!validation.isValid) {
+      this.setStatus(
+        translateText(validation.error ?? "clan.invalid_nickname") ??
+          "Clan nickname is invalid.",
+        "error",
+      );
+      return;
+    }
+    this.isProcessing = true;
+    try {
+      this.clan = await renameClanNickname(
+        this.authUser.uid,
+        this.clan.id,
+        nickname,
+      );
+      this.renameNickname = this.clan.nickname;
+      this.setStatus(
+        translateText("clan.nickname_renamed_success") ?? "Clan tag updated.",
+        "success",
+      );
+      await this.subscribeToClanUpdates(this.clan.id);
+    } catch (err: any) {
+      this.handleError(err);
+    } finally {
+      this.isProcessing = false;
+    }
+  }
+
   private async handleDisband() {
     if (!this.authUser || !this.clan) return;
     this.isProcessing = true;
@@ -483,6 +543,7 @@ export class ClanModal extends LitElement {
       clan_not_found: "clan.not_found",
       not_leader: "clan.not_leader",
       leader_cannot_leave: "clan.leader_leave_blocked",
+      clan_tag_taken: "clan.nickname_taken",
       firebase_not_configured: "clan.login_required_action",
     };
     const key = lookup[code] ?? "clan.action_failed";
@@ -507,6 +568,7 @@ export class ClanModal extends LitElement {
         (updated) => {
           this.clan = updated;
           this.renameName = updated?.name ?? this.renameName;
+          this.renameNickname = updated?.nickname ?? this.renameNickname;
         },
         (err) => console.error("Clan subscription error", err),
       );
