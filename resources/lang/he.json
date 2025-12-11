@@ -9,7 +9,7 @@
     "close": "סגור"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "הצטרף לשרת הדיסקורד!",
     "login_discord": "התחבר עם דיסקורד",
     "checking_login": "בודק התחברות...",
@@ -21,7 +21,8 @@
     "instructions": "הוראות",
     "how_to_play": "כיצד לשחק",
     "advertise": "פרסם",
-    "wiki": "ויקי"
+    "wiki": "ויקי",
+    "login_google": "Login with Google"
   },
   "news": {
     "full_changelog": "ראה את פרטי הגרסה המלאים",
@@ -190,7 +191,9 @@
     "not_string": "שם המשתמש חייב",
     "too_short": "שם המשתמש חייב להכיל לפחות {min} תווים.",
     "too_long": "שם המשתמש לא יכול להכיל יותר מ-{max} תווים.",
-    "invalid_chars": "שם המשתמש יכול להכיל רק אותיות, מספרים, רווחים, קו תחתון ו-[סוגריים מרובעים]."
+    "invalid_chars": "שם המשתמש יכול להכיל רק אותיות, מספרים, רווחים, קו תחתון ו-[סוגריים מרובעים].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "לובי פרטי",
@@ -538,5 +541,11 @@
       "grogu_head": "ראש גרוגו",
       "grogu": "גרוגו"
     }
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }
