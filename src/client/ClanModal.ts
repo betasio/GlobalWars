@@ -1,18 +1,20 @@
 import { html, LitElement } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
+import { sanitizeClanName, validateClanName } from "../core/validations/clan";
 import {
   ClanProfile,
   createClan,
   disbandClan,
+  ensureFirebaseReady,
   fetchClanForUser,
+  fetchStoredUsername,
   joinClan,
   kickMember,
   leaveClan,
   renameClan,
+  subscribeToClan,
 } from "./firebaseAuth";
 import { translateText } from "./Utils";
-import { sanitizeClanName, validateClanName } from "../core/validations/clan";
-import { ensureFirebaseReady, fetchStoredUsername } from "./firebaseAuth";
 
 interface StatusMessage {
   type: "success" | "error";
@@ -38,6 +40,7 @@ export class ClanModal extends LitElement {
   @state() private isProcessing = false;
 
   private authListener: ((event: Event) => void) | null = null;
+  private clanUnsubscribe: (() => void) | null = null;
 
   createRenderRoot() {
     return this;
@@ -67,13 +70,14 @@ export class ClanModal extends LitElement {
         this.authListener as EventListener,
       );
     }
+    this.teardownClanSubscription();
   }
 
   render() {
     return html`
       <o-modal
         id="clan-modal"
-        title="${translateText("clan.title") || "Clans"}"
+        title="${translateText("clan.title") ?? "Clans"}"
       >
         ${this.renderContent()}
       </o-modal>
@@ -83,16 +87,16 @@ export class ClanModal extends LitElement {
   private renderContent() {
     if (this.isLoading) {
       return html`<div class="p-4 text-center text-white">
-        ${translateText("clan.loading") || "Loading clan info..."}
+        ${translateText("clan.loading") ?? "Loading clan info..."}
       </div>`;
     }
 
     if (!this.authUser) {
       return html`<div class="p-4 text-center text-white space-y-2">
-        <p>${
-          translateText("clan.login_required") ||
-          "Log in to create or join a clan."
-        }</p>
+        <p>
+          ${translateText("clan.login_required") ??
+          "Log in to create or join a clan."}
+        </p>
       </div>`;
     }
 
@@ -100,9 +104,9 @@ export class ClanModal extends LitElement {
       <div class="p-4 space-y-4 text-white">
         ${this.status
           ? html`<div
-              class="text-sm text-center ${
-                this.status.type === "success" ? "text-green-500" : "text-red-400"
-              }"
+              class="text-sm text-center ${this.status.type === "success"
+                ? "text-green-500"
+                : "text-red-400"}"
             >
               ${this.status.text}
             </div>`
@@ -116,42 +120,40 @@ export class ClanModal extends LitElement {
     return html`<div class="space-y-6">
       <div class="space-y-2">
         <p class="text-lg font-semibold">
-          ${translateText("clan.create_title") || "Create a clan"}
+          ${translateText("clan.create_title") ?? "Create a clan"}
         </p>
         <input
           class="w-full px-3 py-2 rounded bg-gray-800 border border-gray-600 focus:outline-none"
-          placeholder="${
-            translateText("clan.name_placeholder") || "Clan name"
-          }"
+          placeholder="${translateText("clan.name_placeholder") ?? "Clan name"}"
           .value=${this.createName}
-          @input=${(e: Event) => (this.createName = (e.target as HTMLInputElement).value)}
+          @input=${(e: Event) =>
+            (this.createName = (e.target as HTMLInputElement).value)}
         />
         <button
           class="w-full px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-60"
           @click=${this.handleCreate}
           ?disabled=${this.isProcessing}
         >
-          ${translateText("clan.create_button") || "Create clan"}
+          ${translateText("clan.create_button") ?? "Create clan"}
         </button>
       </div>
       <div class="space-y-2">
         <p class="text-lg font-semibold">
-          ${translateText("clan.join_title") || "Join a clan"}
+          ${translateText("clan.join_title") ?? "Join a clan"}
         </p>
         <input
           class="w-full px-3 py-2 rounded bg-gray-800 border border-gray-600 focus:outline-none"
-          placeholder="${
-            translateText("clan.name_placeholder") || "Clan name"
-          }"
+          placeholder="${translateText("clan.name_placeholder") ?? "Clan name"}"
           .value=${this.joinName}
-          @input=${(e: Event) => (this.joinName = (e.target as HTMLInputElement).value)}
+          @input=${(e: Event) =>
+            (this.joinName = (e.target as HTMLInputElement).value)}
         />
         <button
           class="w-full px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60"
           @click=${this.handleJoin}
           ?disabled=${this.isProcessing}
         >
-          ${translateText("clan.join_button") || "Join clan"}
+          ${translateText("clan.join_button") ?? "Join clan"}
         </button>
       </div>
     </div>`;
@@ -159,11 +161,13 @@ export class ClanModal extends LitElement {
 
   private renderClanDetails() {
     if (!this.clan) return null;
-    const memberEntries = Object.values(this.clan.members || {}).sort((a, b) => {
-      if (a.role === "leader" && b.role !== "leader") return -1;
-      if (b.role === "leader" && a.role !== "leader") return 1;
-      return a.username.localeCompare(b.username);
-    });
+    const memberEntries = Object.values(this.clan.members || {}).sort(
+      (a, b) => {
+        if (a.role === "leader" && b.role !== "leader") return -1;
+        if (b.role === "leader" && a.role !== "leader") return 1;
+        return a.username.localeCompare(b.username);
+      },
+    );
     const isLeader = this.clan.leaderUid === this.authUser?.uid;
 
     return html`
@@ -172,9 +176,8 @@ export class ClanModal extends LitElement {
           <div>
             <p class="text-xl font-bold">${this.clan.name}</p>
             <p class="text-sm text-gray-300">
-              ${translateText("clan.members_label") || "Members"}: ${
-                memberEntries.length
-              }
+              ${translateText("clan.members_label") ?? "Members"}:
+              ${memberEntries.length}
             </p>
           </div>
           ${isLeader
@@ -183,29 +186,28 @@ export class ClanModal extends LitElement {
                 @click=${this.handleDisband}
                 ?disabled=${this.isProcessing}
               >
-                ${translateText("clan.disband") || "Disband clan"}
+                ${translateText("clan.disband") ?? "Disband clan"}
               </button>`
             : html`<button
                 class="px-3 py-2 text-sm rounded bg-gray-600 hover:bg-gray-700"
                 @click=${this.handleLeave}
                 ?disabled=${this.isProcessing}
               >
-                ${translateText("clan.leave") || "Leave clan"}
+                ${translateText("clan.leave") ?? "Leave clan"}
               </button>`}
         </div>
 
         ${isLeader
           ? html`<div class="space-y-2">
               <p class="font-semibold">
-                ${translateText("clan.rename_label") || "Rename clan"}
+                ${translateText("clan.rename_label") ?? "Rename clan"}
               </p>
               <div class="flex gap-2">
                 <input
                   class="flex-1 px-3 py-2 rounded bg-gray-800 border border-gray-600 focus:outline-none"
                   .value=${this.renameName}
-                  placeholder="${
-                    translateText("clan.name_placeholder") || "Clan name"
-                  }"
+                  placeholder="${translateText("clan.name_placeholder") ??
+                  "Clan name"}"
                   @input=${(e: Event) =>
                     (this.renameName = (e.target as HTMLInputElement).value)}
                 />
@@ -214,7 +216,7 @@ export class ClanModal extends LitElement {
                   @click=${this.handleRename}
                   ?disabled=${this.isProcessing || !this.renameName.trim()}
                 >
-                  ${translateText("clan.save_name") || "Save name"}
+                  ${translateText("clan.save_name") ?? "Save name"}
                 </button>
               </div>
             </div>`
@@ -222,31 +224,32 @@ export class ClanModal extends LitElement {
 
         <div class="space-y-2">
           <p class="font-semibold">
-            ${translateText("clan.members_label") || "Members"}
+            ${translateText("clan.members_label") ?? "Members"}
           </p>
           <div class="space-y-2">
             ${memberEntries.map(
-              (member) => html`<div
-                class="flex items-center justify-between bg-gray-800 rounded px-3 py-2"
-              >
-                <div>
-                  <p class="font-medium">${member.username}</p>
-                  <p class="text-xs text-gray-400">
-                    ${member.role === "leader"
-                      ? translateText("clan.leader_label") || "Leader"
-                      : translateText("clan.member_label") || "Member"}
-                  </p>
-                </div>
-                ${isLeader && member.uid !== this.authUser?.uid
-                  ? html`<button
-                      class="px-2 py-1 text-xs rounded bg-red-600 hover:bg-red-700 disabled:opacity-60"
-                      @click=${() => this.handleKick(member.uid)}
-                      ?disabled=${this.isProcessing}
-                    >
-                      ${translateText("clan.kick") || "Kick"}
-                    </button>`
-                  : null}
-              </div>`
+              (member) =>
+                html`<div
+                  class="flex items-center justify-between bg-gray-800 rounded px-3 py-2"
+                >
+                  <div>
+                    <p class="font-medium">${member.username}</p>
+                    <p class="text-xs text-gray-400">
+                      ${member.role === "leader"
+                        ? (translateText("clan.leader_label") ?? "Leader")
+                        : (translateText("clan.member_label") ?? "Member")}
+                    </p>
+                  </div>
+                  ${isLeader && member.uid !== this.authUser?.uid
+                    ? html`<button
+                        class="px-2 py-1 text-xs rounded bg-red-600 hover:bg-red-700 disabled:opacity-60"
+                        @click=${() => this.handleKick(member.uid)}
+                        ?disabled=${this.isProcessing}
+                      >
+                        ${translateText("clan.kick") ?? "Kick"}
+                      </button>`
+                    : null}
+                </div>`,
             )}
           </div>
         </div>
@@ -259,6 +262,7 @@ export class ClanModal extends LitElement {
     this.status = null;
     if (!user) {
       this.clan = null;
+      this.teardownClanSubscription();
       return;
     }
     await this.refreshClan();
@@ -281,6 +285,11 @@ export class ClanModal extends LitElement {
     try {
       this.clan = await fetchClanForUser(this.authUser.uid);
       this.renameName = this.clan?.name ?? "";
+      if (this.clan?.id) {
+        await this.subscribeToClanUpdates(this.clan.id);
+      } else {
+        this.teardownClanSubscription();
+      }
     } finally {
       this.isLoading = false;
     }
@@ -294,7 +303,7 @@ export class ClanModal extends LitElement {
     const stored = await fetchStoredUsername(this.authUser?.uid ?? "");
     const inputEl = document.querySelector("username-input") as any;
     const current = inputEl?.getCurrentUsername?.();
-    return current || stored || "Player";
+    return current ?? stored ?? "Player";
   }
 
   private async handleCreate() {
@@ -303,7 +312,7 @@ export class ClanModal extends LitElement {
     const validation = validateClanName(name);
     if (!validation.isValid) {
       this.setStatus(
-        translateText(validation.error || "clan.invalid_name") ||
+        translateText(validation.error ?? "clan.invalid_name") ??
           "Clan name is invalid.",
         "error",
       );
@@ -314,11 +323,12 @@ export class ClanModal extends LitElement {
       const username = await this.ensureUsername();
       this.clan = await createClan(this.authUser.uid, username, name);
       this.setStatus(
-        translateText("clan.created_success") || "Clan created!",
+        translateText("clan.created_success") ?? "Clan created!",
         "success",
       );
       this.createName = "";
       this.renameName = this.clan.name;
+      await this.subscribeToClanUpdates(this.clan.id);
     } catch (err: any) {
       this.handleError(err);
     } finally {
@@ -332,7 +342,7 @@ export class ClanModal extends LitElement {
     const validation = validateClanName(name);
     if (!validation.isValid) {
       this.setStatus(
-        translateText(validation.error || "clan.invalid_name") ||
+        translateText(validation.error ?? "clan.invalid_name") ??
           "Clan name is invalid.",
         "error",
       );
@@ -343,10 +353,13 @@ export class ClanModal extends LitElement {
       const username = await this.ensureUsername();
       this.clan = await joinClan(this.authUser.uid, username, name);
       this.setStatus(
-        translateText("clan.joined_success") || "Joined clan!",
+        translateText("clan.joined_success") ?? "Joined clan!",
         "success",
       );
       this.renameName = this.clan?.name ?? "";
+      if (this.clan?.id) {
+        await this.subscribeToClanUpdates(this.clan.id);
+      }
     } catch (err: any) {
       this.handleError(err);
     } finally {
@@ -361,9 +374,10 @@ export class ClanModal extends LitElement {
       await leaveClan(this.authUser.uid);
       this.clan = null;
       this.setStatus(
-        translateText("clan.left_success") || "Left clan.",
+        translateText("clan.left_success") ?? "Left clan.",
         "success",
       );
+      this.teardownClanSubscription();
     } catch (err: any) {
       this.handleError(err);
     } finally {
@@ -377,7 +391,7 @@ export class ClanModal extends LitElement {
     const validation = validateClanName(name);
     if (!validation.isValid) {
       this.setStatus(
-        translateText(validation.error || "clan.invalid_name") ||
+        translateText(validation.error ?? "clan.invalid_name") ??
           "Clan name is invalid.",
         "error",
       );
@@ -388,9 +402,10 @@ export class ClanModal extends LitElement {
       this.clan = await renameClan(this.authUser.uid, this.clan.id, name);
       this.renameName = this.clan.name;
       this.setStatus(
-        translateText("clan.renamed_success") || "Clan renamed.",
+        translateText("clan.renamed_success") ?? "Clan renamed.",
         "success",
       );
+      await this.subscribeToClanUpdates(this.clan.id);
     } catch (err: any) {
       this.handleError(err);
     } finally {
@@ -405,9 +420,10 @@ export class ClanModal extends LitElement {
       await disbandClan(this.authUser.uid, this.clan.id);
       this.clan = null;
       this.setStatus(
-        translateText("clan.disbanded_success") || "Clan disbanded.",
+        translateText("clan.disbanded_success") ?? "Clan disbanded.",
         "success",
       );
+      this.teardownClanSubscription();
     } catch (err: any) {
       this.handleError(err);
     } finally {
@@ -421,9 +437,10 @@ export class ClanModal extends LitElement {
     try {
       this.clan = await kickMember(this.authUser.uid, this.clan.id, memberUid);
       this.setStatus(
-        translateText("clan.kicked_success") || "Member removed.",
+        translateText("clan.kicked_success") ?? "Member removed.",
         "success",
       );
+      await this.subscribeToClanUpdates(this.clan.id);
     } catch (err: any) {
       this.handleError(err);
     } finally {
@@ -433,7 +450,7 @@ export class ClanModal extends LitElement {
 
   private handleError(err: any) {
     console.error("Clan action failed", err);
-    const code = err?.code || err?.message;
+    const code = err?.code ?? err?.message;
     const lookup: Record<string, string> = {
       clan_name_taken: "clan.name_taken",
       already_in_clan: "clan.already_in_clan",
@@ -442,10 +459,33 @@ export class ClanModal extends LitElement {
       leader_cannot_leave: "clan.leader_leave_blocked",
       firebase_not_configured: "clan.login_required_action",
     };
-    const key = lookup[code] || "clan.action_failed";
+    const key = lookup[code] ?? "clan.action_failed";
     this.setStatus(
-      translateText(key) || "Unable to complete clan action.",
+      translateText(key) ?? "Unable to complete clan action.",
       "error",
     );
+  }
+
+  private teardownClanSubscription() {
+    if (this.clanUnsubscribe) {
+      this.clanUnsubscribe();
+      this.clanUnsubscribe = null;
+    }
+  }
+
+  private async subscribeToClanUpdates(clanId: string) {
+    this.teardownClanSubscription();
+    try {
+      this.clanUnsubscribe = await subscribeToClan(
+        clanId,
+        (updated) => {
+          this.clan = updated;
+          this.renameName = updated?.name ?? this.renameName;
+        },
+        (err) => console.error("Clan subscription error", err),
+      );
+    } catch (err) {
+      console.error("Failed to subscribe to clan updates", err);
+    }
   }
 }

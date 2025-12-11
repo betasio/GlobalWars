@@ -32,6 +32,11 @@ type FirebaseFirestoreModule = {
     updater: (transaction: any) => Promise<any>,
   ) => Promise<void>;
   serverTimestamp: () => any;
+  onSnapshot?: (
+    ref: any,
+    onNext: (snap: any) => void,
+    onError?: (err: any) => void,
+  ) => () => void;
 };
 
 type FirebaseModules = {
@@ -278,9 +283,7 @@ function normalizeClanName(name: string): string {
   return encodeURIComponent(name.trim().toLowerCase());
 }
 
-async function fetchClanById(
-  clanId: string,
-): Promise<ClanProfile | null> {
+async function fetchClanById(clanId: string): Promise<ClanProfile | null> {
   const { db, firestore, configured } = await ensureFirestore();
   if (!configured || !db || !firestore) return null;
 
@@ -311,6 +314,45 @@ export async function fetchClanForUser(
   const clanId = snap.data()?.clanId;
   if (!clanId) return null;
   return fetchClanById(clanId);
+}
+
+export async function subscribeToClan(
+  clanId: string,
+  onChange: (clan: ClanProfile | null) => void,
+  onError?: (err: any) => void,
+): Promise<() => void> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) return () => {};
+
+  const clanRef = firestore.doc(db, CLAN_COLLECTION, clanId);
+  if (firestore.onSnapshot) {
+    return firestore.onSnapshot(
+      clanRef,
+      (snap: any) => {
+        if (!snap?.exists || !snap.exists()) {
+          onChange(null);
+          return;
+        }
+        const data = snap.data() ?? {};
+        onChange({
+          id: clanId,
+          name: data.name ?? clanId,
+          leaderUid: data.leaderUid ?? "",
+          members: data.members ?? {},
+          membersCount:
+            data.membersCount ?? Object.keys(data.members ?? {}).length,
+        });
+      },
+      (err: any) => {
+        console.error("Failed to subscribe to clan", err);
+        onError?.(err);
+      },
+    );
+  }
+
+  const snapshot = await fetchClanById(clanId);
+  onChange(snapshot);
+  return () => {};
 }
 
 async function ensureUserNotInClan(
@@ -523,7 +565,11 @@ export async function leaveClan(uid: string): Promise<void> {
       { merge: true },
     );
 
-    tx.set(userRef, { clanId: null, clanRole: null, clanName: null }, { merge: true });
+    tx.set(
+      userRef,
+      { clanId: null, clanRole: null, clanName: null },
+      { merge: true },
+    );
   });
 }
 
@@ -555,7 +601,11 @@ export async function renameClan(
       throw err;
     }
 
-    const newClaimRef = firestore.doc(db, CLAN_CLAIMS_COLLECTION, normalizedNew);
+    const newClaimRef = firestore.doc(
+      db,
+      CLAN_CLAIMS_COLLECTION,
+      normalizedNew,
+    );
     const newClaimSnap = await tx.get(newClaimRef);
     if (newClaimSnap?.exists && newClaimSnap.exists()) {
       const err: any = new Error("clan_name_taken");
@@ -601,7 +651,11 @@ export async function renameClan(
       const userRef = firestore.doc(db, USER_COLLECTION, memberUid);
       tx.set(
         userRef,
-        { clanId: clanId, clanRole: members[memberUid]?.role, clanName: newName },
+        {
+          clanId: clanId,
+          clanRole: members[memberUid]?.role,
+          clanName: newName,
+        },
         { merge: true },
       );
     });
@@ -700,7 +754,11 @@ export async function kickMember(
     );
 
     const userRef = firestore.doc(db, USER_COLLECTION, memberUid);
-    tx.set(userRef, { clanId: null, clanRole: null, clanName: null }, { merge: true });
+    tx.set(
+      userRef,
+      { clanId: null, clanRole: null, clanName: null },
+      { merge: true },
+    );
   });
 
   const clan = await fetchClanById(clanId);
