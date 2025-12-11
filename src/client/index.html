@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no"
     />
-    <title>GlobalWars (ALPHA)</title>
+    <title>GlobalWars</title>
     <link rel="manifest" href="../../resources/manifest.json" />
     <link
       rel="icon"
@@ -190,26 +190,14 @@
     <!-- Main container with responsive padding -->
     <main class="flex justify-center flex-grow">
       <div class="container pt-12">
-        <token-login class="w-[20%] md:w-[15%]"></token-login>
-
         <div class="container__row">
           <flag-input class="w-[20%] md:w-[20%]"></flag-input>
-          <territory-patterns-modal class="w-[20%] md:w-[15%]">
-            <button
-              id="territory-patterns-input-preview-button"
-              class="w-full border p-[4px] rounded-lg flex cursor-pointer border-black/30 dark:border-gray-300/60 bg-white/70 dark:bg-[rgba(55,65,81,0.7)] justify-center"
-              title="Pick a pattern!"
-            ></button>
-          </territory-patterns-modal>
           <username-input class="relative w-full"></username-input>
           <news-button class="w-[20%] component-hideable"></news-button>
         </div>
         <div></div>
         <div>
           <public-lobby class="block"></public-lobby>
-        </div>
-        <div>
-          <matchmaking-button class="w-[20%] md:w-[15%]"></matchmaking-button>
         </div>
         <div class="container__row container__row--equal">
           <o-button
@@ -223,6 +211,13 @@
             id="join-private-lobby-button"
             title="Join Lobby"
             translationKey="main.join_lobby"
+            block
+            secondary
+          ></o-button>
+          <o-button
+            id="clan-button"
+            title="Clans"
+            translationKey="clan.title"
             block
             secondary
           ></o-button>
@@ -377,6 +372,7 @@
       <account-button></account-button>
     </div>
     <!-- Game modals and overlays -->
+    <clan-modal></clan-modal>
     <single-player-modal></single-player-modal>
     <host-lobby-modal></host-lobby-modal>
     <join-private-lobby-modal></join-private-lobby-modal>

@@ -20,7 +20,7 @@
     "none": "None"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Discord",
     "login_discord": "Login with Discord",
     "checking_login": "Checking login...",
@@ -33,7 +33,8 @@
     "wiki": "Wiki",
     "privacy_policy": "Privacy Policy",
     "terms_of_service": "Terms of Service",
-    "reddit": "Reddit"
+    "reddit": "Reddit",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "See all releases",
@@ -160,7 +161,11 @@
     "logged_in_as": "Logged in as {email}",
     "fetching_account": "Fetching account information...",
     "logged_in_with_discord": "Logged in with Discord",
-    "recovery_email_sent": "Recovery email sent to {email}"
+    "recovery_email_sent": "Recovery email sent to {email}",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "stats_modal": {
     "title": "Stats",
@@ -250,7 +255,12 @@
     "not_string": "Username must be a string.",
     "too_short": "Username must be at least {min} characters long.",
     "too_long": "Username must not exceed {max} characters.",
-    "invalid_chars": "Username can only contain letters, numbers, spaces, underscores, and [square brackets]."
+    "invalid_chars": "Username can only contain letters, numbers, underscores, hyphens, [square brackets], 🍀, or 🐈.",
+    "no_spaces": "Usernames cannot contain spaces.",
+    "taken": "That username is already taken.",
+    "save": "Save username",
+    "save_failed": "Failed to save username. Please try again.",
+    "guest_autogen": ""
   },
   "host_modal": {
     "title": "Private Lobby",
@@ -799,5 +809,37 @@
     "stats_games_played": "Games Played",
     "mode_ffa": "Free-for-All",
     "mode_team": "Team"
+  },
+  "clan": {
+    "title": "Clans",
+    "loading": "Loading clan info...",
+    "login_required": "Log in to create or join a clan.",
+    "create_title": "Create a clan",
+    "join_title": "Join a clan",
+    "name_placeholder": "Clan name",
+    "create_button": "Create clan",
+    "join_button": "Join clan",
+    "members_label": "Members",
+    "leader_label": "Leader",
+    "member_label": "Member",
+    "disband": "Disband clan",
+    "leave": "Leave clan",
+    "rename_label": "Rename clan",
+    "save_name": "Save name",
+    "kick": "Kick",
+    "created_success": "Clan created!",
+    "joined_success": "Joined clan!",
+    "left_success": "Left clan.",
+    "disbanded_success": "Clan disbanded.",
+    "renamed_success": "Clan renamed.",
+    "kicked_success": "Member removed.",
+    "name_taken": "That clan name is already taken.",
+    "not_found": "Clan not found.",
+    "already_in_clan": "Leave your current clan first.",
+    "invalid_name": "Clan name must be 3-20 characters with letters, numbers, hyphens, or underscores.",
+    "not_leader": "Only clan leaders can do that.",
+    "leader_leave_blocked": "Leaders must disband before leaving.",
+    "login_required_action": "You need to be logged in to manage clans.",
+    "action_failed": "Unable to complete clan action."
   }
 }

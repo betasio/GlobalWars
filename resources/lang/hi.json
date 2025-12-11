@@ -6,14 +6,15 @@
     "lang_code": "hi"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Discord से जुड़ें!",
     "create_lobby": "लॉबी बनाएं",
     "join_lobby": "लॉबी में शामिल हों",
     "single_player": "कंप्यूटर मोड",
     "instructions": "निर्देश",
     "how_to_play": "कैसे खेलें",
-    "wiki": "विकी"
+    "wiki": "विकी",
+    "login_google": "Login with Google"
   },
   "help_modal": {
     "hotkeys": "हट की]",
@@ -142,7 +143,9 @@
     "not_string": "उपयोगकर्ता नाम एक स्ट्रिंग होना चाहिए।",
     "too_short": "उपयोगकर्ता नाम कम से कम {min} वर्ण लंबा होना चाहिए।",
     "too_long": "उपयोगकर्ता नाम {max} वर्णों से अधिक नहीं हो सकता।",
-    "invalid_chars": "उपयोगकर्ता नाम में केवल अक्षर, संख्याएं, रिक्त स्थान, अंडरस्कोर और [वर्गाकार कोष्ठक] हो सकते हैं।"
+    "invalid_chars": "उपयोगकर्ता नाम में केवल अक्षर, संख्याएं, रिक्त स्थान, अंडरस्कोर और [वर्गाकार कोष्ठक] हो सकते हैं।",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "निजी लॉबी",
@@ -223,5 +226,11 @@
     "continental": "महाद्वीपीय",
     "regional": "रीजनल",
     "fantasy": "अन्य"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }
