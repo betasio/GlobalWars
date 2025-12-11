@@ -35,7 +35,8 @@
     "wiki": "ویکی",
     "privacy_policy": "سیاست حفظ حریم خصوصی",
     "terms_of_service": "شرایط استفاده",
-    "reddit": "ردیت"
+    "reddit": "ردیت",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "مشاهده همه نسخه‌ها",
@@ -161,7 +162,11 @@
     "logged_in_as": "ورود به عنوان {email}",
     "fetching_account": "در حال دریافت اطلاعات حساب...",
     "logged_in_with_discord": "ورود با دیسکرد",
-    "recovery_email_sent": "یمیل بازیابی به {email} ارسال شد"
+    "recovery_email_sent": "یمیل بازیابی به {email} ارسال شد",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "نقشه",
@@ -239,7 +244,9 @@
     "not_string": "نام کاربری باید متن باشد.",
     "too_short": "نام کاربری باید حداقل {min} نویسه داشته باشد.",
     "too_long": "نام کاربری نباید از {max} کاراکتر بیشتر باشد.",
-    "invalid_chars": "نام کاربری فقط می‌تواند شامل حروف، اعداد، فاصله، زیرخط و [براکت‌های مربعی] باشد."
+    "invalid_chars": "نام کاربری فقط می‌تواند شامل حروف، اعداد، فاصله، زیرخط و [براکت‌های مربعی] باشد.",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "لابی خصوصی",
