@@ -23,7 +23,8 @@
     "advertise": "Oglaševanje",
     "wiki": "Wiki",
     "privacy_policy": "Politika zasebnosti",
-    "terms_of_service": "Pogoji storitve"
+    "terms_of_service": "Pogoji storitve",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Poglej vse posodobitve",
@@ -145,7 +146,11 @@
     "title": "Račun",
     "logged_in_as": "Prijavljen kot {email}",
     "logged_in_with_discord": "Prijavljen z Discordom",
-    "recovery_email_sent": "Obnovitveni email je bil poslan na {email}"
+    "recovery_email_sent": "Obnovitveni email je bil poslan na {email}",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Zemljevid",
@@ -207,14 +212,17 @@
     "teams_Duos": "Dvojice (ekipe po 2)",
     "teams_Trios": "Trojice (ekipe po 3)",
     "teams_Quads": "Četverice (ekipe po 4)",
-    "teams": "{num} ekipe"
+    "teams": "{num} ekipe",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "Vnesite uporabniško ime",
     "not_string": "Uporabniško ime mora biti niz.",
     "too_short": "Uporabniško ime mora biti dolgo vsaj {min} znakov.",
     "too_long": "Uporabniško ime ne sme presegati {max} znakov.",
-    "invalid_chars": "Uporabniško ime lahko vsebuje samo črke, številke, presledke, podčrtaje in [oglate oklepaje]."
+    "invalid_chars": "Uporabniško ime lahko vsebuje samo črke, številke, presledke, podčrtaje in [oglate oklepaje].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Zasebna soba",
@@ -708,5 +716,25 @@
     "map": "Mapa",
     "difficulty": "Težavnost",
     "type": "Tip"
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans"
   }
 }

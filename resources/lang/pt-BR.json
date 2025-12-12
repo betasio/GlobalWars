@@ -6,7 +6,8 @@
     "single_player": "Um Jogador",
     "instructions": "Instruções",
     "how_to_play": "Como Jogar",
-    "wiki": "Wiki"
+    "wiki": "Wiki",
+    "login_google": "Login with Google"
   },
   "help_modal": {
     "hotkeys": "Atalhos",
@@ -127,14 +128,17 @@
   },
   "public_lobby": {
     "join": "Entrar no próximo Jogo",
-    "waiting": "jogadores aguardando"
+    "waiting": "jogadores aguardando",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "Insira seu apelido",
     "not_string": "Apelido deve ser uma string.",
     "too_short": "O apelido deve ter pelo menos {min} caracteres.",
     "too_long": "O apelido não deve exceder {max} caracteres.",
-    "invalid_chars": "O apelido só pode conter letras, números, espaços, sublinhados e [colchetes quadrados]."
+    "invalid_chars": "O apelido só pode conter letras, números, espaços, sublinhados e [colchetes quadrados].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Sala Privada",
@@ -175,5 +179,31 @@
   },
   "select_lang": {
     "title": "Selecionar idioma"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans"
   }
 }

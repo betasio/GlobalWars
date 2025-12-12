@@ -16,9 +16,12 @@
     "allowSyntheticDefaultImports": true,
     "allowUnusedLabels": false,
     "alwaysStrict": true,
+    "allowArbitraryExtensions": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable", "ES2021.Intl"],
     "resolveJsonModule": true,
+    "skipLibCheck": true,
     "strictNullChecks": true,
     "useDefineForClassFields": false,
     "strictPropertyInitialization": false

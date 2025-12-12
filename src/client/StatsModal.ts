@@ -1,10 +1,11 @@
 import { css, html, LitElement } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 import {
-  ClanLeaderboardResponse,
-  ClanLeaderboardResponseSchema,
-} from "../core/ApiSchemas";
-import { getApiBase } from "./jwt";
+  fetchRankedLeaderboards,
+  RankedClanEntry,
+  RankedLeaderboards,
+  RankedPlayerEntry,
+} from "./firebaseAuth";
 import { translateText } from "./Utils";
 
 @customElement("stats-modal")
@@ -17,7 +18,8 @@ export class StatsModal extends LitElement {
 
   @state() private isLoading: boolean = false;
   @state() private error: string | null = null;
-  @state() private data: ClanLeaderboardResponse | null = null;
+  @state() private leaderboard: RankedLeaderboards | null = null;
+  @state() private activeTab: "players" | "clans" = "players";
 
   private hasLoaded = false;
 
@@ -41,35 +43,140 @@ export class StatsModal extends LitElement {
     this.error = null;
 
     try {
-      const res = await fetch(`${getApiBase()}/public/clans/leaderboard`, {
-        headers: {
-          Accept: "application/json",
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error(`Unexpected status ${res.status}`);
-      }
-
-      const json = await res.json();
-      const parsed = ClanLeaderboardResponseSchema.safeParse(json);
-      if (!parsed.success) {
-        console.warn(
-          "ClanLeaderboardModal: invalid response schema",
-          parsed.error,
-        );
-        throw new Error("Invalid response format");
-      }
-
-      this.data = parsed.data;
+      this.leaderboard = await fetchRankedLeaderboards();
       this.hasLoaded = true;
     } catch (err) {
-      console.warn("ClanLeaderboardModal: failed to load leaderboard", err);
+      console.warn("StatsModal: failed to load ranked leaderboards", err);
       this.error = translateText("stats_modal.error");
     } finally {
       this.isLoading = false;
       this.requestUpdate();
     }
+  }
+
+  private renderTabs() {
+    const tabBase =
+      "flex-1 px-4 py-2 rounded-lg font-semibold text-sm md:text-base transition";
+    return html`
+      <div class="flex gap-2 bg-slate-800/80 p-1 rounded-xl mb-4">
+        <button
+          class="${tabBase} ${this.activeTab === "players"
+            ? "bg-purple-600 text-white shadow-lg"
+            : "text-gray-200 hover:bg-slate-700"}"
+          @click=${() => (this.activeTab = "players")}
+        >
+          ${translateText("stats_modal.players_tab")}
+        </button>
+        <button
+          class="${tabBase} ${this.activeTab === "clans"
+            ? "bg-purple-600 text-white shadow-lg"
+            : "text-gray-200 hover:bg-slate-700"}"
+          @click=${() => (this.activeTab = "clans")}
+        >
+          ${translateText("stats_modal.clans_tab")}
+        </button>
+      </div>
+    `;
+  }
+
+  private renderTableHeader(headers: string[]) {
+    return html`<thead>
+      <tr class="border-b border-gray-700 text-gray-300">
+        ${headers.map(
+          (header, idx) =>
+            html`<th
+              class="py-2 px-2 ${idx === 0 ? "text-left" : "text-right"}"
+            >
+              ${header}
+            </th>`,
+        )}
+      </tr>
+    </thead>`;
+  }
+
+  private renderPlayerRows(players: RankedPlayerEntry[]) {
+    if (!players.length) {
+      return html`<div class="p-6 text-center text-gray-300">
+        ${translateText("stats_modal.no_player_stats")}
+      </div>`;
+    }
+
+    return html`<div class="overflow-x-auto">
+      <table class="min-w-full text-xs md:text-sm">
+        ${this.renderTableHeader([
+          translateText("stats_modal.rank"),
+          translateText("stats_modal.player"),
+          translateText("stats_modal.rating"),
+          translateText("stats_modal.wins"),
+          translateText("stats_modal.losses"),
+          translateText("stats_modal.games"),
+        ])}
+        <tbody>
+          ${players.map(
+            (player, idx) =>
+              html`<tr class="border-b border-gray-800 last:border-b-0">
+                <td class="py-2 px-2 text-left font-semibold">${idx + 1}</td>
+                <td class="py-2 px-2 text-left">
+                  <div class="flex flex-col">
+                    <span class="font-semibold">${player.username}</span>
+                    ${player.clanNickname && player.clanName
+                      ? html`<span class="text-xs text-purple-200/80">
+                          [${player.clanNickname}] ${player.clanName}
+                        </span>`
+                      : null}
+                  </div>
+                </td>
+                <td class="py-2 px-2 text-right">${player.rating}</td>
+                <td class="py-2 px-2 text-right">${player.wins}</td>
+                <td class="py-2 px-2 text-right">${player.losses}</td>
+                <td class="py-2 px-2 text-right">${player.games}</td>
+              </tr>`,
+          )}
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  private renderClanRows(clans: RankedClanEntry[]) {
+    if (!clans.length) {
+      return html`<div class="p-6 text-center text-gray-300">
+        ${translateText("stats_modal.no_clan_stats")}
+      </div>`;
+    }
+
+    return html`<div class="overflow-x-auto">
+      <table class="min-w-full text-xs md:text-sm">
+        ${this.renderTableHeader([
+          translateText("stats_modal.rank"),
+          translateText("stats_modal.clan"),
+          translateText("stats_modal.rating"),
+          translateText("stats_modal.wins"),
+          translateText("stats_modal.losses"),
+          translateText("stats_modal.games"),
+        ])}
+        <tbody>
+          ${clans.map(
+            (clan, idx) =>
+              html`<tr class="border-b border-gray-800 last:border-b-0">
+                <td class="py-2 px-2 text-left font-semibold">${idx + 1}</td>
+                <td class="py-2 px-2 text-left">
+                  <div class="flex flex-col">
+                    <span class="font-semibold">
+                      ${clan.nickname
+                        ? `[${clan.nickname}] `
+                        : ""}${clan.name ?? clan.id}
+                    </span>
+                  </div>
+                </td>
+                <td class="py-2 px-2 text-right">${clan.rating}</td>
+                <td class="py-2 px-2 text-right">${clan.wins}</td>
+                <td class="py-2 px-2 text-right">${clan.losses}</td>
+                <td class="py-2 px-2 text-right">${clan.games}</td>
+              </tr>`,
+          )}
+        </tbody>
+      </table>
+    </div>`;
   }
 
   private renderBody() {
@@ -80,7 +187,7 @@ export class StatsModal extends LitElement {
             ${translateText("stats_modal.loading")}
           </p>
           <div
-            class="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
+            class="w-6 h-6 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"
           ></div>
         </div>
       `;
@@ -91,87 +198,40 @@ export class StatsModal extends LitElement {
         <div class="flex flex-col items-center justify-center p-6 text-white">
           <p class="mb-4 text-center">${this.error}</p>
           <button
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium"
+            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded text-sm font-medium"
             @click=${() => this.loadLeaderboard()}
           >
-            Retry
+            ${translateText("stats_modal.retry")}
           </button>
         </div>
       `;
     }
 
-    if (!this.data || this.data.clans.length === 0) {
-      return html`
-        <div class="p-6 text-center text-gray-200">
-          <p class="text-lg font-semibold mb-2">
-            ${translateText("stats_modal.no_stats")}
-          </p>
-        </div>
-      `;
+    if (!this.leaderboard) {
+      return html``;
     }
 
-    const { start, end, clans } = this.data;
-    const startDate = new Date(start);
-    const endDate = new Date(end);
+    const updated = this.leaderboard.fetchedAt;
+    const players = this.leaderboard.players;
+    const clans = this.leaderboard.clans;
 
     return html`
-      <div class="p-4 md:p-6 text-gray-200">
-        <div
-          class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2"
-        >
-          <div>
-            <h2 class="text-xl font-semibold">
-              ${translateText("stats_modal.clan_stats")}
-            </h2>
-            <p class="text-xs text-gray-400 mt-1">
-              ${startDate.toLocaleDateString()} &middot;
-              ${endDate.toLocaleDateString()}
-            </p>
-          </div>
+      <div class="p-4 md:p-6 text-gray-200 space-y-3">
+        <div class="flex flex-col gap-1">
+          <h2 class="text-xl font-semibold text-purple-200">
+            ${translateText("stats_modal.ranked_title")}
+          </h2>
+          <p class="text-[11px] text-gray-500">
+            ${translateText("stats_modal.last_updated", {
+              date: updated.toLocaleString(),
+            })}
+          </p>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-xs md:text-sm">
-            <thead>
-              <tr class="border-b border-gray-700 text-gray-300">
-                <th class="py-2 pr-3 text-left">
-                  ${translateText("stats_modal.clan")}
-                </th>
-                <th class="py-2 px-2 text-right">
-                  ${translateText("stats_modal.games")}
-                </th>
-                <th class="py-2 px-2 text-right">
-                  ${translateText("stats_modal.win_score")}
-                </th>
-                <th class="py-2 px-2 text-right">
-                  ${translateText("stats_modal.loss_score")}
-                </th>
-                <th class="py-2 pl-2 text-right">
-                  ${translateText("stats_modal.win_loss_ratio")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              ${clans.map(
-                (clan) => html`
-                  <tr class="border-b border-gray-800 last:border-b-0">
-                    <td class="py-2 pr-3 font-semibold text-left">
-                      ${clan.clanTag}
-                    </td>
-                    <td class="py-2 px-2 text-right">
-                      ${clan.games.toLocaleString()}
-                    </td>
-                    <td class="py-2 px-2 text-right">${clan.weightedWins}</td>
-                    <td class="py-2 px-2 text-right">${clan.weightedLosses}</td>
-                    <td class="py-2 pl-2 text-right">
-                      ${clan.weightedWLRatio}
-                    </td>
-                  </tr>
-                `,
-              )}
-            </tbody>
-          </table>
-        </div>
+        ${this.renderTabs()}
+        ${this.activeTab === "players"
+          ? this.renderPlayerRows(players)
+          : this.renderClanRows(clans)}
       </div>
     `;
   }
@@ -214,7 +274,7 @@ export class StatsButton extends LitElement {
 
     return html`
       <button
-        @click="${this.open}"
+        @click=${() => this.open()}
         class="${buttonClass}"
         title="${translateText("stats_modal.title")}"
         aria-label="${translateText("stats_modal.title")}"

@@ -23,7 +23,8 @@
     "advertise": "Reklam Ver",
     "wiki": "Wiki",
     "privacy_policy": "Gizlilik Politikası",
-    "terms_of_service": "Hizmet Şartları"
+    "terms_of_service": "Hizmet Şartları",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Tüm sürümleri gör",
@@ -146,7 +147,11 @@
     "title": "Hesap",
     "logged_in_as": "{email} olarak oturum açıldı",
     "logged_in_with_discord": "Discord'la giriş yapıldı",
-    "recovery_email_sent": "Kurtarma e-postası {email}'a gönderildi"
+    "recovery_email_sent": "Kurtarma e-postası {email}'a gönderildi",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Harita",
@@ -205,14 +210,17 @@
     "teams_Duos": "İkili (2'li takımlar)",
     "teams_Trios": "Üçlü (3'lü takımlar)",
     "teams_Quads": "Dörtlü (4'lü takımlar)",
-    "teams": "{num} takımlar"
+    "teams": "{num} takımlar",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "Kullanıcı adınızı girin",
     "not_string": "Kullanıcı adı bir metin olmalıdır.",
     "too_short": "Kullanıcı adı en az {min} karakter uzunluğunda olmalıdır.",
     "too_long": "Kullanıcı adı {max} karakteri geçmemelidir.",
-    "invalid_chars": "Kullanıcı adı yalnızca harf, rakam, boşluk, alt çizgi ve [köşeli parantez] içerebilir."
+    "invalid_chars": "Kullanıcı adı yalnızca harf, rakam, boşluk, alt çizgi ve [köşeli parantez] içerebilir.",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Özel Lobi",
@@ -644,5 +652,25 @@
   "radial_menu": {
     "delete_unit_title": "Birimi Sil",
     "delete_unit_description": "En yakın birimi silmek için tıklayın"
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans"
   }
 }
