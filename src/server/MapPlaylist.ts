@@ -71,11 +71,15 @@ const TEAM_COUNTS = [
 
 export class MapPlaylist {
   private mapsPlaylist: MapWithMode[] = [];
+  private nextLobbyRanked: boolean = true;
 
   constructor(private disableTeams: boolean = false) {}
 
   public gameConfig(): GameConfig {
     const { map, mode } = this.getNextMap();
+
+    const ranked = this.nextLobbyRanked;
+    this.nextLobbyRanked = !this.nextLobbyRanked;
 
     const playerTeams =
       mode === GameMode.Team ? this.getTeamCount() : undefined;
@@ -94,7 +98,7 @@ export class MapPlaylist {
       maxTimerValue: undefined,
       instantBuild: false,
       randomSpawn: false,
-      ranked: true,
+      ranked,
       disableNPCs: mode === GameMode.Team && playerTeams !== HumansVsNations,
       gameMode: mode,
       playerTeams,

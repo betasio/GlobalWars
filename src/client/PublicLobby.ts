@@ -272,6 +272,7 @@ export class PublicLobby extends LitElement {
           detail: {
             gameID: lobby.gameID,
             clientID: generateID(),
+            isRanked: Boolean(lobby.gameConfig?.ranked),
           } as JoinLobbyEvent,
           bubbles: true,
           composed: true,

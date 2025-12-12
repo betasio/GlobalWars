@@ -83,6 +83,7 @@ export interface JoinLobbyEvent {
   clientID: string;
   // Multiplayer games only have gameID, gameConfig is not known until game starts.
   gameID: string;
+  isRanked?: boolean;
   // GameConfig only exists when playing a singleplayer game.
   gameStartInfo?: GameStartInfo;
   // GameRecord exists when replaying an archived game.
@@ -416,6 +417,19 @@ class Client {
     }
     const config = await getServerConfigFromClient();
     const { user } = await ensureFirebaseReady();
+    const isRanked =
+      lobby.isRanked ?? Boolean(lobby.gameStartInfo?.config?.ranked);
+    if (isRanked && !user) {
+      alert(
+        "Please log in to play ranked matches. Guests can join casual games.",
+      );
+      this.publicLobby.leaveLobby();
+      const accountModal = document.querySelector(
+        "account-modal",
+      ) as HTMLElement & { open?: () => void };
+      accountModal?.open?.();
+      return;
+    }
     let clanTag: string | undefined;
     let clanName: string | undefined;
     if (user) {

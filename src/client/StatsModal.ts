@@ -221,9 +221,6 @@ export class StatsModal extends LitElement {
           <h2 class="text-xl font-semibold text-purple-200">
             ${translateText("stats_modal.ranked_title")}
           </h2>
-          <p class="text-xs text-gray-400">
-            ${translateText("stats_modal.ranked_only")}
-          </p>
           <p class="text-[11px] text-gray-500">
             ${translateText("stats_modal.last_updated", {
               date: updated.toLocaleString(),
