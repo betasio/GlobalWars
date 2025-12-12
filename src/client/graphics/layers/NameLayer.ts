@@ -243,6 +243,18 @@ export class NameLayer implements Layer {
     nameDiv.appendChild(nameSpan);
     element.appendChild(nameDiv);
 
+    if (player.clanFullName()) {
+      const clanDiv = document.createElement("div");
+      clanDiv.classList.add("player-clan");
+      clanDiv.style.color = this.theme.textColor(player);
+      clanDiv.style.fontFamily = this.theme.font();
+      clanDiv.style.fontSize = "12px";
+      clanDiv.style.opacity = "0.9";
+      clanDiv.style.zIndex = "3";
+      clanDiv.textContent = player.clanFullName()!;
+      element.appendChild(clanDiv);
+    }
+
     const troopsDiv = document.createElement("div");
     troopsDiv.classList.add("player-troops");
     troopsDiv.setAttribute("translate", "no");
@@ -324,6 +336,12 @@ export class NameLayer implements Layer {
     const nameDiv = render.element.querySelector(
       ".player-name",
     ) as HTMLDivElement;
+    const strayClanDiv = render.element.querySelector(
+      ".player-clan",
+    ) as HTMLDivElement | null;
+    if (strayClanDiv) {
+      strayClanDiv.remove();
+    }
     const flagDiv = render.element.querySelector(
       ".player-flag",
     ) as HTMLDivElement;
