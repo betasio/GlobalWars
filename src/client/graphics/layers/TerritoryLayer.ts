@@ -331,7 +331,7 @@ export class TerritoryLayer implements Layer {
   redraw() {
     console.log("redrew territory layer");
     this.canvas = document.createElement("canvas");
-    const context = this.canvas.getContext("2d");
+    const context = this.canvas.getContext("2d", { willReadFrequently: true });
     if (context === null) throw new Error("2d context not supported");
     this.context = context;
     this.canvas.width = this.game.width();

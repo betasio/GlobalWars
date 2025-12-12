@@ -145,6 +145,14 @@ app.get("/api/env", async (req, res) => {
   const envConfig = {
     game_env: process.env.GAME_ENV ?? "prod",
     ws_base_url: process.env.WS_BASE_URL ?? "",
+    firebase: {
+      apiKey: process.env.FIREBASE_API_KEY ?? "",
+      authDomain: process.env.FIREBASE_AUTH_DOMAIN ?? "",
+      projectId: process.env.FIREBASE_PROJECT_ID ?? "",
+      appId: process.env.FIREBASE_APP_ID ?? "",
+      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID ?? "",
+      measurementId: process.env.FIREBASE_MEASUREMENT_ID ?? "",
+    },
   };
 
   res.json(envConfig);

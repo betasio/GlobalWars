@@ -324,6 +324,12 @@ export class NameLayer implements Layer {
     const nameDiv = render.element.querySelector(
       ".player-name",
     ) as HTMLDivElement;
+    const strayClanDiv = render.element.querySelector(
+      ".player-clan",
+    ) as HTMLDivElement | null;
+    if (strayClanDiv) {
+      strayClanDiv.remove();
+    }
     const flagDiv = render.element.querySelector(
       ".player-flag",
     ) as HTMLDivElement;
