@@ -554,28 +554,31 @@ export class HostLobbyModal extends LitElement {
             }
           </div>
 
-          <div class="players-list">
-            ${this.clients.map(
-              (client) => html`
-                <span class="player-tag">
-                  ${client.username}
-                  ${client.clientID === this.lobbyCreatorClientID
-                    ? html`<span class="host-badge"
-                        >(${translateText("host_modal.host_badge")})</span
-                      >`
-                    : html`
-                        <button
-                          class="remove-player-btn"
-                          @click=${() => this.kickPlayer(client.clientID)}
-                          title="Remove ${client.username}"
-                        >
-                          ×
-                        </button>
-                      `}
-                </span>
-              `,
-            )}
-        </div>
+            <div class="players-list">
+              ${this.clients.map((client) => {
+                const displayName = client.clanTag
+                  ? `[${client.clanTag}] ${client.username}`
+                  : client.username;
+                return html`
+                  <span class="player-tag">
+                    ${displayName}
+                    ${client.clientID === this.lobbyCreatorClientID
+                      ? html`<span class="host-badge"
+                          >(${translateText("host_modal.host_badge")})</span
+                        >`
+                      : html`
+                          <button
+                            class="remove-player-btn"
+                            @click=${() => this.kickPlayer(client.clientID)}
+                            title="Remove ${displayName}"
+                          >
+                            ×
+                          </button>
+                        `}
+                  </span>
+                `;
+              })}
+            </div>
 
         <div class="start-game-button-container">
           <button

@@ -402,6 +402,8 @@ export class GameServer {
       players: this.activeClients.map((c) => ({
         username: c.username,
         clientID: c.clientID,
+        clanTag: c.clanTag,
+        clanName: c.clanName,
         cosmetics: c.cosmetics,
       })),
     });
@@ -591,6 +593,8 @@ export class GameServer {
       clients: this.activeClients.map((c) => ({
         username: c.username,
         clientID: c.clientID,
+        clanTag: c.clanTag,
+        clanName: c.clanName,
       })),
       gameConfig: this.gameConfig,
       msUntilStart: this.isPublic()
@@ -686,7 +690,8 @@ export class GameServer {
             this.allClients.get(player.clientID)?.persistentID ?? "",
           stats,
           cosmetics: player.cosmetics,
-          clanTag: getClanTag(player.username) ?? undefined,
+          clanTag: player.clanTag ?? getClanTag(player.username) ?? undefined,
+          clanName: player.clanName,
         } satisfies PlayerRecord;
       },
     );

@@ -393,6 +393,8 @@ export class Transport {
       lastTurn: numTurns,
       token: this.lobbyConfig.token,
       username: this.lobbyConfig.playerName,
+      clanTag: this.lobbyConfig.clanTag,
+      clanName: this.lobbyConfig.clanName,
       cosmetics: this.lobbyConfig.cosmetics,
     } satisfies ClientJoinMessage);
   }

@@ -23,7 +23,8 @@
     "advertise": "Inzerovať",
     "wiki": "Wiki",
     "privacy_policy": "Zásady ochrany osobných údajov",
-    "terms_of_service": "Podmienky používania"
+    "terms_of_service": "Podmienky používania",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Zobraziť všetky vydania",
@@ -200,7 +201,9 @@
     "not_string": "Používateľské meno musí byť reťazec.",
     "too_short": "Používateľské meno musí byť aspoň {min} znakov dlhé.",
     "too_long": "Používateľské meno nesmie prekročiť {max} znakov.",
-    "invalid_chars": "Používateľské meno smie obsahovať iba písmená, čísla, medzery, podčiarniky, a [hranaté zátvorky]."
+    "invalid_chars": "Používateľské meno smie obsahovať iba písmená, čísla, medzery, podčiarniky, a [hranaté zátvorky].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Súkromná miestnosť",
@@ -601,5 +604,11 @@
   "radial_menu": {
     "delete_unit_title": "Vymazať jednotku",
     "delete_unit_description": "Ťukni na vymazanie najbližšej jednotky"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   }
 }

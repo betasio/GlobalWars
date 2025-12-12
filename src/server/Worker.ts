@@ -398,6 +398,8 @@ export async function startWorker() {
           flares,
           ip,
           clientMsg.username,
+          clientMsg.clanTag,
+          clientMsg.clanName,
           ws,
           cosmeticResult.cosmetics,
         );
