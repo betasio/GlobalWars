@@ -752,13 +752,21 @@ export async function renameClanNickname(
       throw err;
     }
 
+    const oldNormalizedNickname =
+      clanData.normalizedNickname ??
+      normalizeClanNickname(clanData.nickname ?? "");
     const newClaimRef = firestore.doc(
       db,
       CLAN_TAG_CLAIMS_COLLECTION,
       normalizedNickname,
     );
     const newClaimSnap = await tx.get(newClaimRef);
-    if (newClaimSnap?.exists && newClaimSnap.exists()) {
+    if (
+      normalizedNickname !== oldNormalizedNickname &&
+      newClaimSnap?.exists &&
+      newClaimSnap.exists() &&
+      newClaimSnap.data()?.clanId !== clanId
+    ) {
       const err: any = new Error("clan_tag_taken");
       err.code = "clan_tag_taken";
       throw err;
@@ -767,8 +775,7 @@ export async function renameClanNickname(
     const oldClaimRef = firestore.doc(
       db,
       CLAN_TAG_CLAIMS_COLLECTION,
-      clanData.normalizedNickname ??
-        normalizeClanNickname(clanData.nickname ?? ""),
+      oldNormalizedNickname,
     );
 
     const members: Record<string, ClanMember> = clanData.members ?? {};
@@ -800,7 +807,9 @@ export async function renameClanNickname(
       { merge: true },
     );
 
-    tx.delete(oldClaimRef);
+    if (normalizedNickname !== oldNormalizedNickname) {
+      tx.delete(oldClaimRef);
+    }
   });
 
   const renamed = await fetchClanById(clanId);
