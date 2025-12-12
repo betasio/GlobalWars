@@ -353,7 +353,11 @@ export class NameLayer implements Layer {
     nameDiv.style.color = render.fontColor;
     const span = nameDiv.querySelector(".player-name-span");
     if (span) {
-      span.innerHTML = render.player.name();
+      const clanTag = render.player.clanTagLabel();
+      const displayName = clanTag
+        ? `[${clanTag}] ${render.player.name()}`
+        : render.player.name();
+      span.textContent = displayName;
     }
     if (flagDiv) {
       flagDiv.style.height = `${render.fontSize}px`;

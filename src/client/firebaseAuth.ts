@@ -286,7 +286,8 @@ function normalizeClanName(name: string): string {
 }
 
 function normalizeClanNickname(nickname: string): string {
-  return encodeURIComponent(nickname.trim().toLowerCase());
+  // Keep clan tag claims case-sensitive so tags like "Eee" and "EeE" can coexist.
+  return encodeURIComponent(nickname.trim());
 }
 
 async function fetchClanById(clanId: string): Promise<ClanProfile | null> {

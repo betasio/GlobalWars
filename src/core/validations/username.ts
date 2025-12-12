@@ -22,8 +22,7 @@ const matcher = new RegExpMatcher({
 export const MIN_USERNAME_LENGTH = 3;
 export const MAX_USERNAME_LENGTH = 27;
 
-// eslint-disable-next-line no-useless-escape
-const validPattern = /^[\[\]a-zA-Z0-9_-🐈🍀üÜ]+$/u;
+const validPattern = /^[a-zA-Z0-9]+$/u;
 
 const shadowNames = [
   "NicePeopleOnly",
