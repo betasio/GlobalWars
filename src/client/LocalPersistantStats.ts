@@ -1,5 +1,6 @@
 import { GameConfig, GameID, PartialGameRecord } from "../core/Schemas";
 import { replacer } from "../core/Util";
+import { recordRankedResult } from "./firebaseAuth";
 
 export interface LocalStatsData {
   [key: GameID]: {
@@ -56,4 +57,8 @@ export function endGame(gameRecord: PartialGameRecord) {
 
   gameStat.gameRecord = gameRecord;
   save(stats);
+
+  // Update ranked stats for authenticated players; guests are ignored inside
+  // the helper and will no-op.
+  void recordRankedResult(gameRecord);
 }

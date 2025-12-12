@@ -82,6 +82,8 @@ export class PlayerImpl implements Player {
 
   private _name: string;
   private _displayName: string;
+  private _clanTag: string | null;
+  private _clanName: string | null;
 
   public pastOutgoingAllianceRequests: AllianceRequest[] = [];
   private _expiredAlliances: Alliance[] = [];
@@ -115,6 +117,8 @@ export class PlayerImpl implements Player {
     this._troops = toInt(startTroops);
     this._gold = 0n;
     this._displayName = this._name;
+    this._clanTag = playerInfo.clanTag ?? null;
+    this._clanName = playerInfo.clanName ?? null;
     this._pseudo_random = new PseudoRandom(simpleHash(this.playerInfo.id));
   }
 
@@ -130,6 +134,8 @@ export class PlayerImpl implements Player {
       clientID: this.clientID(),
       name: this.name(),
       displayName: this.displayName(),
+      clanTag: this._clanTag ?? undefined,
+      clanName: this._clanName ?? undefined,
       id: this.id(),
       team: this.team() ?? undefined,
       smallID: this.smallID(),

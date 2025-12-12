@@ -5,17 +5,27 @@ import { translateText } from "../client/Utils";
 import { UserSettings } from "../core/game/UserSettings";
 import {
   MAX_USERNAME_LENGTH,
+  sanitizeUsername,
   validateUsername,
 } from "../core/validations/username";
-
-const usernameKey: string = "username";
+import {
+  claimUsername,
+  ensureFirebaseReady,
+  fetchStoredUsername,
+} from "./firebaseAuth";
 
 @customElement("username-input")
 export class UsernameInput extends LitElement {
   @state() private username: string = "";
   @property({ type: String }) validationError: string = "";
   private _isValid: boolean = true;
+  @state() private isGuest: boolean = true;
+  @state() private successMessage: string = "";
+  private lastSavedUsername: string | null = null;
+  private currentUserId: string | null = null;
   private userSettings: UserSettings = new UserSettings();
+  private authListener: ((event: Event) => void) | null = null;
+  private successTimeout: number | null = null;
 
   // Remove static styles since we're using Tailwind
 
@@ -30,20 +40,52 @@ export class UsernameInput extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.username = this.getStoredUsername();
-    this.dispatchUsernameEvent();
+    this.authListener = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      void this.applyAuthUser(detail ?? null, true);
+    };
+    document.addEventListener(
+      "firebase-auth-changed",
+      this.authListener as EventListener,
+    );
+
+    void ensureFirebaseReady()
+      .then(({ user, configured }) => {
+        void this.applyAuthUser(configured ? user : null, configured);
+      })
+      .catch(() => {
+        void this.applyAuthUser(null, false);
+      });
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    if (this.authListener) {
+      document.removeEventListener(
+        "firebase-auth-changed",
+        this.authListener as EventListener,
+      );
+    }
   }
 
   render() {
+    const trimmed = this.username.trim();
+    const showSaveButton =
+      !this.isGuest && trimmed !== (this.lastSavedUsername ?? "");
+
     return html`
       <input
         type="text"
         .value=${this.username}
-        @input=${this.handleChange}
-        @change=${this.handleChange}
+        @input=${this.handleInput}
+        @keydown=${this.handleKeydown}
         placeholder="${translateText("username.enter_username")}"
         maxlength="${MAX_USERNAME_LENGTH}"
-        class="w-full px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-2xl text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:border-gray-300/60 dark:bg-gray-700 dark:text-white"
+        ?disabled=${this.isGuest}
+        class="w-full px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-2xl text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:border-gray-300/60 dark:bg-gray-700 dark:text-white ${this
+          .isGuest
+          ? "opacity-80 cursor-not-allowed"
+          : ""}"
       />
       ${this.validationError
         ? html`<div
@@ -53,34 +95,189 @@ export class UsernameInput extends LitElement {
             ${this.validationError}
           </div>`
         : null}
+      ${showSaveButton
+        ? html`<div class="mt-3 flex justify-center">
+            <button
+              class="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white shadow disabled:opacity-60 disabled:cursor-not-allowed"
+              @click=${this.saveUsername}
+              ?disabled=${!this._isValid}
+            >
+              ${translateText("username.save") || "Save username"}
+            </button>
+          </div>`
+        : null}
+      ${this.successMessage
+        ? html`<div class="mt-2 text-center text-sm text-green-600">
+            ${this.successMessage}
+          </div>`
+        : null}
     `;
   }
 
-  private handleChange(e: Event) {
+  private handleInput(e: Event) {
+    if (this.isGuest) {
+      return;
+    }
+    this.successMessage = "";
     const input = e.target as HTMLInputElement;
-    this.username = input.value.trim();
-    const result = validateUsername(this.username);
+    const sanitizedInput = input.value.replace(/\s+/g, "");
+    this.username = sanitizedInput;
+    if (input.value !== sanitizedInput) {
+      input.value = sanitizedInput;
+    }
+    const result = validateUsername(this.username.trim());
     this._isValid = result.isValid;
-    if (result.isValid) {
-      this.storeUsername(this.username);
+    this.validationError = result.error ?? "";
+  }
+
+  private handleKeydown(e: KeyboardEvent) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void this.saveUsername();
+    }
+  }
+
+  private async saveUsername() {
+    if (this.isGuest || !this.currentUserId) {
+      return;
+    }
+
+    const trimmed = this.username.trim();
+    const result = validateUsername(trimmed);
+    this._isValid = result.isValid;
+    this.validationError = result.error ?? "";
+
+    if (!result.isValid) {
+      return;
+    }
+
+    if (this.lastSavedUsername === trimmed) {
+      return;
+    }
+
+    await this.commitUsername(this.currentUserId, trimmed, false);
+  }
+
+  private async applyAuthUser(user: any | null, configured: boolean) {
+    const loggedIn = configured && !!user;
+    this.isGuest = !loggedIn;
+    this.currentUserId = loggedIn ? (user?.uid ?? null) : null;
+
+    if (loggedIn && this.currentUserId) {
+      const stored = await fetchStoredUsername(this.currentUserId);
+      const proposed = stored ?? this.generateRegisteredUsername(user);
+      const claimed = await this.commitUsername(
+        this.currentUserId,
+        proposed,
+        true,
+      );
+      this.username = claimed;
+      this.lastSavedUsername = claimed;
+      this._isValid = true;
       this.validationError = "";
+      this.successMessage = "";
     } else {
-      this.validationError = result.error ?? "";
+      this.username = this.generateGuestUsername();
+      this.lastSavedUsername = null;
+      this._isValid = true;
+      this.validationError = "";
+      this.successMessage = "";
+      this.dispatchUsernameEvent();
     }
   }
 
-  private getStoredUsername(): string {
-    const storedUsername = localStorage.getItem(usernameKey);
-    if (storedUsername) {
-      return storedUsername;
+  private generateRegisteredUsername(user: any): string {
+    const candidate = sanitizeUsername(
+      user?.displayName ?? user?.email?.split("@")[0] ?? "Player",
+    );
+    if (candidate && validateUsername(candidate).isValid) {
+      return candidate;
     }
-    return this.generateNewUsername();
+    const suffix = (user?.uid ?? "user").slice(0, 6);
+    return `Player-${suffix}`;
   }
 
-  private storeUsername(username: string) {
-    if (username) {
-      localStorage.setItem(usernameKey, username);
+  private generateGuestUsername(): string {
+    const random = Math.floor(Math.random() * 900) + 100;
+    return `Guest${random}`;
+  }
+
+  private async commitUsername(
+    uid: string,
+    username: string,
+    allowAutoFallback: boolean,
+  ): Promise<string> {
+    const validated = validateUsername(username.trim());
+    if (!validated.isValid) {
+      this.validationError = validated.error ?? "";
+      this._isValid = false;
+      this.successMessage = "";
+      return username;
     }
+
+    const attemptClaim = async (
+      name: string,
+      attempts: number = 0,
+    ): Promise<string> => {
+      try {
+        await claimUsername(uid, name.trim());
+        this.validationError = "";
+        this._isValid = true;
+        this.username = name.trim();
+        this.lastSavedUsername = this.username;
+        const successText = translateText("username.save_success");
+        this.successMessage =
+          successText && successText !== "username.save_success"
+            ? successText
+            : "Username has been saved!";
+        if (this.successTimeout) {
+          window.clearTimeout(this.successTimeout);
+        }
+        this.successTimeout = window.setTimeout(() => {
+          this.successMessage = "";
+        }, 2000);
+        this.dispatchUsernameEvent();
+        return this.username;
+      } catch (err: any) {
+        if (err?.code === "username_taken") {
+          if (allowAutoFallback) {
+            if (attempts >= 5) {
+              this.validationError =
+                translateText("username.taken") ||
+                "That username is already taken.";
+              this._isValid = false;
+              this.successMessage = "";
+              return name;
+            }
+            return attemptClaim(
+              this.generateFallbackUsername(uid),
+              attempts + 1,
+            );
+          }
+          this.validationError =
+            translateText("username.taken") ||
+            "That username is already taken.";
+          this._isValid = false;
+          this.successMessage = "";
+          return name;
+        }
+
+        this.validationError =
+          translateText("username.save_failed") || "Failed to save username.";
+        this._isValid = false;
+        this.successMessage = "";
+        console.error("Failed to save username", err);
+        return name;
+      }
+    };
+
+    return attemptClaim(username);
+  }
+
+  private generateFallbackUsername(uid: string): string {
+    const suffix = uid.slice(0, 4);
+    const random = Math.floor(Math.random() * 900) + 100;
+    return `Player-${suffix}-${random}`;
   }
 
   private dispatchUsernameEvent() {
@@ -95,7 +292,6 @@ export class UsernameInput extends LitElement {
 
   private generateNewUsername(): string {
     const newUsername = "Anon" + this.uuidToThreeDigits();
-    this.storeUsername(newUsername);
     return newUsername;
   }
 
