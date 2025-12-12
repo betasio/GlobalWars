@@ -212,7 +212,8 @@
     "teams_Duos": "Duók (2 fős csapatok)",
     "teams_Trios": "Triók (3 fős csapatok)",
     "teams_Quads": "Négyes (4 fős csapatok)",
-    "teams": "{num} csapat"
+    "teams": "{num} csapat",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "Add meg a felhasználóneved",
@@ -715,5 +716,25 @@
     "map": "Térkép",
     "difficulty": "Nehézség",
     "type": "Típus"
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans"
   }
 }

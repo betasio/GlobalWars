@@ -231,7 +231,8 @@
     "teams_Trios": "トリオ（3人のチーム）",
     "teams_Quads": "クワッド（4人のチーム）",
     "teams_hvn": "プレイヤー対国家",
-    "teams": "{num}チーム"
+    "teams": "{num}チーム",
+    "ranked_mode": "Ranked"
   },
   "matchmaking_modal": {
     "title": "マッチングする",
@@ -766,5 +767,25 @@
     "stats_games_played": "プレイ数",
     "mode_ffa": "デスマッチ",
     "mode_team": "チーム"
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans"
   }
 }

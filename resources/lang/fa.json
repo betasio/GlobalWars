@@ -231,7 +231,8 @@
     "teams_Trios": "سه تایی (تیم‌های 3 نفره)",
     "teams_Quads": "چهار تایی (تیم‌های 4 نفره)",
     "teams_hvn": "انسان‌ها در برابر ملت‌ها",
-    "teams": "تیم‌ها {num}"
+    "teams": "تیم‌ها {num}",
+    "ranked_mode": "Ranked"
   },
   "matchmaking_modal": {
     "title": "یافتن حریف",
@@ -766,5 +767,25 @@
     "stats_games_played": "بازی‌های انجام‌شده",
     "mode_ffa": "مبارزه آزاد",
     "mode_team": "تیم"
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans"
   }
 }

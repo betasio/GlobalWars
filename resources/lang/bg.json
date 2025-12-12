@@ -231,7 +231,8 @@
     "teams_Trios": "Триос (отбори по 3-ма)",
     "teams_Quads": "Куадс (отбори по 4-ма)",
     "teams_hvn": "Хора срещу Нации",
-    "teams": "{num} отбора"
+    "teams": "{num} отбора",
+    "ranked_mode": "Ranked"
   },
   "matchmaking_modal": {
     "title": "Мачмейкинг",
@@ -766,5 +767,25 @@
     "stats_games_played": "Изиграни игри",
     "mode_ffa": "Всеки срещу всеки (FFA)",
     "mode_team": "Отбор"
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans"
   }
 }

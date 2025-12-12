@@ -212,7 +212,8 @@
     "teams_Duos": "Duopoj (teamoj de 2)",
     "teams_Trios": "Triopoj (teamoj de 3)",
     "teams_Quads": "Kvaropoj (teamoj de 4)",
-    "teams": "{num} teamoj"
+    "teams": "{num} teamoj",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "Enigu vian uzantnomon",
@@ -715,5 +716,25 @@
     "map": "Karto",
     "difficulty": "Malfacileco",
     "type": "Tipo"
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans"
   }
 }

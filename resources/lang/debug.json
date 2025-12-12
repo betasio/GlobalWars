@@ -132,7 +132,8 @@
   },
   "public_lobby": {
     "join": "public_lobby.join",
-    "waiting": "public_lobby.waiting"
+    "waiting": "public_lobby.waiting",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "username.enter_username",
@@ -220,5 +221,25 @@
     "leader_leave_blocked": "Leaders must disband before leaving.",
     "login_required_action": "You need to be logged in to manage clans.",
     "action_failed": "Unable to complete clan action."
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans"
   }
 }

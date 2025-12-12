@@ -28,6 +28,11 @@ type FirebaseFirestoreModule = {
   doc: (db: any, collection: string, id: string) => any;
   getDoc: (ref: any) => Promise<any>;
   setDoc: (ref: any, data: any, options?: any) => Promise<void>;
+  collection: (db: any, name: string) => any;
+  query: (...args: any[]) => any;
+  orderBy: (field: string, direction?: "asc" | "desc") => any;
+  limit: (count: number) => any;
+  getDocs: (query: any) => Promise<any>;
   deleteDoc?: (ref: any) => Promise<void>;
   runTransaction: (
     db: any,
@@ -964,6 +969,25 @@ export interface RankedSnapshot {
   games: number;
 }
 
+export interface RankedPlayerEntry extends RankedSnapshot {
+  uid: string;
+  username: string;
+  clanName?: string | null;
+  clanNickname?: string | null;
+}
+
+export interface RankedClanEntry extends RankedSnapshot {
+  id: string;
+  name?: string | null;
+  nickname?: string | null;
+}
+
+export interface RankedLeaderboards {
+  players: RankedPlayerEntry[];
+  clans: RankedClanEntry[];
+  fetchedAt: Date;
+}
+
 function computeRatingDelta(win: boolean, stats: any | undefined): number {
   const base = win ? 25 : -15;
   if (!stats) return base;
@@ -985,6 +1009,8 @@ function computeRatingDelta(win: boolean, stats: any | undefined): number {
 export async function recordRankedResult(
   gameRecord: PartialGameRecord,
 ): Promise<void> {
+  if (!gameRecord.info?.config?.ranked) return;
+
   const { user, configured } = await ensureFirebaseReady();
   if (!configured || !user) return; // Guests are ignored
 
@@ -1068,4 +1094,71 @@ export async function recordRankedResult(
       );
     }
   });
+}
+
+export async function fetchRankedLeaderboards(
+  limitCount = 50,
+): Promise<RankedLeaderboards> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  const buildEntry = (snap: any): RankedSnapshot => {
+    const data = snap?.data?.() ?? snap?.data?.call?.(snap) ?? {};
+    return {
+      rating: safeNumber(data.rating, 0),
+      wins: safeNumber(data.wins, 0),
+      losses: safeNumber(data.losses, 0),
+      games: safeNumber(data.games, 0),
+    };
+  };
+
+  const playerQuery = firestore.query(
+    firestore.collection(db, PLAYER_RANKINGS_COLLECTION),
+    firestore.orderBy("rating", "desc"),
+    firestore.limit(limitCount),
+  );
+
+  const clanQuery = firestore.query(
+    firestore.collection(db, CLAN_RANKINGS_COLLECTION),
+    firestore.orderBy("rating", "desc"),
+    firestore.limit(limitCount),
+  );
+
+  const [playersSnap, clansSnap] = await Promise.all([
+    firestore.getDocs(playerQuery),
+    firestore.getDocs(clanQuery),
+  ]);
+
+  const players: RankedPlayerEntry[] = (playersSnap?.docs ?? []).map(
+    (doc: any) => {
+      const data = doc?.data?.() ?? doc?.data?.call?.(doc) ?? {};
+      const base = buildEntry(doc);
+      return {
+        uid: doc?.id ?? "",
+        username: data.username ?? "Unknown",
+        clanName: data.clanName ?? null,
+        clanNickname: data.clanNickname ?? null,
+        ...base,
+      };
+    },
+  );
+
+  const clans: RankedClanEntry[] = (clansSnap?.docs ?? []).map((doc: any) => {
+    const data = doc?.data?.() ?? doc?.data?.call?.(doc) ?? {};
+    const base = buildEntry(doc);
+    return {
+      id: doc?.id ?? "",
+      name: data.name ?? doc?.id ?? "",
+      nickname: data.nickname ?? null,
+      ...base,
+    };
+  });
+
+  return {
+    players: players.filter((p) => p.games > 0),
+    clans: clans.filter((c) => c.games > 0),
+    fetchedAt: new Date(),
+  };
 }

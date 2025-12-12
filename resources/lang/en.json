@@ -168,16 +168,29 @@
     "google_error": "Unable to login with Google. Please try again."
   },
   "stats_modal": {
-    "title": "Stats",
+    "title": "Ranked Stats",
     "clan_stats": "Clan Stats",
     "loading": "Loading...",
-    "error": "Error loading clan stats",
+    "error": "Error loading rankings",
     "no_stats": "No clan stats available",
     "clan": "Clan",
     "games": "Games",
     "win_score": "Win Score",
     "loss_score": "Loss Score",
-    "win_loss_ratio": "Win/Loss"
+    "win_loss_ratio": "Win/Loss",
+    "ranked_title": "Ranked Leaderboards",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans"
   },
   "map": {
     "map": "Map",
@@ -242,7 +255,8 @@
     "teams_Trios": "Trios (teams of 3)",
     "teams_Quads": "Quads (teams of 4)",
     "teams_hvn": "Humans Vs Nations",
-    "teams": "{num} teams"
+    "teams": "{num} teams",
+    "ranked_mode": "Ranked"
   },
   "matchmaking_modal": {
     "title": "Matchmaking",

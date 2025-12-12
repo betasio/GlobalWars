@@ -212,7 +212,8 @@
     "teams_Duos": "Duos (équipes de 2)",
     "teams_Trios": "Trios (équipes de 3)",
     "teams_Quads": "Quatuors (équipes de 4)",
-    "teams": "{num} équipes"
+    "teams": "{num} équipes",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "Entrez votre nom d'utilisateur",
@@ -715,5 +716,25 @@
     "map": "Carte",
     "difficulty": "Difficulté",
     "type": "Type"
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans"
   }
 }
