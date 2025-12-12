@@ -132,6 +132,8 @@ export interface GameInfo {
 export interface ClientInfo {
   clientID: ClientID;
   username: string;
+  clanTag?: string;
+  clanName?: string;
 }
 export enum LogSeverity {
   Debug = "DEBUG",
@@ -168,6 +170,7 @@ export const GameConfigSchema = z.object({
   infiniteTroops: z.boolean(),
   instantBuild: z.boolean(),
   randomSpawn: z.boolean(),
+  ranked: z.boolean().optional(),
   maxPlayers: z.number().optional(),
   maxTimerValue: z.number().int().min(1).max(120).optional(),
   disabledUnits: z.enum(UnitType).array().optional(),
@@ -423,6 +426,8 @@ export const PlayerCosmeticsSchema = z.object({
 export const PlayerSchema = z.object({
   clientID: ID,
   username: UsernameSchema,
+  clanTag: z.string().optional(),
+  clanName: SafeString.optional(),
   cosmetics: PlayerCosmeticsSchema.optional(),
 });
 
@@ -531,6 +536,8 @@ export const ClientJoinMessageSchema = z.object({
   gameID: ID,
   lastTurn: z.number(), // The last turn the client saw.
   username: UsernameSchema,
+  clanTag: z.string().optional(),
+  clanName: SafeString.optional(),
   // Server replaces the refs with the actual cosmetic data.
   cosmetics: PlayerCosmeticRefsSchema.optional(),
 });
@@ -551,6 +558,7 @@ export const ClientMessageSchema = z.discriminatedUnion("type", [
 export const PlayerRecordSchema = PlayerSchema.extend({
   persistentID: PersistentIdSchema.nullable(), // WARNING: PII
   clanTag: z.string().optional(),
+  clanName: SafeString.optional(),
   stats: PlayerStatsSchema,
 });
 export type PlayerRecord = z.infer<typeof PlayerRecordSchema>;

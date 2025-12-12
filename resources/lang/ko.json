@@ -21,7 +21,8 @@
     "instructions": "소개",
     "how_to_play": "게임 방법",
     "advertise": "광고",
-    "wiki": "위키"
+    "wiki": "위키",
+    "login_google": "Login with Google"
   },
   "news": {
     "full_changelog": "변경 사항 전부 보기",
@@ -187,14 +188,17 @@
     "teams_Duos": "듀오 (2인 1조)",
     "teams_Trios": "트리오 (3인 1조)",
     "teams_Quads": "쿼드 (4인 1조)",
-    "teams": "{num} 팀"
+    "teams": "{num} 팀",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "사용자 이름을 입력하세요",
     "not_string": "사용자 이름은 문자열이어야 합니다.",
     "too_short": "사용자 이름은 최소 {min}자 이상이어야 합니다.",
     "too_long": "사용자 이름은 {max}자를 넘을 수 없습니다.",
-    "invalid_chars": "사용자 이름에는 문자, 숫자, 공백, 밑줄, [대괄호]만 사용할 수 있습니다."
+    "invalid_chars": "사용자 이름에는 문자, 숫자, 공백, 밑줄, [대괄호]만 사용할 수 있습니다.",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "비공개 로비",
@@ -579,5 +583,31 @@
     "redirecting": "다른 페이지로 이동 중입니다...",
     "not_authorized": "이 웹사이트에 접근할 권한이 없습니다.",
     "contact_admin": "이 메시지가 잘못 표시되었다고 생각되면 웹사이트 관리자에게 문의하십시오."
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans"
   }
 }

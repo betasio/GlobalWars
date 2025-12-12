@@ -120,6 +120,7 @@ export class PublicLobby extends LitElement {
 
     const maxPlayers = gameConfig.maxPlayers ?? 0;
     const playerCount = lobby.numClients ?? 0;
+    const isRanked = Boolean(gameConfig.ranked);
 
     const teamCount =
       gameConfig.gameMode === GameMode.Team
@@ -163,6 +164,13 @@ export class PublicLobby extends LitElement {
               >
                 ${translateText("public_lobby.join")}
               </span>
+              ${isRanked
+                ? html`<span
+                    class="rounded-full px-3 py-1 text-xs font-semibold bg-purple-500/25 text-purple-100 border border-purple-400/40"
+                  >
+                    ${translateText("public_lobby.ranked_mode")}
+                  </span>`
+                : null}
               <span
                 class="rounded-full px-3 py-1 text-xs font-semibold ${this
                   .isLobbyHighlighted
