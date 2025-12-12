@@ -3,6 +3,8 @@ import {
   getClientEnv,
   type FirebaseClientConfig,
 } from "../core/configuration/ConfigLoader";
+import { PartialGameRecord } from "../core/Schemas";
+import { getPersistentID } from "./Main";
 
 // We load the Firebase SDK from the official CDN at runtime so we don't
 // depend on local npm packages in environments where registry access is
@@ -193,6 +195,8 @@ const USERNAME_CLAIMS_COLLECTION = "usernameClaims";
 const CLAN_COLLECTION = "clans";
 const CLAN_CLAIMS_COLLECTION = "clanClaims";
 const CLAN_TAG_CLAIMS_COLLECTION = "clanTagClaims";
+const PLAYER_RANKINGS_COLLECTION = "playerRankings";
+const CLAN_RANKINGS_COLLECTION = "clanRankings";
 
 export type ClanMemberRole = "leader" | "member";
 
@@ -288,6 +292,25 @@ function normalizeClanName(name: string): string {
 function normalizeClanNickname(nickname: string): string {
   // Keep clan tag claims case-sensitive so tags like "Eee" and "EeE" can coexist.
   return encodeURIComponent(nickname.trim());
+}
+
+function didPlayerWin(winner: any, clientID: string): boolean {
+  if (!winner) return false;
+  const [kind, ...rest] = winner as [string, ...string[]];
+  if (kind === "player") {
+    return rest.includes(clientID);
+  }
+  if (kind === "team") {
+    // Winner tuple structure: ["team", teamName, ...clientIDs]
+    return rest.some((entry) => entry === clientID);
+  }
+  return false;
+}
+
+function safeNumber(val: unknown, fallback = 0): number {
+  if (typeof val === "number") return val;
+  if (typeof val === "bigint") return Number(val);
+  return fallback;
 }
 
 async function fetchClanById(clanId: string): Promise<ClanProfile | null> {
@@ -932,4 +955,117 @@ export async function kickMember(
     cachedClanUserId = null;
   }
   return clan;
+}
+
+export interface RankedSnapshot {
+  rating: number;
+  wins: number;
+  losses: number;
+  games: number;
+}
+
+function computeRatingDelta(win: boolean, stats: any | undefined): number {
+  const base = win ? 25 : -15;
+  if (!stats) return base;
+
+  // Reward meaningful participation: more conquests and gold generation provide
+  // a small boost while keeping the formula bounded for faster calculations.
+  const conquests = safeNumber(stats.conquests, 0);
+  const goldEarned = Array.isArray(stats.gold)
+    ? safeNumber(stats.gold[0], 0)
+    : safeNumber(stats.gold, 0);
+  const activityBonus = Math.min(
+    10,
+    Math.floor(conquests / 3) + goldEarned / 5000,
+  );
+
+  return base + activityBonus;
+}
+
+export async function recordRankedResult(
+  gameRecord: PartialGameRecord,
+): Promise<void> {
+  const { user, configured } = await ensureFirebaseReady();
+  if (!configured || !user) return; // Guests are ignored
+
+  const { db, firestore } = await ensureFirestore();
+  if (!db || !firestore) return;
+
+  const playerEntry = gameRecord.info.players.find(
+    (p) => p.persistentID === getPersistentID(),
+  );
+  if (!playerEntry) return;
+
+  const isWinner = didPlayerWin(gameRecord.info.winner, playerEntry.clientID);
+  const ratingDelta = computeRatingDelta(
+    isWinner,
+    gameRecord.info.winner ? playerEntry.stats : undefined,
+  );
+
+  // Fetch clan metadata outside the transaction for readability
+  const userRef = firestore.doc(db, USER_COLLECTION, user.uid);
+  const userSnap = await firestore.getDoc(userRef);
+  const userData = userSnap?.data() ?? {};
+  const clanId: string | null = userData.clanId ?? null;
+  const clanName: string | null = userData.clanName ?? null;
+  const clanNickname: string | null = userData.clanNickname ?? null;
+
+  await firestore.runTransaction(db, async (tx: any) => {
+    const playerRef = firestore.doc(db, PLAYER_RANKINGS_COLLECTION, user.uid);
+    const playerSnap = await tx.get(playerRef);
+    const playerData: RankedSnapshot = playerSnap?.exists
+      ? playerSnap.data()
+      : { rating: 1000, wins: 0, losses: 0, games: 0 };
+
+    if (playerSnap?.data()?.lastGameId === gameRecord.info.gameID) {
+      return; // Already counted this match
+    }
+
+    const updatedPlayer: RankedSnapshot = {
+      rating: Math.max(0, playerData.rating + ratingDelta),
+      wins: playerData.wins + (isWinner ? 1 : 0),
+      losses: playerData.losses + (isWinner ? 0 : 1),
+      games: playerData.games + 1,
+    };
+
+    tx.set(
+      playerRef,
+      {
+        ...updatedPlayer,
+        lastGameId: gameRecord.info.gameID,
+        lastUpdatedAt: firestore.serverTimestamp(),
+        username: playerEntry.username,
+        clanId,
+        clanName,
+        clanNickname,
+      },
+      { merge: true },
+    );
+
+    if (clanId) {
+      const clanRef = firestore.doc(db, CLAN_RANKINGS_COLLECTION, clanId);
+      const clanSnap = await tx.get(clanRef);
+      const clanData: RankedSnapshot = clanSnap?.exists
+        ? clanSnap.data()
+        : { rating: 1000, wins: 0, losses: 0, games: 0 };
+      const updatedClan: RankedSnapshot = {
+        rating: Math.max(0, clanData.rating + ratingDelta),
+        wins: clanData.wins + (isWinner ? 1 : 0),
+        losses: clanData.losses + (isWinner ? 0 : 1),
+        games: clanData.games + 1,
+      };
+
+      tx.set(
+        clanRef,
+        {
+          ...updatedClan,
+          lastGameId: gameRecord.info.gameID,
+          lastUpdatedAt: firestore.serverTimestamp(),
+          name: clanName,
+          nickname: clanNickname,
+        },
+        { merge: true },
+      );
+    }
+  });
 }
