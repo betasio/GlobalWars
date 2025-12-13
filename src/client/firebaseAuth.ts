@@ -1043,7 +1043,7 @@ export interface RankedResultSummary {
 export async function recordRankedResult(
   gameRecord: PartialGameRecord,
 ): Promise<RankedResultSummary | null> {
-  if (!gameRecord.info?.config?.ranked) return;
+  if (!gameRecord.info?.config?.ranked) return null;
 
   const { user, configured } = await ensureFirebaseReady();
   if (!configured || !user) return null; // Guests are ignored
