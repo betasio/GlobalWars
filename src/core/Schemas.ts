@@ -579,9 +579,39 @@ const GitCommitSchema = z
   .regex(/^[0-9a-fA-F]{40}$/)
   .or(z.literal("DEV"));
 
+export const RankedResultSchema = z.object({
+  clientID: ID,
+  persistentID: PersistentIdSchema.nullable().optional(),
+  username: UsernameSchema.optional(),
+  placement: z.object({
+    position: z.number().int().min(1),
+    totalPlayers: z.number().int().min(1),
+    score: z.number(),
+    isWinner: z.boolean(),
+    reason: z.string(),
+  }),
+  performance: z.object({
+    conquests: z.number(),
+    gold: z.number(),
+    score: z.number(),
+    reason: z.string(),
+  }),
+  mode: z.object({
+    gameMode: z.enum(GameMode),
+    modifier: z.number(),
+    reason: z.string(),
+  }),
+  rawDelta: z.number(),
+  ratingDelta: z.number(),
+  reasons: z.array(z.string()),
+});
+
+export type RankedResultRecord = z.infer<typeof RankedResultSchema>;
+
 export const PartialAnalyticsRecordSchema = z.object({
   info: GameEndInfoSchema,
   version: z.literal("v0.0.2"),
+  rankedResults: RankedResultSchema.array().optional(),
 });
 export type ClientAnalyticsRecord = z.infer<
   typeof PartialAnalyticsRecordSchema
