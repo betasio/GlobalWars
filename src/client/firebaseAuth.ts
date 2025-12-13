@@ -1,0 +1,1436 @@
+import {
+  cachedEnvConfig,
+  getClientEnv,
+  type FirebaseClientConfig,
+} from "../core/configuration/ConfigLoader";
+import { PartialGameRecord } from "../core/Schemas";
+import { getPersistentID } from "./Main";
+
+// We load the Firebase SDK from the official CDN at runtime so we don't
+// depend on local npm packages in environments where registry access is
+// locked down.
+type FirebaseAppModule = {
+  initializeApp: (config: FirebaseClientConfig) => any;
+  getApps: () => any[];
+};
+
+type FirebaseAuthModule = {
+  getAuth: (app?: any) => any;
+  GoogleAuthProvider: new () => any;
+  onAuthStateChanged: (auth: any, cb: (user: any) => void) => void;
+  onIdTokenChanged: (auth: any, cb: (user: any) => void) => void;
+  signInWithPopup: (auth: any, provider: any) => Promise<{ user: any }>;
+  signOut: (auth: any) => Promise<void>;
+};
+
+type FirebaseFirestoreModule = {
+  getFirestore: (app?: any) => any;
+  doc: (db: any, collection: string, id: string) => any;
+  getDoc: (ref: any) => Promise<any>;
+  setDoc: (ref: any, data: any, options?: any) => Promise<void>;
+  collection: (db: any, name: string) => any;
+  query: (...args: any[]) => any;
+  orderBy: (field: string, direction?: "asc" | "desc") => any;
+  limit: (count: number) => any;
+  getDocs: (query: any) => Promise<any>;
+  deleteDoc?: (ref: any) => Promise<void>;
+  runTransaction: (
+    db: any,
+    updater: (transaction: any) => Promise<any>,
+  ) => Promise<void>;
+  serverTimestamp: () => any;
+  onSnapshot?: (
+    ref: any,
+    onNext: (snap: any) => void,
+    onError?: (err: any) => void,
+  ) => () => void;
+};
+
+type FirebaseModules = {
+  app: FirebaseAppModule;
+  auth: FirebaseAuthModule;
+  firestore?: FirebaseFirestoreModule;
+};
+
+let firebaseModulesPromise: Promise<FirebaseModules | null> | null = null;
+let cachedUser: any = null;
+let cachedIdToken: string | null = null;
+let authInstance: any = null;
+let firestoreInstance: any = null;
+
+function hasFirebaseConfig(
+  config: FirebaseClientConfig | undefined,
+): FirebaseClientConfig | null {
+  if (!config) return null;
+  const { apiKey, authDomain, projectId, appId } = config;
+  if (!apiKey || !authDomain || !projectId || !appId) return null;
+  return config;
+}
+
+async function loadFirebaseModules(): Promise<FirebaseModules | null> {
+  if (firebaseModulesPromise) return firebaseModulesPromise;
+
+  firebaseModulesPromise = (async () => {
+    const env = cachedEnvConfig ?? (await getClientEnv());
+    const firebaseConfig = hasFirebaseConfig(env.firebase);
+    if (!firebaseConfig) {
+      console.warn("Firebase config missing; Google login disabled.");
+      return null;
+    }
+
+    const [appModule, authModule, firestoreModule] = await Promise.all([
+      import(
+        /* webpackIgnore: true */ "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js"
+      ),
+      import(
+        /* webpackIgnore: true */ "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js"
+      ),
+      import(
+        /* webpackIgnore: true */ "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js"
+      ),
+    ]);
+
+    return {
+      app: appModule as unknown as FirebaseAppModule,
+      auth: authModule as unknown as FirebaseAuthModule,
+      firestore: firestoreModule as unknown as FirebaseFirestoreModule,
+    };
+  })();
+
+  return firebaseModulesPromise;
+}
+
+async function ensureAuth(): Promise<{ auth: any; configured: boolean }> {
+  const modules = await loadFirebaseModules();
+  if (!modules) return { auth: null, configured: false };
+
+  if (!authInstance) {
+    const app = modules.app.getApps().length
+      ? modules.app.getApps()[0]
+      : modules.app.initializeApp(
+          (cachedEnvConfig ?? (await getClientEnv())).firebase!,
+        );
+    authInstance = modules.auth.getAuth(app);
+
+    modules.auth.onAuthStateChanged(authInstance, (user) => {
+      cachedUser = user;
+      document.dispatchEvent(
+        new CustomEvent("firebase-auth-changed", { detail: user ?? null }),
+      );
+    });
+
+    modules.auth.onIdTokenChanged(authInstance, async (user) => {
+      if (!user) {
+        cachedIdToken = null;
+        return;
+      }
+      try {
+        cachedIdToken = await user.getIdToken();
+      } catch (err) {
+        console.warn("Failed to refresh Firebase ID token", err);
+      }
+    });
+  }
+
+  return { auth: authInstance, configured: true };
+}
+
+async function ensureFirestore(): Promise<{
+  db: any;
+  firestore: FirebaseFirestoreModule | null;
+  configured: boolean;
+}> {
+  const modules = await loadFirebaseModules();
+  const firestore = modules?.firestore ?? null;
+  if (!modules || !firestore) return { db: null, firestore, configured: false };
+
+  if (!firestoreInstance) {
+    const app = modules.app.getApps().length
+      ? modules.app.getApps()[0]
+      : modules.app.initializeApp(
+          (cachedEnvConfig ?? (await getClientEnv())).firebase!,
+        );
+    firestoreInstance = firestore.getFirestore(app);
+  }
+
+  return { db: firestoreInstance, firestore, configured: true };
+}
+
+export async function loginWithGoogle(): Promise<any | null> {
+  const { auth, configured } = await ensureAuth();
+  if (!configured || !auth) return null;
+
+  const modules = await loadFirebaseModules();
+  if (!modules) return null;
+
+  const provider = new modules.auth.GoogleAuthProvider();
+  const credential = await modules.auth.signInWithPopup(auth, provider);
+  return credential.user;
+}
+
+export async function logoutFirebase(): Promise<void> {
+  const { auth, configured } = await ensureAuth();
+  if (!configured || !auth) return;
+  const modules = await loadFirebaseModules();
+  if (!modules) return;
+  await modules.auth.signOut(auth);
+}
+
+export async function ensureFirebaseReady(): Promise<{
+  user: any | null;
+  configured: boolean;
+}> {
+  const { configured } = await ensureAuth();
+  return {
+    user: cachedUser,
+    configured,
+  };
+}
+
+export function getCachedFirebaseUser(): any | null {
+  return cachedUser;
+}
+
+export function getCachedFirebaseIdToken(): string | null {
+  return cachedIdToken;
+}
+
+const USER_COLLECTION = "users";
+const USERNAME_CLAIMS_COLLECTION = "usernameClaims";
+const CLAN_COLLECTION = "clans";
+const CLAN_CLAIMS_COLLECTION = "clanClaims";
+const CLAN_TAG_CLAIMS_COLLECTION = "clanTagClaims";
+const PLAYER_RANKINGS_COLLECTION = "playerRankings";
+const CLAN_RANKINGS_COLLECTION = "clanRankings";
+
+export type ClanMemberRole = "leader" | "member";
+
+export interface ClanMember {
+  uid: string;
+  username: string;
+  role: ClanMemberRole;
+  joinedAt?: any;
+}
+
+export interface ClanProfile {
+  id: string;
+  name: string;
+  nickname: string;
+  leaderUid: string;
+  members: Record<string, ClanMember>;
+  membersCount: number;
+}
+
+export async function fetchStoredUsername(uid: string): Promise<string | null> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) return null;
+
+  const userRef = firestore.doc(db, USER_COLLECTION, uid);
+  const snap = await firestore.getDoc(userRef);
+  if (snap?.exists && snap.exists()) {
+    return snap.data()?.username ?? null;
+  }
+  return null;
+}
+
+export async function claimUsername(
+  uid: string,
+  username: string,
+): Promise<void> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  const normalized = encodeURIComponent(username.trim().toLowerCase());
+  await firestore.runTransaction(db, async (tx: any) => {
+    const claimRef = firestore.doc(db, USERNAME_CLAIMS_COLLECTION, normalized);
+    const userRef = firestore.doc(db, USER_COLLECTION, uid);
+    const userSnap = await tx.get(userRef);
+    const previousUsername = userSnap?.exists
+      ? userSnap.data()?.username
+      : null;
+    const previousClaimId = previousUsername
+      ? encodeURIComponent(previousUsername.trim().toLowerCase())
+      : null;
+
+    const claimSnap = await tx.get(claimRef);
+    if (claimSnap?.exists && claimSnap.exists()) {
+      const currentUid = claimSnap.data()?.uid;
+      if (currentUid && currentUid !== uid) {
+        const err: any = new Error("username_taken");
+        err.code = "username_taken";
+        throw err;
+      }
+    }
+
+    tx.set(claimRef, {
+      uid,
+      username,
+      updatedAt: firestore.serverTimestamp(),
+    });
+
+    tx.set(
+      userRef,
+      {
+        username,
+        updatedAt: firestore.serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    if (previousClaimId && previousClaimId !== normalized) {
+      const previousClaimRef = firestore.doc(
+        db,
+        USERNAME_CLAIMS_COLLECTION,
+        previousClaimId,
+      );
+      tx.delete(previousClaimRef);
+    }
+  });
+}
+
+function normalizeClanName(name: string): string {
+  return encodeURIComponent(name.trim().toLowerCase());
+}
+
+function normalizeClanNickname(nickname: string): string {
+  // Keep clan tag claims case-sensitive so tags like "Eee" and "EeE" can coexist.
+  return encodeURIComponent(nickname.trim());
+}
+
+function didPlayerWin(winner: any, clientID: string): boolean {
+  if (!winner) return false;
+  const [kind, ...rest] = winner as [string, ...string[]];
+  if (kind === "player") {
+    return rest.includes(clientID);
+  }
+  if (kind === "team") {
+    // Winner tuple structure: ["team", teamName, ...clientIDs]
+    return rest.some((entry) => entry === clientID);
+  }
+  return false;
+}
+
+function safeNumber(val: unknown, fallback = 0): number {
+  if (typeof val === "number") return val;
+  if (typeof val === "bigint") return Number(val);
+  return fallback;
+}
+
+async function fetchClanById(clanId: string): Promise<ClanProfile | null> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) return null;
+
+  const clanRef = firestore.doc(db, CLAN_COLLECTION, clanId);
+  const snap = await firestore.getDoc(clanRef);
+  if (!snap?.exists || !snap.exists()) return null;
+  const data = snap.data() ?? {};
+  return {
+    id: clanId,
+    name: data.name ?? clanId,
+    nickname: data.nickname ?? "",
+    leaderUid: data.leaderUid ?? "",
+    members: data.members ?? {},
+    membersCount: data.membersCount ?? Object.keys(data.members ?? {}).length,
+  };
+}
+
+export async function fetchClanForUser(
+  uid: string,
+): Promise<ClanProfile | null> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) return null;
+
+  const userRef = firestore.doc(db, USER_COLLECTION, uid);
+  const snap = await firestore.getDoc(userRef);
+  if (!snap?.exists || !snap.exists()) {
+    return null;
+  }
+  const clanId = snap.data()?.clanId;
+  if (!clanId) return null;
+  return fetchClanById(clanId);
+}
+
+let cachedClanProfile: ClanProfile | null = null;
+let cachedClanUserId: string | null = null;
+
+export async function getCachedClanForUser(
+  uid: string,
+): Promise<ClanProfile | null> {
+  if (!uid) return null;
+  if (cachedClanProfile && cachedClanUserId === uid) {
+    return cachedClanProfile;
+  }
+  const clan = await fetchClanForUser(uid);
+  cachedClanProfile = clan;
+  cachedClanUserId = uid;
+  return clan;
+}
+
+async function adjustClanRankingForMember(
+  tx: any,
+  firestore: FirebaseFirestoreModule,
+  db: any,
+  clanId: string,
+  memberUid: string,
+  direction: "add" | "remove",
+  clanName?: string | null,
+  clanNickname?: string | null,
+): Promise<void> {
+  const playerRankRef = firestore.doc(
+    db,
+    PLAYER_RANKINGS_COLLECTION,
+    memberUid,
+  );
+  const playerRankSnap = await tx.get(playerRankRef);
+  if (!playerRankSnap?.exists || !playerRankSnap.exists()) return;
+
+  const data = playerRankSnap.data() ?? {};
+  const factor = direction === "add" ? 1 : -1;
+  const clanRankRef = firestore.doc(db, CLAN_RANKINGS_COLLECTION, clanId);
+  const clanRankSnap = await tx.get(clanRankRef);
+  const base: RankedSnapshot = clanRankSnap?.exists
+    ? clanRankSnap.data()
+    : { rating: 0, wins: 0, losses: 0, games: 0 };
+
+  const updated: RankedSnapshot = {
+    rating: Math.max(0, base.rating + factor * safeNumber(data.rating, 0)),
+    wins: Math.max(0, base.wins + factor * safeNumber(data.wins, 0)),
+    losses: Math.max(0, base.losses + factor * safeNumber(data.losses, 0)),
+    games: Math.max(0, base.games + factor * safeNumber(data.games, 0)),
+  };
+
+  tx.set(
+    clanRankRef,
+    {
+      ...updated,
+      name: clanName ?? clanRankSnap?.data?.()?.name ?? null,
+      nickname: clanNickname ?? clanRankSnap?.data?.()?.nickname ?? null,
+      lastUpdatedAt: firestore.serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
+export async function subscribeToClan(
+  clanId: string,
+  onChange: (clan: ClanProfile | null) => void,
+  onError?: (err: any) => void,
+): Promise<() => void> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) return () => {};
+
+  const clanRef = firestore.doc(db, CLAN_COLLECTION, clanId);
+  if (firestore.onSnapshot) {
+    return firestore.onSnapshot(
+      clanRef,
+      (snap: any) => {
+        if (!snap?.exists || !snap.exists()) {
+          onChange(null);
+          return;
+        }
+        const data = snap.data() ?? {};
+        onChange({
+          id: clanId,
+          name: data.name ?? clanId,
+          nickname: data.nickname ?? "",
+          leaderUid: data.leaderUid ?? "",
+          members: data.members ?? {},
+          membersCount:
+            data.membersCount ?? Object.keys(data.members ?? {}).length,
+        });
+      },
+      (err: any) => {
+        console.error("Failed to subscribe to clan", err);
+        onError?.(err);
+      },
+    );
+  }
+
+  const snapshot = await fetchClanById(clanId);
+  onChange(snapshot);
+  return () => {};
+}
+
+async function ensureUserNotInClan(
+  tx: any,
+  firestore: FirebaseFirestoreModule,
+  db: any,
+  uid: string,
+): Promise<void> {
+  const userRef = firestore.doc(db, USER_COLLECTION, uid);
+  const userSnap = await tx.get(userRef);
+  if (userSnap?.exists && userSnap.exists()) {
+    if (userSnap.data()?.clanId) {
+      const err: any = new Error("already_in_clan");
+      err.code = "already_in_clan";
+      throw err;
+    }
+  }
+}
+
+export async function createClan(
+  uid: string,
+  username: string,
+  clanName: string,
+  clanNickname: string,
+): Promise<ClanProfile> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  const normalized = normalizeClanName(clanName);
+  const normalizedNickname = normalizeClanNickname(clanNickname);
+  const now = firestore.serverTimestamp();
+
+  await firestore.runTransaction(db, async (tx: any) => {
+    await ensureUserNotInClan(tx, firestore, db, uid);
+
+    const claimRef = firestore.doc(db, CLAN_CLAIMS_COLLECTION, normalized);
+    const claimSnap = await tx.get(claimRef);
+    if (claimSnap?.exists && claimSnap.exists()) {
+      const err: any = new Error("clan_name_taken");
+      err.code = "clan_name_taken";
+      throw err;
+    }
+
+    const tagRef = firestore.doc(
+      db,
+      CLAN_TAG_CLAIMS_COLLECTION,
+      normalizedNickname,
+    );
+    const tagSnap = await tx.get(tagRef);
+    if (tagSnap?.exists && tagSnap.exists()) {
+      const err: any = new Error("clan_name_taken");
+      err.code = "clan_name_taken";
+      throw err;
+    }
+
+    const clanRef = firestore.doc(db, CLAN_COLLECTION, normalized);
+    tx.set(clanRef, {
+      name: clanName,
+      nickname: clanNickname,
+      normalizedName: normalized,
+      normalizedNickname,
+      leaderUid: uid,
+      members: {
+        [uid]: {
+          uid,
+          username,
+          role: "leader",
+          joinedAt: now,
+        },
+      },
+      membersCount: 1,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    tx.set(
+      claimRef,
+      {
+        uid,
+        name: clanName,
+        clanId: normalized,
+        createdAt: now,
+      },
+      { merge: true },
+    );
+
+    tx.set(
+      tagRef,
+      { uid, clanId: normalized, nickname: clanNickname, createdAt: now },
+      { merge: true },
+    );
+
+    const userRef = firestore.doc(db, USER_COLLECTION, uid);
+    tx.set(
+      userRef,
+      {
+        clanId: normalized,
+        clanRole: "leader",
+        clanName,
+        clanNickname,
+        updatedAt: now,
+      },
+      { merge: true },
+    );
+
+    await adjustClanRankingForMember(
+      tx,
+      firestore,
+      db,
+      normalized,
+      uid,
+      "add",
+      clanName,
+      clanNickname,
+    );
+  });
+
+  const created = await fetchClanById(normalized);
+  if (!created) {
+    throw new Error("clan_create_failed");
+  }
+  cachedClanProfile = created;
+  cachedClanUserId = uid;
+  return created;
+}
+
+export async function joinClan(
+  uid: string,
+  username: string,
+  clanName: string,
+): Promise<ClanProfile> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  const normalized = normalizeClanName(clanName);
+  const now = firestore.serverTimestamp();
+
+  await firestore.runTransaction(db, async (tx: any) => {
+    const userRef = firestore.doc(db, USER_COLLECTION, uid);
+    const userSnap = await tx.get(userRef);
+    if (userSnap?.exists && userSnap.exists()) {
+      const existingClan = userSnap.data()?.clanId;
+      if (existingClan && existingClan !== normalized) {
+        const err: any = new Error("already_in_clan");
+        err.code = "already_in_clan";
+        throw err;
+      }
+    }
+
+    const claimRef = firestore.doc(db, CLAN_CLAIMS_COLLECTION, normalized);
+    const claimSnap = await tx.get(claimRef);
+    const targetClanId =
+      claimSnap?.exists && claimSnap.exists() && claimSnap.data()?.clanId
+        ? claimSnap.data().clanId
+        : normalized;
+
+    const clanRef = firestore.doc(db, CLAN_COLLECTION, targetClanId);
+    const clanSnap = await tx.get(clanRef);
+    if (!clanSnap?.exists || !clanSnap.exists()) {
+      const err: any = new Error("clan_not_found");
+      err.code = "clan_not_found";
+      throw err;
+    }
+
+    const clanData = clanSnap.data() ?? {};
+    const members = clanData.members ?? {};
+    members[uid] = {
+      uid,
+      username,
+      role: uid === clanData.leaderUid ? "leader" : "member",
+      joinedAt: now,
+    };
+
+    tx.set(
+      clanRef,
+      {
+        ...clanData,
+        members,
+        membersCount: Object.keys(members).length,
+        updatedAt: now,
+      },
+      { merge: true },
+    );
+
+    tx.set(
+      userRef,
+      {
+        clanId: normalized,
+        clanRole: uid === clanData.leaderUid ? "leader" : "member",
+        clanName: clanData.name ?? clanName,
+        clanNickname: clanData.nickname ?? "",
+        updatedAt: now,
+      },
+      { merge: true },
+    );
+
+    await adjustClanRankingForMember(
+      tx,
+      firestore,
+      db,
+      normalized,
+      uid,
+      "add",
+      clanData.name ?? clanName,
+      clanData.nickname ?? "",
+    );
+  });
+
+  const joined = await fetchClanById(normalized);
+  if (!joined) {
+    throw new Error("clan_join_failed");
+  }
+  cachedClanProfile = joined;
+  cachedClanUserId = uid;
+  return joined;
+}
+
+export async function leaveClan(uid: string): Promise<void> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  await firestore.runTransaction(db, async (tx: any) => {
+    const userRef = firestore.doc(db, USER_COLLECTION, uid);
+    const userSnap = await tx.get(userRef);
+    if (!userSnap?.exists || !userSnap.exists()) {
+      return;
+    }
+    const clanId = userSnap.data()?.clanId;
+    if (!clanId) return;
+
+    const clanRef = firestore.doc(db, CLAN_COLLECTION, clanId);
+    const clanSnap = await tx.get(clanRef);
+    if (!clanSnap?.exists || !clanSnap.exists()) {
+      tx.set(userRef, { clanId: null, clanRole: null }, { merge: true });
+      return;
+    }
+    const clanData = clanSnap.data() ?? {};
+    if (clanData.leaderUid === uid) {
+      const err: any = new Error("leader_cannot_leave");
+      err.code = "leader_cannot_leave";
+      throw err;
+    }
+
+    const members = clanData.members ?? {};
+    delete members[uid];
+    tx.set(clanRef, {
+      ...clanData,
+      members,
+      membersCount: Math.max(0, Object.keys(members).length),
+      updatedAt: firestore.serverTimestamp(),
+    });
+
+    await adjustClanRankingForMember(
+      tx,
+      firestore,
+      db,
+      clanId,
+      uid,
+      "remove",
+      clanData.name ?? null,
+      clanData.nickname ?? null,
+    );
+
+    tx.set(
+      userRef,
+      { clanId: null, clanRole: null, clanName: null, clanNickname: null },
+      { merge: true },
+    );
+  });
+  if (cachedClanUserId === uid) {
+    cachedClanProfile = null;
+    cachedClanUserId = null;
+  }
+}
+
+export async function renameClan(
+  uid: string,
+  clanId: string,
+  newName: string,
+): Promise<ClanProfile> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  const normalizedNew = normalizeClanName(newName);
+  const now = firestore.serverTimestamp();
+
+  await firestore.runTransaction(db, async (tx: any) => {
+    const clanRef = firestore.doc(db, CLAN_COLLECTION, clanId);
+    const clanSnap = await tx.get(clanRef);
+    if (!clanSnap?.exists || !clanSnap.exists()) {
+      const err: any = new Error("clan_not_found");
+      err.code = "clan_not_found";
+      throw err;
+    }
+    const clanData = clanSnap.data() ?? {};
+    if (clanData.leaderUid !== uid) {
+      const err: any = new Error("not_leader");
+      err.code = "not_leader";
+      throw err;
+    }
+
+    const newClaimRef = firestore.doc(
+      db,
+      CLAN_CLAIMS_COLLECTION,
+      normalizedNew,
+    );
+    const newClaimSnap = await tx.get(newClaimRef);
+    if (newClaimSnap?.exists && newClaimSnap.exists()) {
+      const err: any = new Error("clan_name_taken");
+      err.code = "clan_name_taken";
+      throw err;
+    }
+
+    const oldClaimRef = firestore.doc(db, CLAN_CLAIMS_COLLECTION, clanId);
+
+    const updatedMembers = clanData.members ?? {};
+    Object.keys(updatedMembers).forEach((memberUid) => {
+      updatedMembers[memberUid] = {
+        ...updatedMembers[memberUid],
+      };
+    });
+
+    tx.set(
+      newClaimRef,
+      {
+        uid,
+        name: newName,
+        clanId,
+        updatedAt: now,
+      },
+      { merge: true },
+    );
+
+    tx.set(
+      clanRef,
+      {
+        ...clanData,
+        name: newName,
+        normalizedName: normalizedNew,
+        updatedAt: now,
+      },
+      { merge: true },
+    );
+
+    tx.delete(oldClaimRef);
+
+    const members: Record<string, ClanMember> = clanData.members ?? {};
+    Object.keys(members).forEach((memberUid) => {
+      const userRef = firestore.doc(db, USER_COLLECTION, memberUid);
+      tx.set(
+        userRef,
+        {
+          clanId: clanId,
+          clanRole: members[memberUid]?.role,
+          clanName: newName,
+          clanNickname: clanData.nickname ?? "",
+        },
+        { merge: true },
+      );
+    });
+
+    const rankingRef = firestore.doc(db, CLAN_RANKINGS_COLLECTION, clanId);
+    tx.set(rankingRef, { name: newName, lastUpdatedAt: now }, { merge: true });
+  });
+
+  const renamed = await fetchClanById(clanId);
+  if (!renamed) {
+    throw new Error("clan_rename_failed");
+  }
+  if (cachedClanUserId === uid) {
+    cachedClanProfile = renamed;
+  }
+  return renamed;
+}
+
+export async function renameClanNickname(
+  uid: string,
+  clanId: string,
+  newNickname: string,
+): Promise<ClanProfile> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  const normalizedNickname = normalizeClanNickname(newNickname);
+  const now = firestore.serverTimestamp();
+
+  await firestore.runTransaction(db, async (tx: any) => {
+    const clanRef = firestore.doc(db, CLAN_COLLECTION, clanId);
+    const clanSnap = await tx.get(clanRef);
+    if (!clanSnap?.exists || !clanSnap.exists()) {
+      const err: any = new Error("clan_not_found");
+      err.code = "clan_not_found";
+      throw err;
+    }
+    const clanData = clanSnap.data() ?? {};
+    if (clanData.leaderUid !== uid) {
+      const err: any = new Error("not_leader");
+      err.code = "not_leader";
+      throw err;
+    }
+
+    const oldNormalizedNickname =
+      clanData.normalizedNickname ??
+      normalizeClanNickname(clanData.nickname ?? "");
+    const newClaimRef = firestore.doc(
+      db,
+      CLAN_TAG_CLAIMS_COLLECTION,
+      normalizedNickname,
+    );
+    const newClaimSnap = await tx.get(newClaimRef);
+    if (
+      normalizedNickname !== oldNormalizedNickname &&
+      newClaimSnap?.exists &&
+      newClaimSnap.exists() &&
+      newClaimSnap.data()?.clanId !== clanId
+    ) {
+      const err: any = new Error("clan_tag_taken");
+      err.code = "clan_tag_taken";
+      throw err;
+    }
+
+    const oldClaimRef = firestore.doc(
+      db,
+      CLAN_TAG_CLAIMS_COLLECTION,
+      oldNormalizedNickname,
+    );
+
+    const members: Record<string, ClanMember> = clanData.members ?? {};
+    Object.keys(members).forEach((memberUid) => {
+      const userRef = firestore.doc(db, USER_COLLECTION, memberUid);
+      tx.set(
+        userRef,
+        {
+          clanNickname: newNickname,
+        },
+        { merge: true },
+      );
+    });
+
+    const rankingRef = firestore.doc(db, CLAN_RANKINGS_COLLECTION, clanId);
+    tx.set(
+      rankingRef,
+      { nickname: newNickname, lastUpdatedAt: now },
+      { merge: true },
+    );
+
+    tx.set(
+      newClaimRef,
+      { uid, clanId, nickname: newNickname, updatedAt: now },
+      { merge: true },
+    );
+
+    tx.set(
+      clanRef,
+      {
+        ...clanData,
+        nickname: newNickname,
+        normalizedNickname,
+        updatedAt: now,
+      },
+      { merge: true },
+    );
+
+    if (normalizedNickname !== oldNormalizedNickname) {
+      tx.delete(oldClaimRef);
+    }
+  });
+
+  const renamed = await fetchClanById(clanId);
+  if (!renamed) {
+    throw new Error("clan_rename_failed");
+  }
+  if (cachedClanUserId === uid) {
+    cachedClanProfile = renamed;
+  }
+  return renamed;
+}
+
+export async function disbandClan(uid: string, clanId: string): Promise<void> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  await firestore.runTransaction(db, async (tx: any) => {
+    const clanRef = firestore.doc(db, CLAN_COLLECTION, clanId);
+    const clanSnap = await tx.get(clanRef);
+    if (!clanSnap?.exists || !clanSnap.exists()) {
+      return;
+    }
+    const clanData = clanSnap.data() ?? {};
+    if (clanData.leaderUid !== uid) {
+      const err: any = new Error("not_leader");
+      err.code = "not_leader";
+      throw err;
+    }
+
+    const members: Record<string, ClanMember> = clanData.members ?? {};
+    Object.keys(members).forEach((memberUid) => {
+      const userRef = firestore.doc(db, USER_COLLECTION, memberUid);
+      tx.set(
+        userRef,
+        { clanId: null, clanRole: null, clanName: null, clanNickname: null },
+        { merge: true },
+      );
+    });
+
+    const claimRef = firestore.doc(
+      db,
+      CLAN_CLAIMS_COLLECTION,
+      clanData.normalizedName ?? clanId,
+    );
+    const legacyClaimRef = firestore.doc(db, CLAN_CLAIMS_COLLECTION, clanId);
+    const tagClaimRef = firestore.doc(
+      db,
+      CLAN_TAG_CLAIMS_COLLECTION,
+      clanData.normalizedNickname ??
+        normalizeClanNickname(clanData.nickname ?? ""),
+    );
+    const rankingRef = firestore.doc(db, CLAN_RANKINGS_COLLECTION, clanId);
+    tx.delete(clanRef);
+    tx.delete(claimRef);
+    tx.delete(legacyClaimRef);
+    tx.delete(tagClaimRef);
+    tx.delete(rankingRef);
+  });
+  if (cachedClanUserId === uid) {
+    cachedClanProfile = null;
+    cachedClanUserId = null;
+  }
+}
+
+export async function kickMember(
+  uid: string,
+  clanId: string,
+  memberUid: string,
+): Promise<ClanProfile> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  await firestore.runTransaction(db, async (tx: any) => {
+    const clanRef = firestore.doc(db, CLAN_COLLECTION, clanId);
+    const clanSnap = await tx.get(clanRef);
+    if (!clanSnap?.exists || !clanSnap.exists()) {
+      const err: any = new Error("clan_not_found");
+      err.code = "clan_not_found";
+      throw err;
+    }
+    const clanData = clanSnap.data() ?? {};
+    if (clanData.leaderUid !== uid) {
+      const err: any = new Error("not_leader");
+      err.code = "not_leader";
+      throw err;
+    }
+    if (memberUid === uid) {
+      const err: any = new Error("cannot_kick_self");
+      err.code = "cannot_kick_self";
+      throw err;
+    }
+
+    const members = clanData.members ?? {};
+    delete members[memberUid];
+
+    tx.set(clanRef, {
+      ...clanData,
+      members,
+      membersCount: Math.max(0, Object.keys(members).length),
+      updatedAt: firestore.serverTimestamp(),
+    });
+
+    await adjustClanRankingForMember(
+      tx,
+      firestore,
+      db,
+      clanId,
+      memberUid,
+      "remove",
+      clanData.name ?? null,
+      clanData.nickname ?? null,
+    );
+
+    const userRef = firestore.doc(db, USER_COLLECTION, memberUid);
+    tx.set(
+      userRef,
+      { clanId: null, clanRole: null, clanName: null, clanNickname: null },
+      { merge: true },
+    );
+  });
+
+  const clan = await fetchClanById(clanId);
+  if (!clan) {
+    throw new Error("clan_not_found");
+  }
+  if (cachedClanUserId === memberUid) {
+    cachedClanProfile = null;
+    cachedClanUserId = null;
+  }
+  return clan;
+}
+
+export interface RankedSnapshot {
+  rating: number;
+  wins: number;
+  losses: number;
+  games: number;
+}
+
+export interface RankedPlayerEntry extends RankedSnapshot {
+  uid: string;
+  username: string;
+  clanName?: string | null;
+  clanNickname?: string | null;
+}
+
+export interface RankedClanEntry extends RankedSnapshot {
+  id: string;
+  name?: string | null;
+  nickname?: string | null;
+}
+
+export interface RankedLeaderboards {
+  players: RankedPlayerEntry[];
+  clans: RankedClanEntry[];
+  fetchedAt: Date;
+}
+
+export interface RankedTier {
+  id: string;
+  name: string;
+  minPoints: number;
+  color: string;
+  icon: string;
+}
+
+function buildTierIcon(fill: string, stroke: string): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+    <defs>
+      <linearGradient id="g" x1="0%" x2="100%" y1="0%" y2="100%">
+        <stop offset="0%" stop-color="${fill}" stop-opacity="0.95" />
+        <stop offset="100%" stop-color="${stroke}" stop-opacity="0.95" />
+      </linearGradient>
+    </defs>
+    <circle cx="32" cy="32" r="29" fill="url(#g)" stroke="${stroke}" stroke-width="4" />
+    <path d="M32 14l6.3 12.7 14 2-10.1 9.9 2.4 14-12.6-6.6-12.6 6.6 2.4-14-10.1-9.9 14-2z" fill="#fff" fill-opacity="0.9" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+export const RANK_TIERS: RankedTier[] = [
+  {
+    id: "recruit",
+    name: "Recruit",
+    minPoints: 0,
+    color: "#94a3b8",
+    icon: buildTierIcon("#cbd5e1", "#94a3b8"),
+  },
+  {
+    id: "bronze",
+    name: "Bronze",
+    minPoints: 800,
+    color: "#c47a3a",
+    icon: buildTierIcon("#f5a14c", "#c47a3a"),
+  },
+  {
+    id: "silver",
+    name: "Silver",
+    minPoints: 1150,
+    color: "#9ca3af",
+    icon: buildTierIcon("#e5e7eb", "#9ca3af"),
+  },
+  {
+    id: "gold",
+    name: "Gold",
+    minPoints: 1500,
+    color: "#eab308",
+    icon: buildTierIcon("#fde68a", "#eab308"),
+  },
+  {
+    id: "platinum",
+    name: "Platinum",
+    minPoints: 1850,
+    color: "#14b8a6",
+    icon: buildTierIcon("#5eead4", "#14b8a6"),
+  },
+  {
+    id: "diamond",
+    name: "Diamond",
+    minPoints: 2200,
+    color: "#60a5fa",
+    icon: buildTierIcon("#bfdbfe", "#60a5fa"),
+  },
+  {
+    id: "legend",
+    name: "Legend",
+    minPoints: 2600,
+    color: "#a855f7",
+    icon: buildTierIcon("#d8b4fe", "#a855f7"),
+  },
+];
+
+export function getRankTier(points: number): RankedTier {
+  return (
+    RANK_TIERS.slice()
+      .sort((a, b) => b.minPoints - a.minPoints)
+      .find((tier) => points >= tier.minPoints) ?? RANK_TIERS[0]
+  );
+}
+
+function parseRankedSnapshot(raw: any): RankedSnapshot {
+  return {
+    rating: safeNumber(raw?.rating, 0),
+    wins: safeNumber(raw?.wins, 0),
+    losses: safeNumber(raw?.losses, 0),
+    games: safeNumber(raw?.games, 0),
+  };
+}
+
+function toPlayerEntry(doc: any): RankedPlayerEntry {
+  const data = doc?.data?.() ?? doc?.data?.call?.(doc) ?? {};
+  const base = parseRankedSnapshot(data);
+  return {
+    uid: doc?.id ?? "",
+    username: data.username ?? "Unknown",
+    clanName: data.clanName ?? null,
+    clanNickname: data.clanNickname ?? null,
+    ...base,
+  };
+}
+
+function toClanEntry(doc: any): RankedClanEntry {
+  const data = doc?.data?.() ?? doc?.data?.call?.(doc) ?? {};
+  const base = parseRankedSnapshot(data);
+  return {
+    id: doc?.id ?? "",
+    name: data.name ?? doc?.id ?? "",
+    nickname: data.nickname ?? null,
+    ...base,
+  };
+}
+
+function computeRatingDelta(
+  win: boolean,
+  stats: any | undefined,
+  totalPlayers: number,
+  mode: string | undefined,
+): number {
+  const base = win ? 20 : -18;
+  const playerCountBonus = Math.min(18, Math.ceil(totalPlayers / 4));
+  const modeMultiplier = mode === "Team" ? 1.1 : 1.25;
+
+  const conquests = safeNumber(stats?.conquests, 0);
+  const goldEarned = Array.isArray(stats?.gold)
+    ? safeNumber(stats?.gold?.[0], 0)
+    : safeNumber(stats?.gold, 0);
+
+  const activityBonus = Math.min(
+    14,
+    Math.floor(conquests / 3) + Math.floor(goldEarned / 6000),
+  );
+
+  const placementSwing = win
+    ? Math.max(12, playerCountBonus)
+    : -Math.max(10, Math.ceil(playerCountBonus * 0.75));
+
+  const rawDelta = base + activityBonus + placementSwing;
+  return Math.round(rawDelta * modeMultiplier);
+}
+
+export async function recordRankedResult(
+  gameRecord: PartialGameRecord,
+): Promise<void> {
+  if (!gameRecord.info?.config?.ranked) return;
+
+  const { user, configured } = await ensureFirebaseReady();
+  if (!configured || !user) return; // Guests are ignored
+
+  const { db, firestore } = await ensureFirestore();
+  if (!db || !firestore) return;
+
+  const playerEntry = gameRecord.info.players.find(
+    (p) => p.persistentID === getPersistentID(),
+  );
+  if (!playerEntry) return;
+
+  const isWinner = didPlayerWin(gameRecord.info.winner, playerEntry.clientID);
+  const totalPlayers = gameRecord.info.players.length || 1;
+  const gameMode = gameRecord.info.config?.gameMode;
+  const ratingDelta = computeRatingDelta(
+    isWinner,
+    gameRecord.info.winner ? playerEntry.stats : undefined,
+    totalPlayers,
+    gameMode,
+  );
+
+  // Fetch clan metadata outside the transaction for readability
+  const userRef = firestore.doc(db, USER_COLLECTION, user.uid);
+  const userSnap = await firestore.getDoc(userRef);
+  const userData = userSnap?.data() ?? {};
+  const clanId: string | null = userData.clanId ?? null;
+  const clanName: string | null = userData.clanName ?? null;
+  const clanNickname: string | null = userData.clanNickname ?? null;
+
+  await firestore.runTransaction(db, async (tx: any) => {
+    const playerRef = firestore.doc(db, PLAYER_RANKINGS_COLLECTION, user.uid);
+    const playerSnap = await tx.get(playerRef);
+    const playerData: RankedSnapshot = playerSnap?.exists
+      ? playerSnap.data()
+      : { rating: 1000, wins: 0, losses: 0, games: 0 };
+
+    if (playerSnap?.data()?.lastGameId === gameRecord.info.gameID) {
+      return; // Already counted this match
+    }
+
+    const updatedPlayer: RankedSnapshot = {
+      rating: Math.max(0, playerData.rating + ratingDelta),
+      wins: playerData.wins + (isWinner ? 1 : 0),
+      losses: playerData.losses + (isWinner ? 0 : 1),
+      games: playerData.games + 1,
+    };
+
+    tx.set(
+      playerRef,
+      {
+        ...updatedPlayer,
+        lastGameId: gameRecord.info.gameID,
+        lastUpdatedAt: firestore.serverTimestamp(),
+        username: playerEntry.username,
+        clanId,
+        clanName,
+        clanNickname,
+      },
+      { merge: true },
+    );
+
+    if (clanId) {
+      const clanRef = firestore.doc(db, CLAN_RANKINGS_COLLECTION, clanId);
+      const clanSnap = await tx.get(clanRef);
+      const clanData: RankedSnapshot = clanSnap?.exists
+        ? clanSnap.data()
+        : { rating: 0, wins: 0, losses: 0, games: 0 };
+      const updatedClan: RankedSnapshot = {
+        rating: Math.max(0, clanData.rating + ratingDelta),
+        wins: clanData.wins + (isWinner ? 1 : 0),
+        losses: clanData.losses + (isWinner ? 0 : 1),
+        games: clanData.games + 1,
+      };
+
+      tx.set(
+        clanRef,
+        {
+          ...updatedClan,
+          lastGameId: gameRecord.info.gameID,
+          lastUpdatedAt: firestore.serverTimestamp(),
+          name: clanName,
+          nickname: clanNickname,
+        },
+        { merge: true },
+      );
+    }
+  });
+}
+
+export async function fetchRankedLeaderboards(
+  limitCount = 50,
+): Promise<RankedLeaderboards> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  const playerQuery = firestore.query(
+    firestore.collection(db, PLAYER_RANKINGS_COLLECTION),
+    firestore.orderBy("rating", "desc"),
+    firestore.limit(limitCount),
+  );
+
+  const clanQuery = firestore.query(
+    firestore.collection(db, CLAN_RANKINGS_COLLECTION),
+    firestore.orderBy("rating", "desc"),
+    firestore.limit(limitCount),
+  );
+
+  const [playersSnap, clansSnap] = await Promise.all([
+    firestore.getDocs(playerQuery),
+    firestore.getDocs(clanQuery),
+  ]);
+
+  const players: RankedPlayerEntry[] = (playersSnap?.docs ?? []).map(
+    toPlayerEntry,
+  );
+
+  const clans: RankedClanEntry[] = (clansSnap?.docs ?? []).map(toClanEntry);
+
+  return {
+    players: players.filter((p) => p.games > 0),
+    clans: clans.filter((c) => c.games > 0),
+    fetchedAt: new Date(),
+  };
+}
+
+export async function subscribeRankedLeaderboards(
+  onUpdate: (leaderboards: RankedLeaderboards) => void,
+  onError?: (err: any) => void,
+  limitCount = 50,
+): Promise<() => void> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  if (!firestore.onSnapshot) {
+    // Fallback to a single fetch
+    try {
+      const data = await fetchRankedLeaderboards(limitCount);
+      onUpdate(data);
+    } catch (err) {
+      onError?.(err);
+    }
+    return () => {};
+  }
+
+  const playerQuery = firestore.query(
+    firestore.collection(db, PLAYER_RANKINGS_COLLECTION),
+    firestore.orderBy("rating", "desc"),
+    firestore.limit(limitCount),
+  );
+  const clanQuery = firestore.query(
+    firestore.collection(db, CLAN_RANKINGS_COLLECTION),
+    firestore.orderBy("rating", "desc"),
+    firestore.limit(limitCount),
+  );
+
+  let latestPlayers: RankedPlayerEntry[] = [];
+  let latestClans: RankedClanEntry[] = [];
+  let playersReady = false;
+  let clansReady = false;
+
+  const emit = () => {
+    if (!playersReady || !clansReady) return;
+    onUpdate({
+      players: latestPlayers.filter((p) => p.games > 0),
+      clans: latestClans.filter((c) => c.games > 0),
+      fetchedAt: new Date(),
+    });
+  };
+
+  const playerUnsub = firestore.onSnapshot(
+    playerQuery,
+    (snap: any) => {
+      latestPlayers = (snap?.docs ?? []).map(toPlayerEntry);
+      playersReady = true;
+      emit();
+    },
+    (err: any) => onError?.(err),
+  );
+
+  const clanUnsub = firestore.onSnapshot(
+    clanQuery,
+    (snap: any) => {
+      latestClans = (snap?.docs ?? []).map(toClanEntry);
+      clansReady = true;
+      emit();
+    },
+    (err: any) => onError?.(err),
+  );
+
+  return () => {
+    playerUnsub?.();
+    clanUnsub?.();
+  };
+}

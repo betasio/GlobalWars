@@ -20,7 +20,7 @@
     "none": "Τίποτα"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Βρες μας στο Discord!",
     "login_discord": "Σύνδεση με Discord",
     "checking_login": "Έλεγχος σύνδεσης...",
@@ -35,7 +35,8 @@
     "wiki": "Wiki",
     "privacy_policy": "Πολιτική Απορρήτου",
     "terms_of_service": "Όροι Χρήσης",
-    "reddit": "Reddit"
+    "reddit": "Reddit",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Δες όλες τις εκδόσεις",
@@ -161,7 +162,11 @@
     "logged_in_as": "Συνδέθηκε ως {email}",
     "fetching_account": "Λήψη πληροφοριών λογαριασμού...",
     "logged_in_with_discord": "Συνδέθηκε με Discord",
-    "recovery_email_sent": "Το email ανάκτησης στάλθηκε στο {email}"
+    "recovery_email_sent": "Το email ανάκτησης στάλθηκε στο {email}",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Χάρτης",
@@ -226,7 +231,8 @@
     "teams_Trios": "Trios (ομάδες των 3)",
     "teams_Quads": "Quads (ομάδες των 4)",
     "teams_hvn": "Άνθρωποι εναντίον Εθνών",
-    "teams": "{num} ομάδες"
+    "teams": "{num} ομάδες",
+    "ranked_mode": "Ranked"
   },
   "matchmaking_modal": {
     "title": "Ταίριασμα",
@@ -239,7 +245,9 @@
     "not_string": "Το όνομα χρήστη πρέπει να είναι συμβολοσειρά.",
     "too_short": "Το όνομα χρήστη πρέπει να είναι τουλάχιστον {min} χαρακτήρες.",
     "too_long": "Το όνομα χρήστη δεν πρέπει να υπερβαίνει τους {max} χαρακτήρες.",
-    "invalid_chars": "Το όνομα χρήστη μπορεί να περιέχει μόνο γράμματα, αριθμούς, κενά, κάτω παύλες και [αγκύλες]."
+    "invalid_chars": "Το όνομα χρήστη μπορεί να περιέχει μόνο γράμματα, αριθμούς, κενά, κάτω παύλες και [αγκύλες].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Ιδιωτικό Λόμπι",
@@ -759,5 +767,26 @@
     "stats_games_played": "Παιχνίδια Που Παίχτηκαν",
     "mode_ffa": "Όλοι εναντίων Όλων",
     "mode_team": "Ομαδικό"
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans",
+    "current_rank": "Rank Tier"
   }
 }

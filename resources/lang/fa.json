@@ -35,7 +35,8 @@
     "wiki": "ویکی",
     "privacy_policy": "سیاست حفظ حریم خصوصی",
     "terms_of_service": "شرایط استفاده",
-    "reddit": "ردیت"
+    "reddit": "ردیت",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "مشاهده همه نسخه‌ها",
@@ -161,7 +162,11 @@
     "logged_in_as": "ورود به عنوان {email}",
     "fetching_account": "در حال دریافت اطلاعات حساب...",
     "logged_in_with_discord": "ورود با دیسکرد",
-    "recovery_email_sent": "یمیل بازیابی به {email} ارسال شد"
+    "recovery_email_sent": "یمیل بازیابی به {email} ارسال شد",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "نقشه",
@@ -226,7 +231,8 @@
     "teams_Trios": "سه تایی (تیم‌های 3 نفره)",
     "teams_Quads": "چهار تایی (تیم‌های 4 نفره)",
     "teams_hvn": "انسان‌ها در برابر ملت‌ها",
-    "teams": "تیم‌ها {num}"
+    "teams": "تیم‌ها {num}",
+    "ranked_mode": "Ranked"
   },
   "matchmaking_modal": {
     "title": "یافتن حریف",
@@ -239,7 +245,9 @@
     "not_string": "نام کاربری باید متن باشد.",
     "too_short": "نام کاربری باید حداقل {min} نویسه داشته باشد.",
     "too_long": "نام کاربری نباید از {max} کاراکتر بیشتر باشد.",
-    "invalid_chars": "نام کاربری فقط می‌تواند شامل حروف، اعداد، فاصله، زیرخط و [براکت‌های مربعی] باشد."
+    "invalid_chars": "نام کاربری فقط می‌تواند شامل حروف، اعداد، فاصله، زیرخط و [براکت‌های مربعی] باشد.",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "لابی خصوصی",
@@ -759,5 +767,26 @@
     "stats_games_played": "بازی‌های انجام‌شده",
     "mode_ffa": "مبارزه آزاد",
     "mode_team": "تیم"
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans",
+    "current_rank": "Rank Tier"
   }
 }

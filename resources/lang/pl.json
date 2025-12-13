@@ -9,7 +9,7 @@
     "close": "Zamknij"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Dołącz do Discord'a!",
     "login_discord": "Zaloguj się przez Discorda",
     "checking_login": "Sprawdzanie logowania...",
@@ -23,7 +23,8 @@
     "advertise": "Reklamuj",
     "wiki": "Wiki",
     "privacy_policy": "Polityka prywatności",
-    "terms_of_service": "Regulamin"
+    "terms_of_service": "Regulamin",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Wyświetl wszystkie wersje",
@@ -146,7 +147,11 @@
     "title": "Konto",
     "logged_in_as": "Zalogowany jako {email}",
     "logged_in_with_discord": "Zalogowany przez Discord'a",
-    "recovery_email_sent": "Wysłano e-mail odzyskiwania na adres {email}"
+    "recovery_email_sent": "Wysłano e-mail odzyskiwania na adres {email}",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Mapa",
@@ -205,14 +210,17 @@
     "teams_Duos": "Duety (zespoły 2-osobowe)",
     "teams_Trios": "Trójki (zespoły 3-osobowe)",
     "teams_Quads": "Czwórki (zespoły 4-osobowe)",
-    "teams": "{num} drużyn"
+    "teams": "{num} drużyn",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "Wprowadź swoją nazwę użytkownika",
     "not_string": "Nazwa użytkownika musi być ciągiem znaków.",
     "too_short": "Nazwa użytkownika musi mieć co najmniej {min} znaków.",
     "too_long": "Nazwa użytkownika nie może przekraczać {max} znaków.",
-    "invalid_chars": "Nazwa użytkownika może zawierać tylko litery, cyfry, spacje, podkreślenia i [nawiasy kwadratowe]."
+    "invalid_chars": "Nazwa użytkownika może zawierać tylko litery, cyfry, spacje, podkreślenia i [nawiasy kwadratowe].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Prywatne lobby",
@@ -644,5 +652,26 @@
   "radial_menu": {
     "delete_unit_title": "Usuń jednostkę",
     "delete_unit_description": "Kliknij, aby usunąć najbliższą jednostkę"
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans",
+    "current_rank": "Rank Tier"
   }
 }

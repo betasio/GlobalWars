@@ -9,7 +9,7 @@
     "close": "Bezár"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Csatlakozz discord szerverünkhöz!",
     "login_discord": "Bejelentkezés Discord fiókkal",
     "checking_login": "Bejelentkezés ellenőrzése...",
@@ -23,7 +23,8 @@
     "advertise": "Hirdetés",
     "wiki": "Wiki",
     "privacy_policy": "Adatvédelmi irányelvek",
-    "terms_of_service": "Felhasználási feltételek"
+    "terms_of_service": "Felhasználási feltételek",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Összes verzió megtekintése",
@@ -145,7 +146,11 @@
     "title": "Felhasználói fiók",
     "logged_in_as": "Bejelentkezve, mint {email}",
     "logged_in_with_discord": "Bejelentkezve Discord fiókkal",
-    "recovery_email_sent": "Helyreállítási e-mail elküldve a(z) {email} címre"
+    "recovery_email_sent": "Helyreállítási e-mail elküldve a(z) {email} címre",
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
   },
   "map": {
     "map": "Térkép",
@@ -207,14 +212,17 @@
     "teams_Duos": "Duók (2 fős csapatok)",
     "teams_Trios": "Triók (3 fős csapatok)",
     "teams_Quads": "Négyes (4 fős csapatok)",
-    "teams": "{num} csapat"
+    "teams": "{num} csapat",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "Add meg a felhasználóneved",
     "not_string": "A felhasználónévnek szövegnek kell lennie.",
     "too_short": "A felhasználónévnek legalább {min} karakter hosszúnak kell lennie.",
     "too_long": "A felhasználónév nem lehet hosszabb {max} karakternél.",
-    "invalid_chars": "A felhasználónév csak betűket, számokat, szóközt, alulvonást és [szögletes zárójelet] tartalmazhat."
+    "invalid_chars": "A felhasználónév csak betűket, számokat, szóközt, alulvonást és [szögletes zárójelet] tartalmazhat.",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Privát lobby",
@@ -708,5 +716,26 @@
     "map": "Térkép",
     "difficulty": "Nehézség",
     "type": "Típus"
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans",
+    "current_rank": "Rank Tier"
   }
 }

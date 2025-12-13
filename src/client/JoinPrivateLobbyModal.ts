@@ -314,7 +314,10 @@ export class JoinPrivateLobbyModal extends LitElement {
     )
       .then((response) => response.json())
       .then((data: GameInfo) => {
-        this.players = data.clients?.map((p) => p.username) ?? [];
+        this.players =
+          data.clients?.map((p) =>
+            p.clanTag ? `[${p.clanTag}] ${p.username}` : p.username,
+          ) ?? [];
       })
       .catch((error) => {
         console.error("Error polling players:", error);

@@ -9,7 +9,7 @@
     "close": "Stäng"
   },
   "main": {
-    "title": "GlobalWars (ALPHA)",
+    "title": "GlobalWars",
     "join_discord": "Gå med i Discord!",
     "login_discord": "Logga in med Discord",
     "checking_login": "Kontrollerar inloggning...",
@@ -23,7 +23,8 @@
     "advertise": "Annonsera",
     "wiki": "Wiki",
     "privacy_policy": "Sekretesspolicy",
-    "terms_of_service": "Användarvillkor"
+    "terms_of_service": "Användarvillkor",
+    "login_google": "Login with Google"
   },
   "news": {
     "full_changelog": "Se fullständig ändringslogg",
@@ -189,14 +190,17 @@
     "teams_Duos": "Duos (lag av 2)",
     "teams_Trios": "Trios (lag av 3)",
     "teams_Quads": "Quads (lag av 4)",
-    "teams": "{num} lag"
+    "teams": "{num} lag",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "Ange ditt användarnamn",
     "not_string": "Användarnamnet måste vara en sträng.",
     "too_short": "Användarnamnet måste innehålla minst {min} tecken.",
     "too_long": "Användarnamnet får inte vara längre än {max} tecken.",
-    "invalid_chars": "Användarnamnet får enbart innehålla bokstäver, siffror, mellanslag, understreck och [hakparenteser]."
+    "invalid_chars": "Användarnamnet får enbart innehålla bokstäver, siffror, mellanslag, understreck och [hakparenteser].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Privat lobby",
@@ -585,5 +589,32 @@
     "redirecting": "Du blir omdirigerad...",
     "not_authorized": "Du har inte behörighet att komma åt den här webbplatsen.",
     "contact_admin": "Om du tror att du ser detta meddelande felaktigt, kontakta webbplatsens administratör."
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans",
+    "current_rank": "Rank Tier"
   }
 }

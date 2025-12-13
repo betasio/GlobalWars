@@ -23,7 +23,8 @@
     "advertise": "Inzerovať",
     "wiki": "Wiki",
     "privacy_policy": "Zásady ochrany osobných údajov",
-    "terms_of_service": "Podmienky používania"
+    "terms_of_service": "Podmienky používania",
+    "login_google": "Login with Google"
   },
   "news": {
     "see_all_releases": "Zobraziť všetky vydania",
@@ -193,14 +194,17 @@
     "teams_Duos": "Dvojice (tímy dvoch)",
     "teams_Trios": "Trojice (tímy troch)",
     "teams_Quads": "Štvorice (tímy štyroch)",
-    "teams": "{num} tímy"
+    "teams": "{num} tímy",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "Zadaj svoje používateľské meno",
     "not_string": "Používateľské meno musí byť reťazec.",
     "too_short": "Používateľské meno musí byť aspoň {min} znakov dlhé.",
     "too_long": "Používateľské meno nesmie prekročiť {max} znakov.",
-    "invalid_chars": "Používateľské meno smie obsahovať iba písmená, čísla, medzery, podčiarniky, a [hranaté zátvorky]."
+    "invalid_chars": "Používateľské meno smie obsahovať iba písmená, čísla, medzery, podčiarniky, a [hranaté zátvorky].",
+    "taken": "That username is already taken.",
+    "save_failed": "Failed to save username. Please try again."
   },
   "host_modal": {
     "title": "Súkromná miestnosť",
@@ -601,5 +605,32 @@
   "radial_menu": {
     "delete_unit_title": "Vymazať jednotku",
     "delete_unit_description": "Ťukni na vymazanie najbližšej jednotky"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans",
+    "current_rank": "Rank Tier"
   }
 }

@@ -12,7 +12,8 @@
     "single_player": "main.single_player",
     "instructions": "main.instructions",
     "how_to_play": "main.how_to_play",
-    "wiki": "main.wiki"
+    "wiki": "main.wiki",
+    "login_google": "Login with Google"
   },
   "help_modal": {
     "hotkeys": "help_modal.hotkeys",
@@ -131,14 +132,20 @@
   },
   "public_lobby": {
     "join": "public_lobby.join",
-    "waiting": "public_lobby.waiting"
+    "waiting": "public_lobby.waiting",
+    "ranked_mode": "Ranked"
   },
   "username": {
     "enter_username": "username.enter_username",
     "not_string": "username.not_string",
     "too_short": "username.too_short",
     "too_long": "username.too_long",
-    "invalid_chars": "username.invalid_chars"
+    "invalid_chars": "username.invalid_chars",
+    "no_spaces": "username.no_spaces",
+    "taken": "That username is already taken.",
+    "save": "username.save",
+    "save_failed": "Failed to save username. Please try again.",
+    "guest_autogen": ""
   },
   "host_modal": {
     "title": "host_modal.title",
@@ -170,5 +177,70 @@
   "heads_up_message": {
     "choose_spawn": "heads_up_message.choose_spawn",
     "random_spawn": "heads_up_message.random_spawn"
+  },
+  "account_modal": {
+    "google_only": "Login with Google",
+    "no_auth": "Login unavailable",
+    "no_auth_detail": "Firebase settings are missing. Please provide Firebase credentials to enable Google login.",
+    "google_error": "Unable to login with Google. Please try again."
+  },
+  "clan": {
+    "title": "Clans",
+    "loading": "Loading clan info...",
+    "login_required": "Log in to create or join a clan.",
+    "create_title": "Create a clan",
+    "join_title": "Join a clan",
+    "name_placeholder": "Clan name",
+    "nickname_placeholder": "Clan nickname (3 letters/numbers)",
+    "create_button": "Create clan",
+    "join_button": "Join clan",
+    "members_label": "Members",
+    "leader_label": "Leader",
+    "member_label": "Member",
+    "disband": "Disband clan",
+    "leave": "Leave clan",
+    "rename_label": "Rename clan",
+    "save_name": "Save name",
+    "rename_nickname_label": "Change clan tag",
+    "save_nickname": "Save tag",
+    "kick": "Kick",
+    "created_success": "Clan created!",
+    "joined_success": "Joined clan!",
+    "left_success": "Left clan.",
+    "disbanded_success": "Clan disbanded.",
+    "renamed_success": "Clan renamed.",
+    "nickname_renamed_success": "Clan tag updated.",
+    "kicked_success": "Member removed.",
+    "name_taken": "That clan name is already taken.",
+    "nickname_taken": "That clan tag is already taken.",
+    "not_found": "Clan not found.",
+    "already_in_clan": "Leave your current clan first.",
+    "invalid_name": "Clan name must be 3-24 characters using letters, numbers, or spaces.",
+    "invalid_nickname": "Clan nickname must be exactly 3 letters or numbers.",
+    "not_leader": "Only clan leaders can do that.",
+    "leader_leave_blocked": "Leaders must disband before leaving.",
+    "login_required_action": "You need to be logged in to manage clans.",
+    "action_failed": "Unable to complete clan action."
+  },
+  "stats_modal": {
+    "title": "Ranked Stats",
+    "ranked_title": "Ranked Leaderboards",
+    "loading": "Loading...",
+    "error": "Error loading rankings",
+    "no_player_stats": "No ranked players yet",
+    "no_clan_stats": "No ranked clans yet",
+    "rank": "Rank",
+    "player": "Player",
+    "clan": "Clan",
+    "rating": "Rating",
+    "wins": "Wins",
+    "losses": "Losses",
+    "games": "Games",
+    "ranked_only": "Ranked matches only. Guests are excluded.",
+    "last_updated": "Last updated: {date}",
+    "retry": "Retry",
+    "players_tab": "Players",
+    "clans_tab": "Clans",
+    "current_rank": "Rank Tier"
   }
 }

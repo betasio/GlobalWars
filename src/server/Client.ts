@@ -18,6 +18,8 @@ export class Client {
     public readonly flares: string[] | undefined,
     public readonly ip: string,
     public readonly username: string,
+    public readonly clanTag: string | undefined,
+    public readonly clanName: string | undefined,
     public readonly ws: WebSocket,
     public readonly cosmetics: PlayerCosmetics | undefined,
   ) {}
