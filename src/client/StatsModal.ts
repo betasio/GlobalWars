@@ -1,5 +1,6 @@
 import { css, html, LitElement } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
+import { getRankForRating } from "../core/Ranks";
 import {
   RankedClanEntry,
   RankedLeaderboards,
@@ -116,14 +117,27 @@ export class StatsModal extends LitElement {
       <tr class="border-b border-gray-700 text-gray-300">
         ${headers.map(
           (header, idx) =>
-            html`<th
-              class="py-2 px-2 ${idx === 0 ? "text-left" : "text-right"}"
-            >
+            html`<th class="py-2 px-2 ${idx <= 1 ? "text-left" : "text-right"}">
               ${header}
             </th>`,
         )}
       </tr>
     </thead>`;
+  }
+
+  private renderTierCell(rating: number) {
+    const tier = getRankForRating(rating);
+    return html`<div class="flex items-center gap-2">
+      <img
+        src="${tier.logo}"
+        alt="${tier.name}"
+        class="w-8 h-8 rounded-full border border-white/10 bg-slate-800/80"
+      />
+      <div class="flex flex-col leading-tight">
+        <span class="font-semibold">${tier.name}</span>
+        <span class="text-[11px] text-gray-300">${rating} pts</span>
+      </div>
+    </div>`;
   }
 
   private renderPlayerRows(players: RankedPlayerEntry[]) {
@@ -138,6 +152,7 @@ export class StatsModal extends LitElement {
         ${this.renderTableHeader([
           translateText("stats_modal.rank"),
           translateText("stats_modal.player"),
+          "Tier",
           translateText("stats_modal.rating"),
           translateText("stats_modal.wins"),
           translateText("stats_modal.losses"),
@@ -157,6 +172,9 @@ export class StatsModal extends LitElement {
                         </span>`
                       : null}
                   </div>
+                </td>
+                <td class="py-2 px-2 text-left">
+                  ${this.renderTierCell(player.rating)}
                 </td>
                 <td class="py-2 px-2 text-right">${player.rating}</td>
                 <td class="py-2 px-2 text-right">${player.wins}</td>
@@ -181,6 +199,7 @@ export class StatsModal extends LitElement {
         ${this.renderTableHeader([
           translateText("stats_modal.rank"),
           translateText("stats_modal.clan"),
+          "Tier",
           translateText("stats_modal.rating"),
           translateText("stats_modal.wins"),
           translateText("stats_modal.losses"),
@@ -199,6 +218,9 @@ export class StatsModal extends LitElement {
                         : ""}${clan.name ?? clan.id}
                     </span>
                   </div>
+                </td>
+                <td class="py-2 px-2 text-left">
+                  ${this.renderTierCell(clan.rating)}
                 </td>
                 <td class="py-2 px-2 text-right">${clan.rating}</td>
                 <td class="py-2 px-2 text-right">${clan.wins}</td>
