@@ -1,10 +1,10 @@
 import { css, html, LitElement } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 import {
-  fetchRankedLeaderboards,
   RankedClanEntry,
   RankedLeaderboards,
   RankedPlayerEntry,
+  subscribeToRankedLeaderboards,
 } from "./firebaseAuth";
 import { translateText } from "./Utils";
 
@@ -22,9 +22,21 @@ export class StatsModal extends LitElement {
   @state() private activeTab: "players" | "clans" = "players";
 
   private hasLoaded = false;
+  private unsubscribeRanked: (() => void) | null = null;
 
   createRenderRoot() {
     return this;
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    void this.loadLeaderboard();
+  }
+
+  disconnectedCallback(): void {
+    this.unsubscribeRanked?.();
+    this.unsubscribeRanked = null;
+    super.disconnectedCallback();
   }
 
   public open() {
@@ -39,15 +51,35 @@ export class StatsModal extends LitElement {
   }
 
   private async loadLeaderboard() {
+    if (this.unsubscribeRanked) return;
+
     this.isLoading = true;
     this.error = null;
 
     try {
-      this.leaderboard = await fetchRankedLeaderboards();
-      this.hasLoaded = true;
+      this.unsubscribeRanked = await subscribeToRankedLeaderboards(
+        (leaderboard) => {
+          this.leaderboard = leaderboard;
+          this.hasLoaded = true;
+          this.isLoading = false;
+          this.error = null;
+          this.requestUpdate();
+        },
+        (err) => {
+          console.warn(
+            "StatsModal: failed to subscribe to ranked leaderboards",
+            err,
+          );
+          this.error = translateText("stats_modal.error");
+          this.isLoading = false;
+          this.unsubscribeRanked = null;
+          this.requestUpdate();
+        },
+      );
     } catch (err) {
       console.warn("StatsModal: failed to load ranked leaderboards", err);
       this.error = translateText("stats_modal.error");
+      this.unsubscribeRanked = null;
     } finally {
       this.isLoading = false;
       this.requestUpdate();
@@ -211,7 +243,6 @@ export class StatsModal extends LitElement {
       return html``;
     }
 
-    const updated = this.leaderboard.fetchedAt;
     const players = this.leaderboard.players;
     const clans = this.leaderboard.clans;
 
@@ -221,11 +252,6 @@ export class StatsModal extends LitElement {
           <h2 class="text-xl font-semibold text-purple-200">
             ${translateText("stats_modal.ranked_title")}
           </h2>
-          <p class="text-[11px] text-gray-500">
-            ${translateText("stats_modal.last_updated", {
-              date: updated.toLocaleString(),
-            })}
-          </p>
         </div>
 
         ${this.renderTabs()}

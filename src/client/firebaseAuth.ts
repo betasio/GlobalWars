@@ -988,6 +988,34 @@ export interface RankedLeaderboards {
   fetchedAt: Date;
 }
 
+const buildRankedSnapshot = (data: any): RankedSnapshot => ({
+  rating: safeNumber(data?.rating, 0),
+  wins: safeNumber(data?.wins, 0),
+  losses: safeNumber(data?.losses, 0),
+  games: safeNumber(data?.games, 0),
+});
+
+const parseRankedPlayerEntry = (doc: any): RankedPlayerEntry => {
+  const data = doc?.data?.() ?? doc?.data?.call?.(doc) ?? {};
+  return {
+    uid: doc?.id ?? "",
+    username: data.username ?? "Unknown",
+    clanName: data.clanName ?? null,
+    clanNickname: data.clanNickname ?? null,
+    ...buildRankedSnapshot(data),
+  };
+};
+
+const parseRankedClanEntry = (doc: any): RankedClanEntry => {
+  const data = doc?.data?.() ?? doc?.data?.call?.(doc) ?? {};
+  return {
+    id: doc?.id ?? "",
+    name: data.name ?? doc?.id ?? "",
+    nickname: data.nickname ?? null,
+    ...buildRankedSnapshot(data),
+  };
+};
+
 function computeRatingDelta(win: boolean, stats: any | undefined): number {
   const base = win ? 25 : -15;
   if (!stats) return base;
@@ -1104,16 +1132,6 @@ export async function fetchRankedLeaderboards(
     throw new Error("firebase_not_configured");
   }
 
-  const buildEntry = (snap: any): RankedSnapshot => {
-    const data = snap?.data?.() ?? snap?.data?.call?.(snap) ?? {};
-    return {
-      rating: safeNumber(data.rating, 0),
-      wins: safeNumber(data.wins, 0),
-      losses: safeNumber(data.losses, 0),
-      games: safeNumber(data.games, 0),
-    };
-  };
-
   const playerQuery = firestore.query(
     firestore.collection(db, PLAYER_RANKINGS_COLLECTION),
     firestore.orderBy("rating", "desc"),
@@ -1132,33 +1150,100 @@ export async function fetchRankedLeaderboards(
   ]);
 
   const players: RankedPlayerEntry[] = (playersSnap?.docs ?? []).map(
-    (doc: any) => {
-      const data = doc?.data?.() ?? doc?.data?.call?.(doc) ?? {};
-      const base = buildEntry(doc);
-      return {
-        uid: doc?.id ?? "",
-        username: data.username ?? "Unknown",
-        clanName: data.clanName ?? null,
-        clanNickname: data.clanNickname ?? null,
-        ...base,
-      };
-    },
+    parseRankedPlayerEntry,
   );
 
-  const clans: RankedClanEntry[] = (clansSnap?.docs ?? []).map((doc: any) => {
-    const data = doc?.data?.() ?? doc?.data?.call?.(doc) ?? {};
-    const base = buildEntry(doc);
-    return {
-      id: doc?.id ?? "",
-      name: data.name ?? doc?.id ?? "",
-      nickname: data.nickname ?? null,
-      ...base,
-    };
-  });
+  const clans: RankedClanEntry[] = (clansSnap?.docs ?? []).map(
+    parseRankedClanEntry,
+  );
 
   return {
     players: players.filter((p) => p.games > 0),
     clans: clans.filter((c) => c.games > 0),
     fetchedAt: new Date(),
+  };
+}
+
+export async function subscribeToRankedLeaderboards(
+  onChange: (leaderboard: RankedLeaderboards) => void,
+  onError?: (err: any) => void,
+  limitCount = 50,
+): Promise<() => void> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) {
+    onError?.(new Error("firebase_not_configured"));
+    return () => {};
+  }
+
+  // Fallback to a single fetch if realtime listeners are unavailable
+  if (!firestore.onSnapshot) {
+    try {
+      const leaderboard = await fetchRankedLeaderboards(limitCount);
+      onChange(leaderboard);
+    } catch (err) {
+      onError?.(err);
+    }
+    return () => {};
+  }
+
+  const playerQuery = firestore.query(
+    firestore.collection(db, PLAYER_RANKINGS_COLLECTION),
+    firestore.orderBy("rating", "desc"),
+    firestore.limit(limitCount),
+  );
+
+  const clanQuery = firestore.query(
+    firestore.collection(db, CLAN_RANKINGS_COLLECTION),
+    firestore.orderBy("rating", "desc"),
+    firestore.limit(limitCount),
+  );
+
+  let latestPlayers: RankedPlayerEntry[] | null = null;
+  let latestClans: RankedClanEntry[] | null = null;
+
+  const emitLeaderboard = () => {
+    if (!latestPlayers || !latestClans) return;
+
+    onChange({
+      players: latestPlayers.filter((p) => p.games > 0),
+      clans: latestClans.filter((c) => c.games > 0),
+      fetchedAt: new Date(),
+    });
+  };
+
+  const unsubscribePlayers = firestore.onSnapshot(
+    playerQuery,
+    (snapshot: any) => {
+      latestPlayers = (snapshot?.docs ?? []).map(parseRankedPlayerEntry);
+      emitLeaderboard();
+    },
+    (err: any) => {
+      console.warn(
+        "subscribeToRankedLeaderboards: players snapshot failed",
+        err,
+      );
+      onError?.(err);
+    },
+  );
+
+  const unsubscribeClans = firestore.onSnapshot(
+    clanQuery,
+    (snapshot: any) => {
+      latestClans = (snapshot?.docs ?? []).map(parseRankedClanEntry);
+      emitLeaderboard();
+    },
+    (err: any) => {
+      console.warn("subscribeToRankedLeaderboards: clans snapshot failed", err);
+      onError?.(err);
+    },
+  );
+
+  return () => {
+    try {
+      unsubscribePlayers?.();
+      unsubscribeClans?.();
+    } catch (err) {
+      console.warn("subscribeToRankedLeaderboards: failed to unsubscribe", err);
+    }
   };
 }
