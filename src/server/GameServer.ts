@@ -3,7 +3,8 @@ import { Logger } from "winston";
 import WebSocket from "ws";
 import { z } from "zod";
 import { GameEnv, ServerConfig } from "../core/configuration/Config";
-import { GameType } from "../core/game/Game";
+import { GameMode, GameType } from "../core/game/Game";
+import { computeRankedResultsForGame } from "../core/ranked/Scoring";
 import {
   ClientID,
   ClientMessageSchema,
@@ -695,20 +696,35 @@ export class GameServer {
         } satisfies PlayerRecord;
       },
     );
-    archive(
-      finalizeGameRecord(
-        createPartialGameRecord(
-          this.id,
-          this.gameStartInfo.config,
-          playerRecords,
-          this.turns,
-          this._startTime ?? 0,
-          Date.now(),
+    const rankedResults = this.gameStartInfo.config.ranked
+      ? computeRankedResultsForGame(
+          this.gameStartInfo.config.gameMode ?? GameMode.FFA,
+          playerRecords.map((player) => ({
+            clientID: player.clientID,
+            username: player.username,
+            persistentID: player.persistentID,
+            stats: player.stats,
+          })),
           this.winner?.winner,
-          this.createdAt,
-        ),
-      ),
+        )
+      : [];
+
+    const partialRecord = createPartialGameRecord(
+      this.id,
+      this.gameStartInfo.config,
+      playerRecords,
+      this.turns,
+      this._startTime ?? 0,
+      Date.now(),
+      this.winner?.winner,
+      this.createdAt,
     );
+
+    if (rankedResults.length > 0) {
+      partialRecord.rankedResults = rankedResults;
+    }
+
+    archive(finalizeGameRecord(partialRecord));
   }
 
   private handleSynchronization() {

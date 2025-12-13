@@ -3,6 +3,12 @@ import {
   getClientEnv,
   type FirebaseClientConfig,
 } from "../core/configuration/ConfigLoader";
+import { GameMode } from "../core/game/Game";
+import {
+  RankedDeltaBreakdown,
+  RankedPlayerContext,
+  computeRankedDeltaForPlayer,
+} from "../core/ranked/Scoring";
 import { RankChange, computeRankChange } from "../core/Ranks";
 import { PartialGameRecord } from "../core/Schemas";
 import { getPersistentID } from "./Main";
@@ -1017,27 +1023,36 @@ const parseRankedClanEntry = (doc: any): RankedClanEntry => {
   };
 };
 
-function computeRatingDelta(win: boolean, stats: any | undefined): number {
-  const base = win ? 25 : -15;
-  if (!stats) return base;
+function buildRankedPlayerContexts(
+  gameRecord: PartialGameRecord,
+): RankedPlayerContext[] {
+  return gameRecord.info.players.map((player) => ({
+    clientID: player.clientID,
+    username: player.username,
+    persistentID: player.persistentID,
+    stats: player.stats,
+  }));
+}
 
-  // Reward meaningful participation: more conquests and gold generation provide
-  // a small boost while keeping the formula bounded for faster calculations.
-  const conquests = safeNumber(stats.conquests, 0);
-  const goldEarned = Array.isArray(stats.gold)
-    ? safeNumber(stats.gold[0], 0)
-    : safeNumber(stats.gold, 0);
-  const activityBonus = Math.min(
-    10,
-    Math.floor(conquests / 3) + goldEarned / 5000,
+function computeRatingDelta(
+  gameRecord: PartialGameRecord,
+  playerId: string,
+): { ratingDelta: number; breakdown: RankedDeltaBreakdown } {
+  const contexts = buildRankedPlayerContexts(gameRecord);
+  const breakdown = computeRankedDeltaForPlayer(
+    gameRecord.info.config.gameMode ?? GameMode.FFA,
+    playerId,
+    contexts,
+    gameRecord.info.winner,
   );
 
-  return base + activityBonus;
+  return { ratingDelta: breakdown.ratingDelta, breakdown };
 }
 
 export interface RankedResultSummary {
   player: RankChange;
   clan?: RankChange;
+  breakdown?: RankedDeltaBreakdown;
 }
 
 export async function recordRankedResult(
@@ -1057,9 +1072,9 @@ export async function recordRankedResult(
   if (!playerEntry) return null;
 
   const isWinner = didPlayerWin(gameRecord.info.winner, playerEntry.clientID);
-  const ratingDelta = computeRatingDelta(
-    isWinner,
-    gameRecord.info.winner ? playerEntry.stats : undefined,
+  const { ratingDelta, breakdown } = computeRatingDelta(
+    gameRecord,
+    playerEntry.clientID,
   );
 
   // Fetch clan metadata outside the transaction for readability
@@ -1138,6 +1153,7 @@ export async function recordRankedResult(
     resultSummary = {
       player: playerChange,
       clan: clanChange,
+      breakdown,
     };
   });
 

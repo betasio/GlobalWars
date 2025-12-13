@@ -117,6 +117,25 @@ function renderRankedResultToast(result: RankedResultSummary) {
   textWrap.appendChild(headline);
   textWrap.appendChild(detail);
 
+  if (result.breakdown) {
+    const reasonList = document.createElement("ul");
+    reasonList.style.margin = "0";
+    reasonList.style.paddingLeft = "16px";
+    reasonList.style.fontSize = "12px";
+    reasonList.style.opacity = "0.92";
+    reasonList.style.display = "flex";
+    reasonList.style.flexDirection = "column";
+    reasonList.style.gap = "2px";
+
+    result.breakdown.reasons.forEach((reason) => {
+      const item = document.createElement("li");
+      item.textContent = reason;
+      reasonList.appendChild(item);
+    });
+
+    textWrap.appendChild(reasonList);
+  }
+
   if (result.clan) {
     const clanDetail = document.createElement("div");
     clanDetail.style.fontSize = "12px";
