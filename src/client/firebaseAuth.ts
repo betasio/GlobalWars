@@ -3,6 +3,7 @@ import {
   getClientEnv,
   type FirebaseClientConfig,
 } from "../core/configuration/ConfigLoader";
+import { RankChange, computeRankChange } from "../core/Ranks";
 import { PartialGameRecord } from "../core/Schemas";
 import { getPersistentID } from "./Main";
 
@@ -1034,21 +1035,26 @@ function computeRatingDelta(win: boolean, stats: any | undefined): number {
   return base + activityBonus;
 }
 
+export interface RankedResultSummary {
+  player: RankChange;
+  clan?: RankChange;
+}
+
 export async function recordRankedResult(
   gameRecord: PartialGameRecord,
-): Promise<void> {
-  if (!gameRecord.info?.config?.ranked) return;
+): Promise<RankedResultSummary | null> {
+  if (!gameRecord.info?.config?.ranked) return null;
 
   const { user, configured } = await ensureFirebaseReady();
-  if (!configured || !user) return; // Guests are ignored
+  if (!configured || !user) return null; // Guests are ignored
 
   const { db, firestore } = await ensureFirestore();
-  if (!db || !firestore) return;
+  if (!db || !firestore) return null;
 
   const playerEntry = gameRecord.info.players.find(
     (p) => p.persistentID === getPersistentID(),
   );
-  if (!playerEntry) return;
+  if (!playerEntry) return null;
 
   const isWinner = didPlayerWin(gameRecord.info.winner, playerEntry.clientID);
   const ratingDelta = computeRatingDelta(
@@ -1064,6 +1070,8 @@ export async function recordRankedResult(
   const clanName: string | null = userData.clanName ?? null;
   const clanNickname: string | null = userData.clanNickname ?? null;
 
+  let resultSummary: RankedResultSummary | null = null;
+
   await firestore.runTransaction(db, async (tx: any) => {
     const playerRef = firestore.doc(db, PLAYER_RANKINGS_COLLECTION, user.uid);
     const playerSnap = await tx.get(playerRef);
@@ -1075,8 +1083,10 @@ export async function recordRankedResult(
       return; // Already counted this match
     }
 
+    const playerChange = computeRankChange(playerData.rating, ratingDelta);
+
     const updatedPlayer: RankedSnapshot = {
-      rating: Math.max(0, playerData.rating + ratingDelta),
+      rating: playerChange.newRating,
       wins: playerData.wins + (isWinner ? 1 : 0),
       losses: playerData.losses + (isWinner ? 0 : 1),
       games: playerData.games + 1,
@@ -1096,14 +1106,17 @@ export async function recordRankedResult(
       { merge: true },
     );
 
+    let clanChange: RankChange | undefined;
+
     if (clanId) {
       const clanRef = firestore.doc(db, CLAN_RANKINGS_COLLECTION, clanId);
       const clanSnap = await tx.get(clanRef);
       const clanData: RankedSnapshot = clanSnap?.exists
         ? clanSnap.data()
         : { rating: 1000, wins: 0, losses: 0, games: 0 };
+      clanChange = computeRankChange(clanData.rating, ratingDelta);
       const updatedClan: RankedSnapshot = {
-        rating: Math.max(0, clanData.rating + ratingDelta),
+        rating: clanChange.newRating,
         wins: clanData.wins + (isWinner ? 1 : 0),
         losses: clanData.losses + (isWinner ? 0 : 1),
         games: clanData.games + 1,
@@ -1121,7 +1134,14 @@ export async function recordRankedResult(
         { merge: true },
       );
     }
+
+    resultSummary = {
+      player: playerChange,
+      clan: clanChange,
+    };
   });
+
+  return resultSummary;
 }
 
 export async function fetchRankedLeaderboards(
