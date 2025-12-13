@@ -9,7 +9,12 @@ import {
   RankedPlayerContext,
   computeRankedDeltaForPlayer,
 } from "../core/ranked/Scoring";
-import { RankChange, RankTier, computeRankChange } from "../core/Ranks";
+import {
+  RankChange,
+  RankTier,
+  computeRankChange,
+  getRankForRating,
+} from "../core/Ranks";
 import { PartialGameRecord } from "../core/Schemas";
 import { getPersistentID } from "./Main";
 
