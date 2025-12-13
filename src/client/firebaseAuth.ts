@@ -9,7 +9,12 @@ import {
   RankedPlayerContext,
   computeRankedDeltaForPlayer,
 } from "../core/ranked/Scoring";
-import { RankChange, computeRankChange } from "../core/Ranks";
+import {
+  RankChange,
+  RankTier,
+  computeRankChange,
+  getRankForRating,
+} from "../core/Ranks";
 import { PartialGameRecord } from "../core/Schemas";
 import { getPersistentID } from "./Main";
 
@@ -970,10 +975,12 @@ export async function kickMember(
 }
 
 export interface RankedSnapshot {
+  rankPoints: number;
   rating: number;
   wins: number;
   losses: number;
   games: number;
+  tier: RankTier;
 }
 
 export interface RankedPlayerEntry extends RankedSnapshot {
@@ -995,12 +1002,25 @@ export interface RankedLeaderboards {
   fetchedAt: Date;
 }
 
-const buildRankedSnapshot = (data: any): RankedSnapshot => ({
-  rating: safeNumber(data?.rating, 0),
-  wins: safeNumber(data?.wins, 0),
-  losses: safeNumber(data?.losses, 0),
-  games: safeNumber(data?.games, 0),
-});
+const extractRankPoints = (data: any): number => {
+  const rankPoints = safeNumber(
+    data?.totalRankPoints ?? data?.rankPoints ?? data?.rating,
+    0,
+  );
+  return Math.max(0, rankPoints);
+};
+
+const buildRankedSnapshot = (data: any): RankedSnapshot => {
+  const rankPoints = extractRankPoints(data);
+  return {
+    rankPoints,
+    rating: rankPoints,
+    wins: safeNumber(data?.wins, 0),
+    losses: safeNumber(data?.losses, 0),
+    games: safeNumber(data?.games, 0),
+    tier: getRankForRating(rankPoints),
+  };
+};
 
 const parseRankedPlayerEntry = (doc: any): RankedPlayerEntry => {
   const data = doc?.data?.() ?? doc?.data?.call?.(doc) ?? {};
@@ -1091,8 +1111,15 @@ export async function recordRankedResult(
     const playerRef = firestore.doc(db, PLAYER_RANKINGS_COLLECTION, user.uid);
     const playerSnap = await tx.get(playerRef);
     const playerData: RankedSnapshot = playerSnap?.exists
-      ? playerSnap.data()
-      : { rating: 1000, wins: 0, losses: 0, games: 0 };
+      ? buildRankedSnapshot(playerSnap.data())
+      : {
+          rankPoints: 1000,
+          rating: 1000,
+          wins: 0,
+          losses: 0,
+          games: 0,
+          tier: getRankForRating(1000),
+        };
 
     if (playerSnap?.data()?.lastGameId === gameRecord.info.gameID) {
       return; // Already counted this match
@@ -1100,17 +1127,21 @@ export async function recordRankedResult(
 
     const playerChange = computeRankChange(playerData.rating, ratingDelta);
 
+    const nextPlayerRankPoints = playerChange.newRating;
     const updatedPlayer: RankedSnapshot = {
-      rating: playerChange.newRating,
+      rankPoints: nextPlayerRankPoints,
+      rating: nextPlayerRankPoints,
       wins: playerData.wins + (isWinner ? 1 : 0),
       losses: playerData.losses + (isWinner ? 0 : 1),
       games: playerData.games + 1,
+      tier: getRankForRating(nextPlayerRankPoints),
     };
 
     tx.set(
       playerRef,
       {
         ...updatedPlayer,
+        totalRankPoints: updatedPlayer.rankPoints,
         lastGameId: gameRecord.info.gameID,
         lastUpdatedAt: firestore.serverTimestamp(),
         username: playerEntry.username,
@@ -1127,20 +1158,31 @@ export async function recordRankedResult(
       const clanRef = firestore.doc(db, CLAN_RANKINGS_COLLECTION, clanId);
       const clanSnap = await tx.get(clanRef);
       const clanData: RankedSnapshot = clanSnap?.exists
-        ? clanSnap.data()
-        : { rating: 1000, wins: 0, losses: 0, games: 0 };
+        ? buildRankedSnapshot(clanSnap.data())
+        : {
+            rankPoints: 1000,
+            rating: 1000,
+            wins: 0,
+            losses: 0,
+            games: 0,
+            tier: getRankForRating(1000),
+          };
       clanChange = computeRankChange(clanData.rating, ratingDelta);
+      const nextClanRankPoints = clanChange.newRating;
       const updatedClan: RankedSnapshot = {
-        rating: clanChange.newRating,
+        rankPoints: nextClanRankPoints,
+        rating: nextClanRankPoints,
         wins: clanData.wins + (isWinner ? 1 : 0),
         losses: clanData.losses + (isWinner ? 0 : 1),
         games: clanData.games + 1,
+        tier: getRankForRating(nextClanRankPoints),
       };
 
       tx.set(
         clanRef,
         {
           ...updatedClan,
+          totalRankPoints: updatedClan.rankPoints,
           lastGameId: gameRecord.info.gameID,
           lastUpdatedAt: firestore.serverTimestamp(),
           name: clanName,
@@ -1168,15 +1210,17 @@ export async function fetchRankedLeaderboards(
     throw new Error("firebase_not_configured");
   }
 
+  const orderField = "totalRankPoints";
+
   const playerQuery = firestore.query(
     firestore.collection(db, PLAYER_RANKINGS_COLLECTION),
-    firestore.orderBy("rating", "desc"),
+    firestore.orderBy(orderField, "desc"),
     firestore.limit(limitCount),
   );
 
   const clanQuery = firestore.query(
     firestore.collection(db, CLAN_RANKINGS_COLLECTION),
-    firestore.orderBy("rating", "desc"),
+    firestore.orderBy(orderField, "desc"),
     firestore.limit(limitCount),
   );
 
@@ -1185,13 +1229,16 @@ export async function fetchRankedLeaderboards(
     firestore.getDocs(clanQuery),
   ]);
 
-  const players: RankedPlayerEntry[] = (playersSnap?.docs ?? []).map(
-    parseRankedPlayerEntry,
-  );
+  const sortByRankPoints = <T extends RankedSnapshot>(a: T, b: T) =>
+    b.rankPoints - a.rankPoints;
 
-  const clans: RankedClanEntry[] = (clansSnap?.docs ?? []).map(
-    parseRankedClanEntry,
-  );
+  const players: RankedPlayerEntry[] = (playersSnap?.docs ?? [])
+    .map(parseRankedPlayerEntry)
+    .sort(sortByRankPoints);
+
+  const clans: RankedClanEntry[] = (clansSnap?.docs ?? [])
+    .map(parseRankedClanEntry)
+    .sort(sortByRankPoints);
 
   return {
     players: players.filter((p) => p.games > 0),
@@ -1211,26 +1258,44 @@ export async function subscribeToRankedLeaderboards(
     return () => {};
   }
 
-  // Fallback to a single fetch if realtime listeners are unavailable
+  // Fallback to a polling loop if realtime listeners are unavailable
   if (!firestore.onSnapshot) {
-    try {
-      const leaderboard = await fetchRankedLeaderboards(limitCount);
-      onChange(leaderboard);
-    } catch (err) {
-      onError?.(err);
-    }
-    return () => {};
+    let cancelled = false;
+    const refreshIntervalMs = 15000;
+
+    const fetchAndEmit = async () => {
+      try {
+        const leaderboard = await fetchRankedLeaderboards(limitCount);
+        if (!cancelled) {
+          onChange(leaderboard);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          onError?.(err);
+        }
+      }
+    };
+
+    await fetchAndEmit();
+    const interval = setInterval(fetchAndEmit, refreshIntervalMs);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }
+
+  const orderField = "totalRankPoints";
 
   const playerQuery = firestore.query(
     firestore.collection(db, PLAYER_RANKINGS_COLLECTION),
-    firestore.orderBy("rating", "desc"),
+    firestore.orderBy(orderField, "desc"),
     firestore.limit(limitCount),
   );
 
   const clanQuery = firestore.query(
     firestore.collection(db, CLAN_RANKINGS_COLLECTION),
-    firestore.orderBy("rating", "desc"),
+    firestore.orderBy(orderField, "desc"),
     firestore.limit(limitCount),
   );
 
@@ -1240,9 +1305,12 @@ export async function subscribeToRankedLeaderboards(
   const emitLeaderboard = () => {
     if (!latestPlayers || !latestClans) return;
 
+    const sortByRankPoints = <T extends RankedSnapshot>(a: T, b: T) =>
+      b.rankPoints - a.rankPoints;
+
     onChange({
-      players: latestPlayers.filter((p) => p.games > 0),
-      clans: latestClans.filter((c) => c.games > 0),
+      players: latestPlayers.filter((p) => p.games > 0).sort(sortByRankPoints),
+      clans: latestClans.filter((c) => c.games > 0).sort(sortByRankPoints),
       fetchedAt: new Date(),
     });
   };
