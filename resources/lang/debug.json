@@ -240,6 +240,9 @@
     "last_updated": "Last updated: {date}",
     "retry": "Retry",
     "players_tab": "Players",
-    "clans_tab": "Clans"
+    "clans_tab": "Clans",
+    "rank_points": "Rank Points",
+    "total_rank_points": "Total Rank Points",
+    "tier": "Tier"
   }
 }

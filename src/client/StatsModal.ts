@@ -161,8 +161,8 @@ export class StatsModal extends LitElement {
         ${this.renderTableHeader([
           translateText("stats_modal.rank"),
           translateText("stats_modal.player"),
-          "Rank Points",
-          "Tier",
+          translateText("stats_modal.rank_points"),
+          translateText("stats_modal.tier"),
         ])}
         <tbody>
           ${players.map(
@@ -210,8 +210,8 @@ export class StatsModal extends LitElement {
         ${this.renderTableHeader([
           translateText("stats_modal.rank"),
           translateText("stats_modal.clan"),
-          "Total Rank Points",
-          "Tier",
+          translateText("stats_modal.total_rank_points"),
+          translateText("stats_modal.tier"),
         ])}
         <tbody>
           ${clans.map(
