@@ -214,6 +214,7 @@ const CLAN_CLAIMS_COLLECTION = "clanClaims";
 const CLAN_TAG_CLAIMS_COLLECTION = "clanTagClaims";
 const PLAYER_RANKINGS_COLLECTION = "playerRankings";
 const CLAN_RANKINGS_COLLECTION = "clanRankings";
+const RANKED_MATCH_RESULTS_COLLECTION = "rankedMatchResults";
 
 export type ClanMemberRole = "leader" | "member";
 
@@ -1192,6 +1193,9 @@ export async function recordRankedResult(
   const clanNickname: string | null = userData.clanNickname ?? null;
 
   let resultSummary: RankedResultSummary | null = null;
+  const serializedBreakdown = breakdown
+    ? JSON.parse(JSON.stringify(breakdown))
+    : null;
 
   await firestore.runTransaction(db, async (tx: any) => {
     const playerRef = firestore.doc(db, PLAYER_RANKINGS_COLLECTION, user.uid);
@@ -1212,6 +1216,11 @@ export async function recordRankedResult(
     }
 
     const playerChange = computeRankChange(playerData.rating, ratingDelta);
+    const matchResultRef = firestore.doc(
+      db,
+      RANKED_MATCH_RESULTS_COLLECTION,
+      `${user.uid}_${gameRecord.info.gameID}`,
+    );
 
     const nextPlayerRankPoints = playerChange.newRating;
     const updatedPlayer: RankedSnapshot = {
@@ -1234,6 +1243,29 @@ export async function recordRankedResult(
         clanId,
         clanName,
         clanNickname,
+      },
+      { merge: true },
+    );
+
+    tx.set(
+      matchResultRef,
+      {
+        gameId: gameRecord.info.gameID,
+        playerUid: user.uid,
+        persistentId: playerEntry.persistentID ?? null,
+        username: playerEntry.username,
+        clanId,
+        clanName,
+        clanNickname,
+        mode: gameRecord.info.config.gameMode ?? GameMode.FFA,
+        isWinner,
+        ratingDelta,
+        previousRating: playerChange.previousRating,
+        newRating: playerChange.newRating,
+        tierBefore: playerChange.previousTier,
+        tierAfter: playerChange.newTier,
+        breakdown: serializedBreakdown,
+        recordedAt: firestore.serverTimestamp(),
       },
       { merge: true },
     );
