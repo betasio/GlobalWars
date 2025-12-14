@@ -256,13 +256,14 @@ export async function claimUsername(
   }
 
   const normalized = encodeURIComponent(username.trim().toLowerCase());
+  const now = firestore.serverTimestamp();
   await firestore.runTransaction(db, async (tx: any) => {
     const claimRef = firestore.doc(db, USERNAME_CLAIMS_COLLECTION, normalized);
     const userRef = firestore.doc(db, USER_COLLECTION, uid);
     const userSnap = await tx.get(userRef);
-    const previousUsername = userSnap?.exists
-      ? userSnap.data()?.username
-      : null;
+    const userData = userSnap?.exists ? (userSnap.data() ?? {}) : {};
+    const previousUsername = userData?.username ?? null;
+    const clanId: string | null = userData?.clanId ?? null;
     const previousClaimId = previousUsername
       ? encodeURIComponent(previousUsername.trim().toLowerCase())
       : null;
@@ -280,17 +281,20 @@ export async function claimUsername(
     tx.set(claimRef, {
       uid,
       username,
-      updatedAt: firestore.serverTimestamp(),
+      updatedAt: now,
     });
 
     tx.set(
       userRef,
       {
         username,
-        updatedAt: firestore.serverTimestamp(),
+        updatedAt: now,
       },
       { merge: true },
     );
+
+    const playerRankingRef = firestore.doc(db, PLAYER_RANKINGS_COLLECTION, uid);
+    tx.set(playerRankingRef, { username, lastUpdatedAt: now }, { merge: true });
 
     if (previousClaimId && previousClaimId !== normalized) {
       const previousClaimRef = firestore.doc(
@@ -299,6 +303,29 @@ export async function claimUsername(
         previousClaimId,
       );
       tx.delete(previousClaimRef);
+    }
+
+    if (clanId) {
+      const clanRef = firestore.doc(db, CLAN_COLLECTION, clanId);
+      const clanSnap = await tx.get(clanRef);
+      if (clanSnap?.exists && clanSnap.exists()) {
+        const clanData = clanSnap.data() ?? {};
+        const memberEntry = (clanData.members ?? {})[uid];
+        tx.set(
+          clanRef,
+          {
+            [`members.${uid}`]: {
+              ...memberEntry,
+              uid,
+              username,
+              role: memberEntry?.role ?? "member",
+              joinedAt: memberEntry?.joinedAt ?? now,
+            },
+            updatedAt: now,
+          },
+          { merge: true },
+        );
+      }
     }
   });
 }

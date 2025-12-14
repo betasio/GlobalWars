@@ -245,6 +245,4 @@ function renderRankedResultScreen(result: RankedResultSummary) {
   });
 
   document.body.appendChild(overlay);
-
-  setTimeout(() => overlay.remove(), 10000);
 }
