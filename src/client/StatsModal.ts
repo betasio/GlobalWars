@@ -168,7 +168,9 @@ export class StatsModal extends LitElement {
           ${players.map(
             (player, idx) =>
               html`<tr class="border-b border-gray-800 last:border-b-0">
-                <td class="py-2 px-2 text-left font-semibold">${idx + 1}</td>
+                <td class="py-2 px-2 text-left font-semibold">
+                  ${player.position ?? idx + 1}
+                </td>
                 <td class="py-2 px-2 text-left">
                   <div class="flex flex-col">
                     <span class="font-semibold">
@@ -208,14 +210,16 @@ export class StatsModal extends LitElement {
         ${this.renderTableHeader([
           translateText("stats_modal.rank"),
           translateText("stats_modal.clan"),
-          "Rank Points",
+          "Total Rank Points",
           "Tier",
         ])}
         <tbody>
           ${clans.map(
             (clan, idx) =>
               html`<tr class="border-b border-gray-800 last:border-b-0">
-                <td class="py-2 px-2 text-left font-semibold">${idx + 1}</td>
+                <td class="py-2 px-2 text-left font-semibold">
+                  ${clan.position ?? idx + 1}
+                </td>
                 <td class="py-2 px-2 text-left">
                   <div class="flex flex-col">
                     <span class="font-semibold">
@@ -226,7 +230,7 @@ export class StatsModal extends LitElement {
                   </div>
                 </td>
                 <td class="py-2 px-2 text-right font-semibold">
-                  ${clan.rankPoints}
+                  ${clan.totalRankPoints ?? clan.rankPoints}
                 </td>
                 <td class="py-2 px-2 text-left">
                   ${this.renderTierCell(clan.rankPoints, clan.tier)}
