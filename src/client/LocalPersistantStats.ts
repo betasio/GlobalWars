@@ -61,11 +61,16 @@ export function endGame(gameRecord: PartialGameRecord) {
 
   // Update ranked stats for authenticated players; guests are ignored inside
   // the helper and will no-op.
-  void recordRankedResult(gameRecord).then((result) => {
-    if (result) {
-      renderRankedResultScreen(result);
+  void (async () => {
+    try {
+      const result = await recordRankedResult(gameRecord);
+      if (result) {
+        renderRankedResultScreen(result);
+      }
+    } catch (err) {
+      console.warn("Failed to persist ranked result", err);
     }
-  });
+  })();
 }
 
 function renderRankedResultScreen(result: RankedResultSummary) {
