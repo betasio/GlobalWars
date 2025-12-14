@@ -10,17 +10,17 @@ describe("ranked scoring", () => {
     {
       clientID: "winner",
       username: "TopPlayer",
-      stats: { conquests: 12, gold: 25000 },
+      stats: { conquests: 12n, gold: [25000n] },
     },
     {
       clientID: "mid",
       username: "MidPlayer",
-      stats: { conquests: 5, gold: 10000, killedAt: 10 },
+      stats: { conquests: 5n, gold: [10000n], killedAt: 10n },
     },
     {
       clientID: "early",
       username: "EarlyExit",
-      stats: { conquests: 1, gold: 1000, killedAt: 5 },
+      stats: { conquests: 1n, gold: [1000n], killedAt: 5n },
     },
   ];
 
