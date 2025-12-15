@@ -57,6 +57,21 @@ export class StatsModal extends LitElement {
     this.isLoading = true;
     this.error = null;
 
+    const resolveErrorMessage = (err: any) => {
+      const code = err?.code ?? err?.message ?? "";
+      if (
+        code === "firebase_auth_required" ||
+        code === "permission-denied" ||
+        `${code}`.includes("permission")
+      ) {
+        return (
+          translateText("stats_modal.auth_required") ??
+          "You need to be signed in to view ranked leaderboards."
+        );
+      }
+      return translateText("stats_modal.error");
+    };
+
     try {
       this.unsubscribeRanked = await subscribeToRankedLeaderboards(
         (leaderboard) => {
@@ -67,11 +82,21 @@ export class StatsModal extends LitElement {
           this.requestUpdate();
         },
         (err) => {
-          console.warn(
-            "StatsModal: failed to subscribe to ranked leaderboards",
-            err,
-          );
-          this.error = translateText("stats_modal.error");
+          if (err?.code === "firebase_auth_required") {
+            console.info(
+              "StatsModal: ranked leaderboards require authentication",
+            );
+          } else if (err?.code === "permission-denied") {
+            console.info(
+              "StatsModal: missing Firestore permissions for leaderboards",
+            );
+          } else {
+            console.warn(
+              "StatsModal: failed to subscribe to ranked leaderboards",
+              err,
+            );
+          }
+          this.error = resolveErrorMessage(err);
           this.isLoading = false;
           this.unsubscribeRanked = null;
           this.requestUpdate();

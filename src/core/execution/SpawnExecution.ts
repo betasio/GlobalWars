@@ -38,7 +38,13 @@ export class SpawnExecution implements Execution {
     }
 
     player.tiles().forEach((t) => player.relinquish(t));
-    getSpawnTiles(this.mg, this.tile).forEach((t) => {
+
+    const spawnTiles = getSpawnTiles(this.mg, this.tile);
+    if (!spawnTiles.includes(this.tile) && this.mg.isLand(this.tile)) {
+      spawnTiles.unshift(this.tile);
+    }
+
+    spawnTiles.forEach((t) => {
       player.conquer(t);
     });
 
