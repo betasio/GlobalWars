@@ -82,11 +82,7 @@ export class StatsModal extends LitElement {
           this.requestUpdate();
         },
         (err) => {
-          if (err?.code === "firebase_auth_required") {
-            console.info(
-              "StatsModal: ranked leaderboards require authentication",
-            );
-          } else if (err?.code === "permission-denied") {
+          if (err?.code === "permission-denied") {
             console.info(
               "StatsModal: missing Firestore permissions for leaderboards",
             );
@@ -96,7 +92,7 @@ export class StatsModal extends LitElement {
               err,
             );
           }
-          this.error = resolveErrorMessage(err);
+          this.error = translateText("stats_modal.error");
           this.isLoading = false;
           this.unsubscribeRanked = null;
           this.requestUpdate();
