@@ -67,24 +67,29 @@ export class StatsModal extends LitElement {
           this.requestUpdate();
         },
         (err) => {
-          console.warn(
-            "StatsModal: failed to subscribe to ranked leaderboards",
-            err,
-          );
-          this.error = translateText("stats_modal.error");
-          this.isLoading = false;
-          this.unsubscribeRanked = null;
-          this.requestUpdate();
+          this.handleLeaderboardError(err);
         },
       );
     } catch (err) {
-      console.warn("StatsModal: failed to load ranked leaderboards", err);
-      this.error = translateText("stats_modal.error");
-      this.unsubscribeRanked = null;
+      this.handleLeaderboardError(err);
     } finally {
       this.isLoading = false;
       this.requestUpdate();
     }
+  }
+
+  private handleLeaderboardError(err: any) {
+    if (err?.code === "permission-denied") {
+      console.info(
+        "StatsModal: missing Firestore permissions for leaderboards",
+      );
+    } else {
+      console.warn("StatsModal: failed to load ranked leaderboards", err);
+    }
+    this.error = translateText("stats_modal.error");
+    this.isLoading = false;
+    this.unsubscribeRanked = null;
+    this.requestUpdate();
   }
 
   private renderTabs() {
