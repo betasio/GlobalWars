@@ -1414,6 +1414,15 @@ export async function subscribeToRankedLeaderboards(
     return () => {};
   }
 
+  const { auth } = await ensureAuth();
+  const user = auth ? (auth.currentUser ?? cachedUser) : cachedUser;
+  if (!user) {
+    const err: any = new Error("firebase_auth_required");
+    err.code = "firebase_auth_required";
+    onError?.(err);
+    return () => {};
+  }
+
   // Fallback to a polling loop if realtime listeners are unavailable
   if (!firestore.onSnapshot) {
     let cancelled = false;

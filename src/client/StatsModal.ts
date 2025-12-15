@@ -57,6 +57,21 @@ export class StatsModal extends LitElement {
     this.isLoading = true;
     this.error = null;
 
+    const resolveErrorMessage = (err: any) => {
+      const code = err?.code ?? err?.message ?? "";
+      if (
+        code === "firebase_auth_required" ||
+        code === "permission-denied" ||
+        `${code}`.includes("permission")
+      ) {
+        return (
+          translateText("stats_modal.auth_required") ??
+          "You need to be signed in to view ranked leaderboards."
+        );
+      }
+      return translateText("stats_modal.error");
+    };
+
     try {
       this.unsubscribeRanked = await subscribeToRankedLeaderboards(
         (leaderboard) => {
