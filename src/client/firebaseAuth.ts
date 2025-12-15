@@ -1414,6 +1414,15 @@ export async function subscribeToRankedLeaderboards(
     return () => {};
   }
 
+  const { auth } = await ensureAuth();
+  const user = auth ? (auth.currentUser ?? cachedUser) : cachedUser;
+  if (!user) {
+    const err: any = new Error("firebase_auth_required");
+    err.code = "firebase_auth_required";
+    onError?.(err);
+    return () => {};
+  }
+
   // Fallback to a polling loop if realtime listeners are unavailable
   if (!firestore.onSnapshot) {
     let cancelled = false;
@@ -1478,6 +1487,19 @@ export async function subscribeToRankedLeaderboards(
     });
   };
 
+  const teardownOnError = (err: any) => {
+    onError?.(err);
+    try {
+      unsubscribePlayers?.();
+      unsubscribeClans?.();
+    } catch (cleanupErr) {
+      console.warn(
+        "subscribeToRankedLeaderboards: failed to unsubscribe after error",
+        cleanupErr,
+      );
+    }
+  };
+
   const unsubscribePlayers = firestore.onSnapshot(
     playerQuery,
     (snapshot: any) => {
@@ -1485,11 +1507,17 @@ export async function subscribeToRankedLeaderboards(
       emitLeaderboard();
     },
     (err: any) => {
-      console.warn(
-        "subscribeToRankedLeaderboards: players snapshot failed",
-        err,
-      );
-      onError?.(err);
+      if (err?.code === "permission-denied") {
+        console.info(
+          "subscribeToRankedLeaderboards: player snapshot blocked by permissions",
+        );
+      } else {
+        console.warn(
+          "subscribeToRankedLeaderboards: players snapshot failed",
+          err,
+        );
+      }
+      teardownOnError(err);
     },
   );
 
@@ -1500,8 +1528,17 @@ export async function subscribeToRankedLeaderboards(
       emitLeaderboard();
     },
     (err: any) => {
-      console.warn("subscribeToRankedLeaderboards: clans snapshot failed", err);
-      onError?.(err);
+      if (err?.code === "permission-denied") {
+        console.info(
+          "subscribeToRankedLeaderboards: clan snapshot blocked by permissions",
+        );
+      } else {
+        console.warn(
+          "subscribeToRankedLeaderboards: clans snapshot failed",
+          err,
+        );
+      }
+      teardownOnError(err);
     },
   );
 
