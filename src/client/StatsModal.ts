@@ -67,10 +67,16 @@ export class StatsModal extends LitElement {
           this.requestUpdate();
         },
         (err) => {
-          console.warn(
-            "StatsModal: failed to subscribe to ranked leaderboards",
-            err,
-          );
+          if (err?.code === "permission-denied") {
+            console.info(
+              "StatsModal: missing Firestore permissions for leaderboards",
+            );
+          } else {
+            console.warn(
+              "StatsModal: failed to subscribe to ranked leaderboards",
+              err,
+            );
+          }
           this.error = translateText("stats_modal.error");
           this.isLoading = false;
           this.unsubscribeRanked = null;
