@@ -6,7 +6,7 @@ describe("Territory management", () => {
   test("player owns the tile it spawns on", async () => {
     const game = await setup("plains");
     game.addPlayer(
-      new PlayerInfo("testplayer", PlayerType.Human, null, "test_id"),
+      new PlayerInfo("test_player", PlayerType.Human, null, "test_id"),
     );
     const spawnTile = game.map().ref(50, 50);
     game.addExecution(
@@ -19,6 +19,6 @@ describe("Territory management", () => {
 
     const owner = game.owner(spawnTile);
     expect(owner.isPlayer()).toBe(true);
-    expect((owner as Player).name()).toBe("testplayer");
+    expect((owner as Player).name()).toBe("test_player");
   });
 });
