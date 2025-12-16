@@ -94,11 +94,7 @@ export class StatsModal extends LitElement {
   }
 
   private handleLeaderboardError(err: any) {
-    if (err?.message === "firebase_auth_required") {
-      console.info(
-        "StatsModal: anonymous Firebase auth required for leaderboards",
-      );
-    } else if (err?.code === "permission-denied") {
+    if (err?.code === "permission-denied") {
       console.info(
         "StatsModal: missing Firestore permissions for leaderboards",
       );
