@@ -2,6 +2,7 @@ import { css, html, LitElement } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 import { getRankForRating } from "../core/Ranks";
 import {
+  ensureFirebaseReady,
   RankedClanEntry,
   RankedLeaderboards,
   RankedPlayerEntry,
@@ -57,20 +58,20 @@ export class StatsModal extends LitElement {
     this.isLoading = true;
     this.error = null;
 
-    const resolveErrorMessage = (err: any) => {
-      const code = err?.code ?? err?.message ?? "";
-      if (
-        code === "firebase_auth_required" ||
-        code === "permission-denied" ||
-        `${code}`.includes("permission")
-      ) {
-        return (
-          translateText("stats_modal.auth_required") ??
-          "You need to be signed in to view ranked leaderboards."
-        );
-      }
-      return translateText("stats_modal.error");
-    };
+    const { user, configured } = await ensureFirebaseReady();
+    if (!configured) {
+      this.error = translateText("stats_modal.error");
+      this.isLoading = false;
+      this.requestUpdate();
+      return;
+    }
+
+    if (!user) {
+      this.error = translateText("stats_modal.auth_required");
+      this.isLoading = false;
+      this.requestUpdate();
+      return;
+    }
 
     try {
       this.unsubscribeRanked = await subscribeToRankedLeaderboards(
