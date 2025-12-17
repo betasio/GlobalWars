@@ -254,6 +254,13 @@ export interface ClanProfile {
   leaderUid: string;
   members: Record<string, ClanMember>;
   membersCount: number;
+  rankPoints?: number;
+  totalRankPoints?: number;
+  tier?: RankTier;
+  games?: number;
+  wins?: number;
+  losses?: number;
+  rankPosition?: number;
 }
 
 export async function fetchStoredUsername(uid: string): Promise<string | null> {
@@ -398,6 +405,19 @@ async function fetchClanById(clanId: string): Promise<ClanProfile | null> {
   };
 }
 
+async function fetchClanRanking(
+  clanId: string,
+): Promise<RankedClanEntry | null> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore) return null;
+
+  const rankingRef = firestore.doc(db, CLAN_RANKINGS_COLLECTION, clanId);
+  const snap = await firestore.getDoc(rankingRef);
+  if (!snap?.exists || !snap.exists()) return null;
+
+  return parseRankedClanEntry(snap);
+}
+
 export async function fetchClanForUser(
   uid: string,
 ): Promise<ClanProfile | null> {
@@ -439,16 +459,49 @@ export async function subscribeToClan(
   if (!configured || !db || !firestore) return () => {};
 
   const clanRef = firestore.doc(db, CLAN_COLLECTION, clanId);
+  const rankingRef = firestore.doc(db, CLAN_RANKINGS_COLLECTION, clanId);
+
+  let latestClan: ClanProfile | null = null;
+  let latestRanking: RankedClanEntry | null = null;
+
+  const emit = () => {
+    if (!latestClan) {
+      onChange(null);
+      return;
+    }
+
+    const merged: ClanProfile = {
+      ...latestClan,
+      rankPoints: latestRanking?.rankPoints ?? latestClan.rankPoints,
+      totalRankPoints:
+        latestRanking?.totalRankPoints ?? latestClan.totalRankPoints,
+      tier: latestRanking?.tier ?? latestClan.tier,
+      games: latestRanking?.games ?? latestClan.games,
+      wins: latestRanking?.wins ?? latestClan.wins,
+      losses: latestRanking?.losses ?? latestClan.losses,
+      rankPosition:
+        latestRanking?.position ?? latestClan.rankPosition ?? undefined,
+    };
+
+    onChange(merged);
+  };
+
+  const tearDownOnError = (err: any) => {
+    console.error("Failed to subscribe to clan", err);
+    onError?.(err);
+  };
+
   if (firestore.onSnapshot) {
-    return firestore.onSnapshot(
+    const unsubscribeClan = firestore.onSnapshot(
       clanRef,
       (snap: any) => {
         if (!snap?.exists || !snap.exists()) {
+          latestClan = null;
           onChange(null);
           return;
         }
         const data = snap.data() ?? {};
-        onChange({
+        latestClan = {
           id: clanId,
           name: data.name ?? clanId,
           nickname: data.nickname ?? "",
@@ -456,17 +509,41 @@ export async function subscribeToClan(
           members: data.members ?? {},
           membersCount:
             data.membersCount ?? Object.keys(data.members ?? {}).length,
-        });
+          rankPoints: data.rankPoints,
+          totalRankPoints: data.totalRankPoints ?? data.rankPoints,
+        };
+        emit();
       },
-      (err: any) => {
-        console.error("Failed to subscribe to clan", err);
-        onError?.(err);
-      },
+      tearDownOnError,
     );
+
+    const unsubscribeRanking = firestore.onSnapshot(
+      rankingRef,
+      (snap: any) => {
+        if (!snap?.exists || !snap.exists()) {
+          latestRanking = null;
+          emit();
+          return;
+        }
+        latestRanking = parseRankedClanEntry(snap);
+        emit();
+      },
+      tearDownOnError,
+    );
+
+    return () => {
+      try {
+        unsubscribeClan?.();
+        unsubscribeRanking?.();
+      } catch (err) {
+        console.warn("Failed to unsubscribe from clan listeners", err);
+      }
+    };
   }
 
-  const snapshot = await fetchClanById(clanId);
-  onChange(snapshot);
+  latestClan = await fetchClanById(clanId);
+  latestRanking = await fetchClanRanking(clanId);
+  emit();
   return () => {};
 }
 

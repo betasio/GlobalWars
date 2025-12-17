@@ -186,16 +186,27 @@ export class ClanModal extends LitElement {
       },
     );
     const isLeader = this.clan.leaderUid === this.authUser?.uid;
+    const totalRankPoints =
+      this.clan.totalRankPoints ?? this.clan.rankPoints ?? 0;
 
     return html`
       <div class="space-y-4">
         <div class="flex items-center justify-between">
-          <div>
+          <div class="space-y-1">
             <p class="text-xl font-bold">${this.clan.name}</p>
-            <p class="text-sm text-gray-300">
-              ${translateText("clan.members_label") ?? "Members"}:
-              ${memberEntries.length}
-            </p>
+            <div class="flex flex-col text-sm text-gray-300 gap-1">
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-purple-200">
+                  ${translateText("stats_modal.rank_points") ??
+                  "Ranked points"}:
+                </span>
+                <span>${totalRankPoints}</span>
+              </div>
+              <p>
+                ${translateText("clan.members_label") ?? "Members"}:
+                ${memberEntries.length}
+              </p>
+            </div>
           </div>
           ${isLeader
             ? html`<button
