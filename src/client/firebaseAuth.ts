@@ -298,6 +298,8 @@ export async function claimUsername(
       : null;
 
     const claimSnap = await tx.get(claimRef);
+    const clanRef = clanId ? firestore.doc(db, CLAN_COLLECTION, clanId) : null;
+    const clanSnap = clanRef ? await tx.get(clanRef) : null;
     if (claimSnap?.exists && claimSnap.exists()) {
       const currentUid = claimSnap.data()?.uid;
       if (currentUid && currentUid !== uid) {
@@ -334,27 +336,23 @@ export async function claimUsername(
       tx.delete(previousClaimRef);
     }
 
-    if (clanId) {
-      const clanRef = firestore.doc(db, CLAN_COLLECTION, clanId);
-      const clanSnap = await tx.get(clanRef);
-      if (clanSnap?.exists && clanSnap.exists()) {
-        const clanData = clanSnap.data() ?? {};
-        const memberEntry = (clanData.members ?? {})[uid];
-        tx.set(
-          clanRef,
-          {
-            [`members.${uid}`]: {
-              ...memberEntry,
-              uid,
-              username,
-              role: memberEntry?.role ?? "member",
-              joinedAt: memberEntry?.joinedAt ?? now,
-            },
-            updatedAt: now,
+    if (clanRef && clanSnap?.exists && clanSnap.exists()) {
+      const clanData = clanSnap.data() ?? {};
+      const memberEntry = (clanData.members ?? {})[uid];
+      tx.set(
+        clanRef,
+        {
+          [`members.${uid}`]: {
+            ...memberEntry,
+            uid,
+            username,
+            role: memberEntry?.role ?? "member",
+            joinedAt: memberEntry?.joinedAt ?? now,
           },
-          { merge: true },
-        );
-      }
+          updatedAt: now,
+        },
+        { merge: true },
+      );
     }
   });
 }
@@ -801,6 +799,100 @@ export async function leaveClan(uid: string): Promise<void> {
   }
 }
 
+export async function deleteAccountAndData(
+  confirmEmail: string,
+): Promise<void> {
+  const modules = await loadFirebaseModules();
+  const { auth, configured } = await ensureAuth();
+  if (!modules || !configured || !auth) {
+    throw new Error("firebase_not_configured");
+  }
+
+  const user = auth.currentUser ?? cachedUser;
+  if (!user) {
+    throw new Error("not_authenticated");
+  }
+
+  const emailMatch = (user.email ?? "").toLowerCase();
+  if (emailMatch !== confirmEmail.trim().toLowerCase()) {
+    const err: any = new Error("email_mismatch");
+    err.code = "email_mismatch";
+    throw err;
+  }
+
+  const { db, firestore } = await ensureFirestore();
+  if (!db || !firestore) {
+    throw new Error("firebase_not_configured");
+  }
+
+  const uid = user.uid;
+  const userRef = firestore.doc(db, USER_COLLECTION, uid);
+  const playerRankingRef = firestore.doc(db, PLAYER_RANKINGS_COLLECTION, uid);
+
+  let clanId: string | null = null;
+  let previousClaimRef: any | null = null;
+
+  await firestore.runTransaction(db, async (tx: any) => {
+    const userSnap = await tx.get(userRef);
+    if (!userSnap?.exists || !userSnap.exists()) {
+      throw new Error("user_missing");
+    }
+
+    const userData = userSnap.data() ?? {};
+    clanId = userData?.clanId ?? null;
+    const username = userData?.username ?? null;
+    previousClaimRef = username
+      ? firestore.doc(
+          db,
+          USERNAME_CLAIMS_COLLECTION,
+          encodeURIComponent(username.trim().toLowerCase()),
+        )
+      : null;
+
+    const clanRef = clanId ? firestore.doc(db, CLAN_COLLECTION, clanId) : null;
+    const clanSnap = clanRef ? await tx.get(clanRef) : null;
+
+    if (clanRef && clanSnap?.exists && clanSnap.exists()) {
+      const clanData = clanSnap.data() ?? {};
+      const members = { ...(clanData.members ?? {}) };
+      delete members[uid];
+      const membersCount = Math.max(0, Object.keys(members).length);
+      tx.set(
+        clanRef,
+        {
+          ...clanData,
+          members,
+          membersCount,
+          leaderUid: clanData.leaderUid === uid ? null : clanData.leaderUid,
+          updatedAt: firestore.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }
+
+    if (previousClaimRef) {
+      tx.delete(previousClaimRef);
+    }
+
+    tx.delete(playerRankingRef);
+    tx.delete(userRef);
+  });
+
+  if (clanId) {
+    await updateClanRankingTotals(clanId);
+  }
+
+  try {
+    await modules.auth.deleteUser(user);
+  } catch (err) {
+    console.error("Failed to delete firebase auth user", err);
+    throw err;
+  } finally {
+    cachedUser = null;
+    cachedIdToken = null;
+  }
+}
+
 export async function renameClan(
   uid: string,
   clanId: string,
@@ -1142,6 +1234,12 @@ export interface RankedLeaderboards {
   fetchedAt: Date;
 }
 
+export interface PlayerRankSummary {
+  rankPoints: number;
+  tier: RankTier;
+  position?: number;
+}
+
 const extractRankPoints = (data: any): number => {
   const rankPoints = safeNumber(
     data?.totalRankPoints ?? data?.rankPoints ?? data?.rating,
@@ -1188,6 +1286,44 @@ const parseRankedClanEntry = (doc: any): RankedClanEntry => {
 const addPositions = <T extends RankedSnapshot & { position?: number }>(
   entries: T[],
 ): T[] => entries.map((entry, idx) => ({ ...entry, position: idx + 1 }));
+
+export async function fetchPlayerRankSummary(
+  uid: string,
+): Promise<PlayerRankSummary | null> {
+  const { db, firestore, configured } = await ensureFirestore();
+  if (!configured || !db || !firestore || !uid) return null;
+
+  const rankingRef = firestore.doc(db, PLAYER_RANKINGS_COLLECTION, uid);
+  const rankingSnap = await firestore.getDoc(rankingRef);
+  if (!rankingSnap?.exists || !rankingSnap.exists()) {
+    return null;
+  }
+
+  const snapshot = buildRankedSnapshot(rankingSnap.data());
+  let position: number | undefined;
+
+  if (firestore.getCountFromServer) {
+    try {
+      const higherQuery = firestore.query(
+        firestore.collection(db, PLAYER_RANKINGS_COLLECTION),
+        firestore.where("totalRankPoints", ">", snapshot.rankPoints),
+      );
+      const aggregate = await firestore.getCountFromServer(higherQuery);
+      const count = aggregate?.data?.()?.count ?? aggregate?.data().count;
+      if (typeof count === "number") {
+        position = count + 1;
+      }
+    } catch (err) {
+      console.warn("Failed to calculate player rank position", err);
+    }
+  }
+
+  return {
+    rankPoints: snapshot.rankPoints,
+    tier: snapshot.tier,
+    position,
+  };
+}
 
 async function updateClanRankingTotals(
   clanId: string,
