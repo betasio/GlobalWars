@@ -886,7 +886,15 @@ export async function deleteAccountAndData(
   }
 
   try {
-    await modules.auth.deleteUser(user);
+    if (typeof modules.auth.deleteUser === "function") {
+      await modules.auth.deleteUser(user);
+    } else if (typeof (user as any)?.delete === "function") {
+      await (user as any).delete();
+    } else {
+      const err: any = new Error("delete_user_not_supported");
+      err.code = "delete_user_not_supported";
+      throw err;
+    }
   } catch (err) {
     console.error("Failed to delete firebase auth user", err);
     throw err;
@@ -1305,13 +1313,16 @@ export async function fetchPlayerRankSummary(
   const snapshot = buildRankedSnapshot(rankingSnap.data());
   let position: number | undefined;
 
-  if (firestore.getCountFromServer) {
+  const getCountFromServer = firestore.getCountFromServer;
+  const where = firestore.where;
+
+  if (getCountFromServer && where) {
     try {
       const higherQuery = firestore.query(
         firestore.collection(db, PLAYER_RANKINGS_COLLECTION),
-        firestore.where("totalRankPoints", ">", snapshot.rankPoints),
+        where("totalRankPoints", ">", snapshot.rankPoints),
       );
-      const aggregate = await firestore.getCountFromServer(higherQuery);
+      const aggregate = await getCountFromServer(higherQuery);
       const count = aggregate?.data?.()?.count ?? aggregate?.data().count;
       if (typeof count === "number") {
         position = count + 1;
