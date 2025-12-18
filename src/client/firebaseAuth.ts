@@ -34,6 +34,7 @@ type FirebaseAuthModule = {
   signInWithPopup: (auth: any, provider: any) => Promise<{ user: any }>;
   signInAnonymously?: (auth: any) => Promise<{ user: any }>;
   signOut: (auth: any) => Promise<void>;
+  deleteUser?: (user: any) => Promise<void>;
 };
 
 type FirebaseFirestoreModule = {
@@ -43,6 +44,7 @@ type FirebaseFirestoreModule = {
   setDoc: (ref: any, data: any, options?: any) => Promise<void>;
   collection: (db: any, name: string) => any;
   query: (...args: any[]) => any;
+  where?: (...args: any[]) => any;
   orderBy: (field: string, direction?: "asc" | "desc") => any;
   limit: (count: number) => any;
   getDocs: (query: any) => Promise<any>;
@@ -52,6 +54,7 @@ type FirebaseFirestoreModule = {
     updater: (transaction: any) => Promise<any>,
   ) => Promise<void>;
   serverTimestamp: () => any;
+  getCountFromServer?: (query: any) => Promise<any>;
   onSnapshot?: (
     ref: any,
     onNext: (snap: any) => void,
