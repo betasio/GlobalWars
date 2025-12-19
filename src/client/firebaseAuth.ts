@@ -1477,6 +1477,11 @@ export async function recordRankedResult(
     ? JSON.parse(JSON.stringify(breakdown))
     : null;
 
+  const currentGameId = gameRecord.info.gameID;
+  const matchId =
+    currentGameId ??
+    `missing_game_id_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
   await firestore.runTransaction(db, async (tx: any) => {
     const playerRef = firestore.doc(db, PLAYER_RANKINGS_COLLECTION, user.uid);
     const playerSnap = await tx.get(playerRef);
@@ -1491,7 +1496,10 @@ export async function recordRankedResult(
           tier: getRankForRating(1000),
         };
 
-    if (playerSnap?.data()?.lastGameId === gameRecord.info.gameID) {
+    const lastRecordedGameId = playerSnap?.data()?.lastGameId;
+    // Only treat as duplicate when the current game id is present and matches
+    // the previous record. Missing IDs should not prevent rank updates.
+    if (currentGameId && lastRecordedGameId === currentGameId) {
       return; // Already counted this match
     }
 
@@ -1499,7 +1507,7 @@ export async function recordRankedResult(
     const matchResultRef = firestore.doc(
       db,
       RANKED_MATCH_RESULTS_COLLECTION,
-      `${user.uid}_${gameRecord.info.gameID}`,
+      `${user.uid}_${matchId}`,
     );
 
     const nextPlayerRankPoints = playerChange.newRating;
@@ -1517,7 +1525,7 @@ export async function recordRankedResult(
       {
         ...updatedPlayer,
         totalRankPoints: updatedPlayer.rankPoints,
-        lastGameId: gameRecord.info.gameID,
+        lastGameId: currentGameId ?? matchId,
         lastUpdatedAt: firestore.serverTimestamp(),
         username: playerEntry.username,
         clanId,
