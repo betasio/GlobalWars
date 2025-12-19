@@ -217,9 +217,13 @@ export async function ensureFirebaseReady(): Promise<{
   user: any | null;
   configured: boolean;
 }> {
-  const { configured } = await ensureAuth();
+  const { auth, configured } = await ensureAuth();
+  const resolvedUser = cachedUser ?? auth?.currentUser ?? null;
+  if (!cachedUser && resolvedUser) {
+    cachedUser = resolvedUser;
+  }
   return {
-    user: cachedUser,
+    user: resolvedUser,
     configured,
   };
 }
