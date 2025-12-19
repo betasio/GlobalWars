@@ -2,6 +2,7 @@ import { css, html, LitElement } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 import { getRankForRating } from "../core/Ranks";
 import {
+  ensureFirebaseReady,
   RankedClanEntry,
   RankedLeaderboards,
   RankedPlayerEntry,
@@ -57,6 +58,21 @@ export class StatsModal extends LitElement {
     this.isLoading = true;
     this.error = null;
 
+    const { user, configured } = await ensureFirebaseReady();
+    if (!configured) {
+      this.error = translateText("stats_modal.error");
+      this.isLoading = false;
+      this.requestUpdate();
+      return;
+    }
+
+    if (!user) {
+      this.error = translateText("stats_modal.auth_required");
+      this.isLoading = false;
+      this.requestUpdate();
+      return;
+    }
+
     try {
       this.unsubscribeRanked = await subscribeToRankedLeaderboards(
         (leaderboard) => {
@@ -67,24 +83,29 @@ export class StatsModal extends LitElement {
           this.requestUpdate();
         },
         (err) => {
-          console.warn(
-            "StatsModal: failed to subscribe to ranked leaderboards",
-            err,
-          );
-          this.error = translateText("stats_modal.error");
-          this.isLoading = false;
-          this.unsubscribeRanked = null;
-          this.requestUpdate();
+          this.handleLeaderboardError(err);
         },
       );
     } catch (err) {
-      console.warn("StatsModal: failed to load ranked leaderboards", err);
-      this.error = translateText("stats_modal.error");
-      this.unsubscribeRanked = null;
+      this.handleLeaderboardError(err);
     } finally {
       this.isLoading = false;
       this.requestUpdate();
     }
+  }
+
+  private handleLeaderboardError(err: any) {
+    if (err?.code === "permission-denied") {
+      console.info(
+        "StatsModal: missing Firestore permissions for leaderboards",
+      );
+    } else {
+      console.warn("StatsModal: failed to load ranked leaderboards", err);
+    }
+    this.error = translateText("stats_modal.error");
+    this.isLoading = false;
+    this.unsubscribeRanked = null;
+    this.requestUpdate();
   }
 
   private renderTabs() {
@@ -112,17 +133,18 @@ export class StatsModal extends LitElement {
     `;
   }
 
-  private renderTableHeader(headers: string[]) {
+  private renderTableHeader(
+    headers: string[],
+    alignments?: ("left" | "right")[],
+  ) {
     return html`<thead>
       <tr class="border-b border-gray-700 text-gray-300">
         ${headers.map(
           (header, idx) =>
             html`<th
-              class="py-2 px-2 ${idx === 0
-                ? "text-left"
-                : idx === headers.length - 1
-                  ? "text-left"
-                  : "text-right"}"
+              class="py-2 px-2 ${alignments?.[idx] === "right"
+                ? "text-right"
+                : "text-left"}"
             >
               ${header}
             </th>`,
@@ -158,12 +180,15 @@ export class StatsModal extends LitElement {
 
     return html`<div class="overflow-x-auto">
       <table class="min-w-full text-xs md:text-sm">
-        ${this.renderTableHeader([
-          translateText("stats_modal.rank"),
-          translateText("stats_modal.player"),
-          translateText("stats_modal.rank_points"),
-          translateText("stats_modal.tier"),
-        ])}
+        ${this.renderTableHeader(
+          [
+            translateText("stats_modal.rank"),
+            translateText("stats_modal.player"),
+            translateText("stats_modal.rank_points"),
+            translateText("stats_modal.tier"),
+          ],
+          ["left", "left", "right", "left"],
+        )}
         <tbody>
           ${players.map(
             (player, idx) =>
@@ -207,12 +232,14 @@ export class StatsModal extends LitElement {
 
     return html`<div class="overflow-x-auto">
       <table class="min-w-full text-xs md:text-sm">
-        ${this.renderTableHeader([
-          translateText("stats_modal.rank"),
-          translateText("stats_modal.clan"),
-          translateText("stats_modal.total_rank_points"),
-          translateText("stats_modal.tier"),
-        ])}
+        ${this.renderTableHeader(
+          [
+            translateText("stats_modal.rank"),
+            translateText("stats_modal.clan"),
+            translateText("stats_modal.total_rank_points"),
+          ],
+          ["left", "left", "right"],
+        )}
         <tbody>
           ${clans.map(
             (clan, idx) =>
@@ -231,9 +258,6 @@ export class StatsModal extends LitElement {
                 </td>
                 <td class="py-2 px-2 text-right font-semibold">
                   ${clan.totalRankPoints ?? clan.rankPoints}
-                </td>
-                <td class="py-2 px-2 text-left">
-                  ${this.renderTierCell(clan.rankPoints, clan.tier)}
                 </td>
               </tr>`,
           )}

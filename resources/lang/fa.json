@@ -639,17 +639,17 @@
     "available_tooltip": "نیروهای فعلی در دسترس شما",
     "min_keep": "حداقل نگهداری",
     "min_keep_pct": "(30%)",
-    "slider_tooltip": "{{percent}}% • {{amount}}",
+    "slider_tooltip": "{percent}% • {amount}",
     "toggle_attack_bar_mode": "برای ارسال نیروها از نوار حمله استفاده کنید",
     "warning_attackbar": "پس از فعال‌شدن، دیگر نمی‌توانید این پنجره را مستقیماً باز کنید. تنها از طریق نوار حمله می‌توانید نیرو ارسال کنید.",
     "aria_slider": "نوار نیروها",
-    "capacity_note": "گیرنده فقط می‌تواند {{amount}} را در حال حاضر بپذیرد."
+    "capacity_note": "گیرنده فقط می‌تواند {amount} را در حال حاضر بپذیرد."
   },
   "send_gold_modal": {
     "title_with_name": "ارسال طلا به {name}",
     "available_tooltip": "طلا فعلی در دسترس شما",
     "aria_slider": "اسلاید مقدار",
-    "slider_tooltip": "{{percent}}% • {{amount}}"
+    "slider_tooltip": "{percent}% • {amount}"
   },
   "replay_panel": {
     "replay_speed": "سرعت بازپخش",
