@@ -639,17 +639,17 @@
     "available_tooltip": "Ваші поточні доступні війська",
     "min_keep": "Мінімальний залишок",
     "min_keep_pct": "(30%)",
-    "slider_tooltip": "{{percent}}% • {{amount}}",
+    "slider_tooltip": "{percent}% • {amount}",
     "toggle_attack_bar_mode": "Використовуйте панель атаки, щоб відправляти війська",
     "warning_attackbar": "Після увімкнення ви втратите можливість відкривати це вікно напряму. Ви зможете відправляти війська лише через панель атаки.",
     "aria_slider": "Повзунок військ",
-    "capacity_note": "Зараз отримувач може прийняти лише {{amount}}."
+    "capacity_note": "Зараз отримувач може прийняти лише {amount}."
   },
   "send_gold_modal": {
     "title_with_name": "Надіслати золото до {name}",
     "available_tooltip": "Ваше поточне доступне золото",
     "aria_slider": "Повзунок кількості",
-    "slider_tooltip": "{{percent}}% • {{amount}}"
+    "slider_tooltip": "{percent}% • {amount}"
   },
   "replay_panel": {
     "replay_speed": "Швидкість відтворення",
