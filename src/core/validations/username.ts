@@ -22,7 +22,9 @@ const matcher = new RegExpMatcher({
 export const MIN_USERNAME_LENGTH = 3;
 export const MAX_USERNAME_LENGTH = 27;
 
-const validPattern = /^[a-zA-Z0-9]+$/u;
+const allowedCharClass = "[A-Za-z0-9]";
+const validPattern = new RegExp(`^${allowedCharClass}+$`);
+const validCharPattern = new RegExp(allowedCharClass);
 
 const shadowNames = [
   "NicePeopleOnly",
@@ -142,7 +144,7 @@ export function validateUsername(username: string): {
 
 export function sanitizeUsername(str: string): string {
   const sanitized = Array.from(str)
-    .filter((ch) => validPattern.test(ch))
+    .filter((ch) => validCharPattern.test(ch))
     .join("")
     .slice(0, MAX_USERNAME_LENGTH);
   return sanitized.padEnd(MIN_USERNAME_LENGTH, "x");

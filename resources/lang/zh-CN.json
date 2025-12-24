@@ -639,17 +639,17 @@
     "available_tooltip": "你的剩余军队",
     "min_keep": "最小保留值",
     "min_keep_pct": "(30%)",
-    "slider_tooltip": "{{percent}}% • {{amount}}",
+    "slider_tooltip": "{percent}% • {amount}",
     "toggle_attack_bar_mode": "在攻击栏中发送军队",
     "warning_attackbar": "启用后，你无法直接打开此模式，只能在攻击栏中发送军队。",
     "aria_slider": "军队滑块",
-    "capacity_note": "接收者现在仅能接收 {{amount}}。"
+    "capacity_note": "接收者现在仅能接收 {amount}。"
   },
   "send_gold_modal": {
     "title_with_name": "向 {name} 发送黄金",
     "available_tooltip": "你的剩余黄金",
     "aria_slider": "数量滑块",
-    "slider_tooltip": "{{percent}}% • {{amount}}"
+    "slider_tooltip": "{percent}% • {amount}"
   },
   "replay_panel": {
     "replay_speed": "回放速度",
