@@ -1780,9 +1780,11 @@ export async function subscribeToRankedLeaderboards(
 
   let latestPlayers: RankedPlayerEntry[] | null = null;
   let latestClans: RankedClanEntry[] | null = null;
+  let cancelled = false;
+  const refreshIntervalMs = 15000;
 
   const emitLeaderboard = () => {
-    if (!latestPlayers || !latestClans) return;
+    if (!latestPlayers || !latestClans || cancelled) return;
 
     const sortByRankPoints = <T extends RankedSnapshot>(a: T, b: T) =>
       b.rankPoints - a.rankPoints;
@@ -1799,6 +1801,20 @@ export async function subscribeToRankedLeaderboards(
       clans: clansWithPositions,
       fetchedAt: new Date(),
     });
+  };
+
+  const seedFetch = async () => {
+    try {
+      const leaderboard = await fetchRankedLeaderboards(limitCount);
+      if (cancelled) return;
+      latestPlayers = leaderboard.players;
+      latestClans = leaderboard.clans;
+      emitLeaderboard();
+    } catch (err) {
+      if (!cancelled) {
+        onError?.(err);
+      }
+    }
   };
 
   const teardownOnError = (err: any) => {
@@ -1856,7 +1872,12 @@ export async function subscribeToRankedLeaderboards(
     },
   );
 
+  await seedFetch();
+  const interval = setInterval(seedFetch, refreshIntervalMs);
+
   return () => {
+    cancelled = true;
+    clearInterval(interval);
     try {
       unsubscribePlayers?.();
       unsubscribeClans?.();
