@@ -639,17 +639,17 @@
     "available_tooltip": "Текущите ти войници на разположение",
     "min_keep": "Минимално запазени",
     "min_keep_pct": "(30%)",
-    "slider_tooltip": "{{percent}}% • {{amount}}",
+    "slider_tooltip": "{percent}% • {amount}",
     "toggle_attack_bar_mode": "Използвайте лентата за атака, за да изпратите войници",
     "warning_attackbar": "След като е активиран, не можеш да отвориш този модален прозорец директно. Ще изпращаш войници само чрез лентата за атака.",
     "aria_slider": "Плъзгач за войници",
-    "capacity_note": "Получателят може да приеме само {{amount}} в момента."
+    "capacity_note": "Получателят може да приеме само {amount} в момента."
   },
   "send_gold_modal": {
     "title_with_name": "Изпрати злато на {name}",
     "available_tooltip": "Текущото ти злато на разположение",
     "aria_slider": "Количествен плъзгач",
-    "slider_tooltip": "{{percent}}% • {{amount}}"
+    "slider_tooltip": "{percent}% • {amount}"
   },
   "replay_panel": {
     "replay_speed": "Скорост на повторението",
