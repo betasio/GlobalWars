@@ -2,9 +2,12 @@ import { html, LitElement, TemplateResult } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 import { UserMeResponse } from "../core/ApiSchemas";
 import {
+  deleteAccountAndData,
   ensureFirebaseReady,
+  fetchPlayerRankSummary,
   loginWithGoogle,
   logoutFirebase,
+  PlayerRankSummary,
 } from "./firebaseAuth";
 import { isInIframe, translateText } from "./Utils";
 
@@ -18,6 +21,11 @@ export class AccountModal extends LitElement {
   @state() private isLoadingUser: boolean = false;
   @state() private firebaseConfigured = true;
   @state() private authError: string | null = null;
+  @state() private rankSummary: PlayerRankSummary | null = null;
+  @state() private isLoadingRank: boolean = false;
+  @state() private deleteConfirmValue: string = "";
+  @state() private deleteError: string | null = null;
+  @state() private isDeletingAccount: boolean = false;
 
   private loggedInEmail: string | null = null;
 
@@ -77,7 +85,10 @@ export class AccountModal extends LitElement {
             Logged in as ${this.loggedInEmail}
           </p>
         </div>
-        ${this.logoutButton()}
+        ${this.renderRankBlock()}
+        <div class="mt-6 flex flex-col gap-3">
+          ${this.logoutButton()} ${this.renderDeleteAccount()}
+        </div>
       </div>
     `;
   }
@@ -90,6 +101,100 @@ export class AccountModal extends LitElement {
       >
         Log Out
       </button>
+    `;
+  }
+
+  private renderRankBlock(): TemplateResult {
+    if (this.isLoadingRank) {
+      return html`<div class="flex items-center justify-center text-gray-200">
+        <span class="text-sm mr-3">Loading rank...</span>
+        <div
+          class="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"
+        ></div>
+      </div>`;
+    }
+
+    if (!this.rankSummary) {
+      return html`<div class="text-center text-gray-300 text-sm">
+        Rank data unavailable.
+      </div>`;
+    }
+
+    const tier = this.rankSummary.tier;
+    const hasPosition = Number.isFinite(this.rankSummary.position);
+
+    return html`
+      <div
+        class="flex flex-col items-center gap-2 rounded-xl bg-slate-800/70 p-4 border border-white/10"
+      >
+        <div class="flex items-center gap-3">
+          <img src="${tier.logo}" alt="${tier.name}" class="w-10 h-10" />
+          <div class="text-left">
+            <div class="text-sm text-gray-300">Current Tier</div>
+            <div class="text-lg font-semibold text-white">${tier.name}</div>
+          </div>
+        </div>
+        <div
+          class="flex flex-wrap items-center justify-center gap-3 text-sm text-gray-200"
+        >
+          <span
+            class="px-3 py-1 rounded-full bg-slate-700/80 border border-white/10"
+          >
+            Rank Points: ${this.rankSummary.rankPoints}
+          </span>
+          <span
+            class="px-3 py-1 rounded-full bg-slate-700/80 border border-white/10"
+          >
+            ${hasPosition
+              ? `Leaderboard Rank: #${this.rankSummary.position}`
+              : "Leaderboard Rank: --"}
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
+  private renderDeleteAccount(): TemplateResult {
+    const disabled =
+      this.isDeletingAccount ||
+      !this.loggedInEmail ||
+      this.deleteConfirmValue.trim().toLowerCase() !==
+        (this.loggedInEmail ?? "").toLowerCase();
+
+    return html`
+      <div class="p-4 rounded-xl border border-red-500/30 bg-red-900/10">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <div class="text-white font-semibold">Delete account</div>
+            <p class="text-xs text-gray-300">
+              Type your email (${this.loggedInEmail}) to confirm deletion.
+            </p>
+          </div>
+        </div>
+        <input
+          type="email"
+          class="w-full px-3 py-2 rounded-md bg-slate-900 border border-white/10 text-white text-sm"
+          placeholder="Confirm email"
+          .value=${this.deleteConfirmValue}
+          @input=${(e: Event) => {
+            const target = e.target as HTMLInputElement;
+            this.deleteConfirmValue = target.value;
+            this.deleteError = null;
+          }}
+        />
+        ${this.deleteError
+          ? html`<p class="mt-2 text-xs text-red-400">${this.deleteError}</p>`
+          : html``}
+        <div class="mt-3 flex justify-end">
+          <button
+            @click="${this.handleDeleteAccount}"
+            class="px-4 py-2 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            ?disabled=${disabled}
+          >
+            ${this.isDeletingAccount ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </div>
     `;
   }
 
@@ -154,16 +259,27 @@ export class AccountModal extends LitElement {
   public open() {
     this.modalEl?.open();
     this.isLoadingUser = true;
+    this.isLoadingRank = true;
+    this.rankSummary = null;
+    this.deleteConfirmValue = "";
+    this.deleteError = null;
 
     void ensureFirebaseReady()
       .then(({ configured, user }) => {
         this.firebaseConfigured = configured;
         this.loggedInEmail = user?.email ?? null;
+        const uid = user?.uid ?? null;
+        if (uid) {
+          void this.loadRankSummary(uid);
+        } else {
+          this.isLoadingRank = false;
+        }
       })
       .catch((err) => {
         console.warn("Failed to initialize Firebase auth", err);
         this.firebaseConfigured = false;
         this.loggedInEmail = null;
+        this.isLoadingRank = false;
       })
       .finally(() => {
         this.isLoadingUser = false;
@@ -180,6 +296,49 @@ export class AccountModal extends LitElement {
     this.close();
     // Refresh the page after logout to update the UI state
     window.location.reload();
+  }
+
+  private async loadRankSummary(uid: string) {
+    this.isLoadingRank = true;
+    try {
+      this.rankSummary = await fetchPlayerRankSummary(uid);
+    } catch (err) {
+      console.warn("Failed to fetch player rank summary", err);
+      this.rankSummary = null;
+    } finally {
+      this.isLoadingRank = false;
+      this.requestUpdate();
+    }
+  }
+
+  private async handleDeleteAccount() {
+    if (!this.loggedInEmail) return;
+    if (
+      this.deleteConfirmValue.trim().toLowerCase() !==
+      this.loggedInEmail.toLowerCase()
+    ) {
+      this.deleteError = "Email does not match";
+      return;
+    }
+
+    this.deleteError = null;
+    this.isDeletingAccount = true;
+    try {
+      await deleteAccountAndData(this.deleteConfirmValue.trim());
+      window.location.reload();
+    } catch (err: any) {
+      const code = err?.code ?? err?.message ?? "delete_failed";
+      this.deleteError =
+        code === "email_mismatch"
+          ? "Email confirmation does not match your account."
+          : code === "auth/requires-recent-login"
+            ? "Please log in again before deleting your account."
+            : "Failed to delete account. Please try again.";
+      console.error("Failed to delete account", err);
+    } finally {
+      this.isDeletingAccount = false;
+      this.requestUpdate();
+    }
   }
 }
 

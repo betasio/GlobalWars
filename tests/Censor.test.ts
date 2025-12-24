@@ -101,13 +101,17 @@ describe("username.ts functions", () => {
       const res = validateUsername("Invalid!Name");
       expect(res.isValid).toBe(false);
     });
-    test("accepts valid ASCII names", () => {
+    test("rejects underscores", () => {
       const res = validateUsername("Good_Name123");
+      expect(res.isValid).toBe(false);
+    });
+    test("accepts alphanumeric ASCII names", () => {
+      const res = validateUsername("GoodName123");
       expect(res.isValid).toBe(true);
     });
-    test("accepts allowed Unicode like 🐈 or ü", () => {
+    test("rejects non-ASCII characters", () => {
       const res = validateUsername("Cat🐈Üser");
-      expect(res.isValid).toBe(true);
+      expect(res.isValid).toBe(false);
     });
   });
 
@@ -123,7 +127,7 @@ describe("username.ts functions", () => {
           .slice(0, MAX_USERNAME_LENGTH),
       },
       { input: "", expected: "xxx" },
-      { input: "Ünicode🐈Test!", expected: "Ünicode🐈Test" },
+      { input: "Ünicode🐈Test!", expected: "nicodeTest" },
     ])('sanitizeUsername("%s") → "%s"', ({ input, expected }) => {
       const out = sanitizeUsername(input);
       expect(out).toBe(expected);
