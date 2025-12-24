@@ -1493,9 +1493,30 @@ export async function recordRankedResult(
   const { db, firestore } = await ensureFirestore();
   if (!db || !firestore) return null;
 
-  const playerEntry = gameRecord.info.players.find(
-    (p) => p.persistentID === getPersistentID(),
-  );
+  const persistentId = getPersistentID();
+  let playerEntry =
+    gameRecord.info.players.find((p) => p.persistentID === persistentId) ??
+    null;
+
+  if (!playerEntry) {
+    const userRef = firestore.doc(db, USER_COLLECTION, user.uid);
+    const userSnap = await firestore.getDoc(userRef);
+    const userData = userSnap?.data() ?? {};
+    const normalizedUsername = (userData.username ?? user.displayName ?? "")
+      .trim()
+      .toLowerCase();
+    if (normalizedUsername) {
+      playerEntry =
+        gameRecord.info.players.find(
+          (p) => (p.username ?? "").toLowerCase() === normalizedUsername,
+        ) ?? null;
+    }
+  }
+
+  if (!playerEntry && gameRecord.info.players.length === 1) {
+    playerEntry = gameRecord.info.players[0];
+  }
+
   if (!playerEntry) return null;
 
   const isWinner = didPlayerWin(gameRecord.info.winner, playerEntry.clientID);
