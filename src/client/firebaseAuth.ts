@@ -1517,7 +1517,14 @@ export async function recordRankedResult(
     playerEntry = gameRecord.info.players[0];
   }
 
-  if (!playerEntry) return null;
+  // As a last resort, synthesize a record for the current user so ranked
+  // results are still recorded even if the match data omitted our entry.
+  playerEntry ??= {
+    clientID: persistentId ?? user.uid,
+    username: user.displayName ?? user.email ?? "Player",
+    persistentID: persistentId ?? null,
+    stats: undefined,
+  } as any;
 
   const isWinner = didPlayerWin(gameRecord.info.winner, playerEntry.clientID);
   const { ratingDelta, breakdown } = computeRatingDelta(
