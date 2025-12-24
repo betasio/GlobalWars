@@ -739,6 +739,18 @@ export async function joinClan(
       },
       { merge: true },
     );
+
+    const playerRankingRef = firestore.doc(db, PLAYER_RANKINGS_COLLECTION, uid);
+    tx.set(
+      playerRankingRef,
+      {
+        clanId: normalized,
+        clanName: clanData.name ?? clanName ?? null,
+        clanNickname: clanData.nickname ?? null,
+        lastUpdatedAt: now,
+      },
+      { merge: true },
+    );
   });
 
   const joined = await fetchClanById(normalized);
@@ -793,6 +805,18 @@ export async function leaveClan(uid: string): Promise<void> {
     tx.set(
       userRef,
       { clanId: null, clanRole: null, clanName: null, clanNickname: null },
+      { merge: true },
+    );
+
+    const playerRankingRef = firestore.doc(db, PLAYER_RANKINGS_COLLECTION, uid);
+    tx.set(
+      playerRankingRef,
+      {
+        clanId: null,
+        clanName: null,
+        clanNickname: null,
+        lastUpdatedAt: firestore.serverTimestamp(),
+      },
       { merge: true },
     );
   });
@@ -1201,6 +1225,22 @@ export async function kickMember(
     tx.set(
       userRef,
       { clanId: null, clanRole: null, clanName: null, clanNickname: null },
+      { merge: true },
+    );
+
+    const playerRankingRef = firestore.doc(
+      db,
+      PLAYER_RANKINGS_COLLECTION,
+      memberUid,
+    );
+    tx.set(
+      playerRankingRef,
+      {
+        clanId: null,
+        clanName: null,
+        clanNickname: null,
+        lastUpdatedAt: firestore.serverTimestamp(),
+      },
       { merge: true },
     );
   });
