@@ -32,6 +32,7 @@ type FirebaseAuthModule = {
   onAuthStateChanged: (auth: any, cb: (user: any) => void) => void;
   onIdTokenChanged: (auth: any, cb: (user: any) => void) => void;
   signInWithPopup: (auth: any, provider: any) => Promise<{ user: any }>;
+  signInAnonymously?: (auth: any) => Promise<{ user: any }>;
   signOut: (auth: any) => Promise<void>;
   deleteUser?: (user: any) => Promise<void>;
 };
@@ -148,6 +149,27 @@ async function ensureAuth(): Promise<{ auth: any; configured: boolean }> {
   }
 
   return { auth: authInstance, configured: true };
+}
+
+async function ensureRankedReadAuth(): Promise<void> {
+  const { auth, configured } = await ensureAuth();
+  if (!configured || !auth || cachedUser || cachedIdToken) return;
+
+  const modules = await loadFirebaseModules();
+  if (!modules || !modules.auth.signInAnonymously) {
+    throw new Error("firebase_auth_required");
+  }
+
+  try {
+    const credential = await modules.auth.signInAnonymously(auth);
+    cachedUser = credential?.user ?? null;
+    if (cachedUser?.getIdToken) {
+      cachedIdToken = await cachedUser.getIdToken();
+    }
+  } catch (err) {
+    console.warn("Failed to sign in anonymously for ranked leaderboards", err);
+    throw new Error("firebase_auth_required");
+  }
 }
 
 async function ensureFirestore(): Promise<{
@@ -1665,6 +1687,8 @@ export async function recordRankedResult(
 export async function fetchRankedLeaderboards(
   limitCount = 50,
 ): Promise<RankedLeaderboards> {
+  await ensureRankedReadAuth();
+
   const { db, firestore, configured } = await ensureFirestore();
   if (!configured || !db || !firestore) {
     throw new Error("firebase_not_configured");
@@ -1719,9 +1743,25 @@ export async function subscribeToRankedLeaderboards(
   onError?: (err: any) => void,
   limitCount = 50,
 ): Promise<() => void> {
+  try {
+    await ensureRankedReadAuth();
+  } catch (err) {
+    onError?.(err);
+    return () => {};
+  }
+
   const { db, firestore, configured } = await ensureFirestore();
   if (!configured || !db || !firestore) {
     onError?.(new Error("firebase_not_configured"));
+    return () => {};
+  }
+
+  const { auth } = await ensureAuth();
+  const user = auth ? (auth.currentUser ?? cachedUser) : cachedUser;
+  if (!user) {
+    const err: any = new Error("firebase_auth_required");
+    err.code = "firebase_auth_required";
+    onError?.(err);
     return () => {};
   }
 
