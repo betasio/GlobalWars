@@ -1485,6 +1485,12 @@ export async function recordRankedResult(
   await firestore.runTransaction(db, async (tx: any) => {
     const playerRef = firestore.doc(db, PLAYER_RANKINGS_COLLECTION, user.uid);
     const playerSnap = await tx.get(playerRef);
+
+    const clanRef = clanId
+      ? firestore.doc(db, CLAN_RANKINGS_COLLECTION, clanId)
+      : null;
+    const clanSnap = clanRef ? await tx.get(clanRef) : null;
+
     const playerData: RankedSnapshot = playerSnap?.exists
       ? buildRankedSnapshot(playerSnap.data())
       : {
@@ -1560,9 +1566,7 @@ export async function recordRankedResult(
 
     let clanChange: RankChange | undefined;
 
-    if (clanId) {
-      const clanRef = firestore.doc(db, CLAN_RANKINGS_COLLECTION, clanId);
-      const clanSnap = await tx.get(clanRef);
+    if (clanId && clanRef) {
       const clanData: RankedSnapshot = clanSnap?.exists
         ? buildRankedSnapshot(clanSnap.data())
         : {
