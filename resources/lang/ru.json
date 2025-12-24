@@ -639,17 +639,17 @@
     "available_tooltip": "Ваши доступные в данный момент войска",
     "min_keep": "Минимальный остаток",
     "min_keep_pct": "(30%)",
-    "slider_tooltip": "{{percent}}% • {{amount}}",
+    "slider_tooltip": "{percent}% • {amount}",
     "toggle_attack_bar_mode": "Используйте панель атаки, чтобы отправить войска",
     "warning_attackbar": "После включения этой функции вы не сможете открыть это окно напрямую. Вы сможете отправлять войска только через панель атаки.",
     "aria_slider": "Ползунок войск",
-    "capacity_note": "Получатель в данный момент может принять только {{amount}}."
+    "capacity_note": "Получатель в данный момент может принять только {amount}."
   },
   "send_gold_modal": {
     "title_with_name": "Отправить золото игроку {name}",
     "available_tooltip": "Ваше доступное в данный момент золото",
     "aria_slider": "Ползунок количества",
-    "slider_tooltip": "{{percent}}% • {{amount}}"
+    "slider_tooltip": "{percent}% • {amount}"
   },
   "replay_panel": {
     "replay_speed": "Скорость повтора",
