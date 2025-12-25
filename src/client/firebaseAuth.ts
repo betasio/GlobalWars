@@ -15,7 +15,7 @@ import {
   computeRankChange,
   getRankForRating,
 } from "../core/Ranks";
-import { PartialGameRecord } from "../core/Schemas";
+import { PartialGameRecord, PlayerRecord } from "../core/Schemas";
 import { getPersistentID } from "./Main";
 
 // We load the Firebase SDK from the official CDN at runtime so we don't
@@ -1524,12 +1524,17 @@ export async function recordRankedResult(
     username: user.displayName ?? user.email ?? "Player",
     persistentID: persistentId ?? null,
     stats: undefined,
-  } as any;
+  } as PlayerRecord;
 
-  const isWinner = didPlayerWin(gameRecord.info.winner, playerEntry.clientID);
+  const finalPlayerEntry = playerEntry as PlayerRecord;
+
+  const isWinner = didPlayerWin(
+    gameRecord.info.winner,
+    finalPlayerEntry.clientID,
+  );
   const { ratingDelta, breakdown } = computeRatingDelta(
     gameRecord,
-    playerEntry.clientID,
+    finalPlayerEntry.clientID,
   );
 
   // Fetch clan metadata outside the transaction for readability
@@ -1601,10 +1606,33 @@ export async function recordRankedResult(
         totalRankPoints: updatedPlayer.rankPoints,
         lastGameId: currentGameId ?? matchId,
         lastUpdatedAt: firestore.serverTimestamp(),
-        username: playerEntry.username,
+        username: finalPlayerEntry.username,
         clanId,
         clanName,
         clanNickname,
+      },
+      { merge: true },
+    );
+
+    tx.set(
+      matchResultRef,
+      {
+        gameId: gameRecord.info.gameID,
+        playerUid: user.uid,
+        persistentId: finalPlayerEntry.persistentID ?? null,
+        username: finalPlayerEntry.username,
+        clanId,
+        clanName,
+        clanNickname,
+        mode: gameRecord.info.config.gameMode ?? GameMode.FFA,
+        isWinner,
+        ratingDelta,
+        previousRating: playerChange.previousRating,
+        newRating: playerChange.newRating,
+        tierBefore: playerChange.previousTier,
+        tierAfter: playerChange.newTier,
+        breakdown: serializedBreakdown,
+        recordedAt: firestore.serverTimestamp(),
       },
       { merge: true },
     );
